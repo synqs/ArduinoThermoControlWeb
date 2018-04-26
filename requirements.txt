@@ -1,0 +1,14 @@
+certifi==2018.4.16
+click==6.7
+Flask==0.12.2
+Flask-WTF==0.14.2
+future==0.16.0
+iso8601==0.1.12
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
+pyserial==3.4
+PyYAML==3.12
+serial==0.0.64
+Werkzeug==0.14.1
+WTForms==2.1
