@@ -1,7 +1,7 @@
 from app import app
 from app.forms import ConnectForm, DataForm
 import serial
-
+import h5py
 from flask import render_template, flash, redirect
 
 vals = [];
@@ -44,10 +44,20 @@ def config():
 
 @app.route('/file/<filename>')
 def file(filename):
-    dform = DataForm()
-    app.config['REMOTE_FILE'] = filename;
-    flash('Changed filename to {}'.format(filename))
-    return redirect('/index')
+    '''function to save the values of the hdf5 file'''
+
+    # just a dummy for the moment.
+    vals = [1, 2, 3];
+    with h5py.File(filename, "a") as f:
+        if 'globals' in f.keys():
+            params = f['globals']
+            params.attrs['T_Verr'] = vals[0]
+            params.attrs['T_Vmeas'] = vals[1]
+            params.attrs['T_Vinp'] = vals[2]
+            flash('The added vals to the file {}'.format(filename))
+        else:
+            flash('The file {} did not have the global group yet.'.format(filename), 'error')
+    return render_template('file.html', file = filename)
 
 @app.errorhandler(500)
 def internal_error(error):

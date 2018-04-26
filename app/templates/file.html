@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div>
+  {% if file %}
+      <p>{{ file }}</p>
+  {% else%}
+    <p>You should have a file to which we write here.</p>
+  {% endif %}
+</div>
+{% endblock %}
