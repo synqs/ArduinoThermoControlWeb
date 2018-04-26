@@ -5,6 +5,7 @@ import serial
 from flask import render_template, flash, redirect
 
 vals = [];
+fname = '';
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -12,11 +13,12 @@ def index():
     dform = DataForm()
     if dform.validate_on_submit():
         flash('We would like to submit some data locally. We have here {}'.format(vals))
+        flash('We would like to submit some data remote. We have here {}'.format(app.config['REMOTE_FILE']))
         vals.append(1)
         return redirect('/index')
 
     lyseout = 'This is some dummy output from lyse.'
-    return render_template('index.html', lyseout=lyseout, dform = dform)
+    return render_template('index.html', lyseout=fname, dform = dform)
 
 
 @app.route('/config', methods=['GET', 'POST'])
@@ -40,6 +42,12 @@ def config():
 
     return render_template('config.html', port = port, form=form)
 
+@app.route('/file/<filename>')
+def file(filename):
+    dform = DataForm()
+    app.config['REMOTE_FILE'] = filename;
+    flash('Changed filename to {}'.format(filename))
+    return redirect('/index')
 
 @app.errorhandler(500)
 def internal_error(error):
