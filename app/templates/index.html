@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<h1>Hello</h1>
+<div> Text here</div>
+<div>
+  <form action="" method="post">
+       {{ form.hidden_tag() }}
+       <p>
+           {{ form.username.label }}<br>
+           {{ form.username(size=32) }}
+       <p>{{ form.submit() }}</p>
+   </form>
+</div>
+<div>
+  <form action="" method="post" enctype="multipart/form-data">
+       {{ fileform.hidden_tag() }}
+       <p>
+           {{ fileform.file.label }}<br>
+           {{ fileform.file() }}
+       <p>{{ fileform.submit() }}</p>
+   </form>
+</div>
+<div>
+  {% if lyseout %}
+      {{lyseout}}
+  {% else%}
+    Here we will have the lyse results printed at some point.
+  {% endif %}
+</div>
+{% endblock %}
