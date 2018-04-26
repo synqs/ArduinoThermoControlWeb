@@ -1,15 +1,19 @@
 <html>
     <head>
-      <title> Lyse Web-Interface</title>
+      <title> Arduino Web-Interface</title>
     </head>
     <body>
         <div>Lyse: <a href="/index">Home</a></div>
         <hr>
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <ul>
-            {% for message in messages %}
-            <li>{{ message }}</li>
+            {% for category, message in messages %}
+            {% if category == 'error' %}
+              <li><span style="color: red;">{{ message }}</span></li>
+            {% else %}
+              <li>{{ message }}</li>
+            {% endif %}
             {% endfor %}
         </ul>
         {% endif %}
