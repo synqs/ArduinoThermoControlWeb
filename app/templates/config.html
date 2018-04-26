@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div>
+  <p>We are currently listening for the Arduino on port: {{ port }}</p>
+</div>
+<div>
+  <form action="" method="post">
+       {{ form.hidden_tag() }}
+       <p>
+           {{ form.serial_port.label }}<br>
+           {{ form.serial_port(size=32) }}
+       <p>{{ form.submit() }}</p>
+   </form>
+</div>
+
+{% endblock %}

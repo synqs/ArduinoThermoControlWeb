@@ -3,11 +3,9 @@
 {% block app_content %}
 <div>
   <form action="" method="post">
-       {{ form.hidden_tag() }}
+       {{ dform.hidden_tag() }}
        <p>
-           {{ form.serial_port.label }}<br>
-           {{ form.serial_port(size=32) }}
-       <p>{{ form.submit() }}</p>
+       <p>{{ dform.submit() }}</p>
    </form>
 </div>
 

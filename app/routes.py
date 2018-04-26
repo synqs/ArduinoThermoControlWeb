@@ -1,17 +1,35 @@
 from app import app
-from app.forms import LoginForm
+from app.forms import ConnectForm, DataForm
 import serial
+
 from flask import render_template, flash, redirect
+
+vals = [];
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    form = LoginForm()
+    dform = DataForm()
+    if dform.validate_on_submit():
+        flash('We would like to submit some data locally. We have here {}'.format(vals))
+        vals.append(1)
+        return redirect('/index')
+
+    lyseout = 'This is some dummy output from lyse.'
+    return render_template('index.html', lyseout=lyseout, dform = dform)
+
+
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    port = app.config['SERIAL_PORT']
+    form = ConnectForm()
 
     if form.validate_on_submit():
-        flash('We got the following port {}'.format(form.serial_port.data))
+
+        app.config['SERIAL_PORT'] = form.serial_port.data
+        flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
         try:
-            ser = serial.Serial('COM32', 9600, timeout = 1)
+            ser = serial.Serial(form.serial_port.data, 9600, timeout = 1)
         # except serial.SerialException:
         #     s.close()
         #     ser.close()
@@ -20,8 +38,7 @@ def index():
              flash('{}'.format(e), 'error')
         return redirect('/index')
 
-    lyseout = 'This is some dummy output from lyse.'
-    return render_template('index.html', lyseout=lyseout, form=form)
+    return render_template('config.html', port = port, form=form)
 
 
 @app.errorhandler(500)

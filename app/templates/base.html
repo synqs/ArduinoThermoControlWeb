@@ -3,7 +3,8 @@
       <title> Arduino Web-Interface</title>
     </head>
     <body>
-        <div>Lyse: <a href="/index">Home</a></div>
+        <div><a href="/index">Home</a>
+          <a href="/config">Config</a></div>
         <hr>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
