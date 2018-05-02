@@ -9,14 +9,25 @@ from io import BytesIO
 import base64
 import numpy as np
 import matplotlib as mpl
-
+import pandas as pd
+from datetime import datetime
 mpl.use('AGG')
 
 import matplotlib.pyplot as plt
 
-
-vals = [];
+#create the dummy dataframed
+d = {'timestamp':[], 'Verr':[], 'Vmeas':[], 'Vinp':[]}
+df = pd.DataFrame(d);
 fname = '';
+
+def create_test_data():
+    timestamp = pd.Timestamp(datetime.utcnow())
+    Verr = np.random.randint(10);
+    Vmeas = np.random.randint(750);
+    Vinp = np.random.randint(50);
+    d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
+    #dapp = pd.DataFrame(d, index = d['timestamp']);
+    return d
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -24,9 +35,14 @@ def index():
     # test the data form
     dform = DataForm()
     if dform.validate_on_submit():
-        flash('We would like to submit some data locally. We have here {}'.format(vals))
+        #the following note is horrible and should be changed !!!!!
+        global df
+        df = df.append(create_test_data(), ignore_index = True);
+        #df = df2;
+        #print(df)
+        flash('We would like to submit some data locally. We have here {}'.format(df))
         flash('We would like to submit some data remote. We have here {}'.format(app.config['REMOTE_FILE']))
-        vals.append(1)
+        #vals.append(1)
         return redirect('/index')
 
     lyseout = 'This is some dummy output from lyse.'
@@ -73,10 +89,11 @@ def file(filename):
 @app.route('/fig')
 def htmlplot():
     # make the figure
-    t = np.linspace(0,2*np.pi,100);
-    y = np.sin(t);
+    #t = np.linspace(0,2*np.pi,100);
+    y = df['Verr'];
     f, ax = plt.subplots()
-    ax.plot(t, y)
+    ax.plot(y)
+    #df.plot(ax=ax)
     figfile = BytesIO()
     f.savefig(figfile);
     figfile.seek(0)

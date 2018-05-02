@@ -8,8 +8,9 @@
        <p>{{ dform.submit() }}</p>
    </form>
 </div>
+
 <div>
-<img src="{{ url_for('htmlplot') }}" alt="Image Placeholder" width="500">
+<img id='img' src="{{ url_for('htmlplot') }}" alt="loading the log ..." width="500">
 
 <div>
   {% if lyseout %}
