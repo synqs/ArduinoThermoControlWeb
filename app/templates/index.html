@@ -1,15 +1,13 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-<div>
-  <form action="" method="post">
-       {{ dform.hidden_tag() }}
-       <p>
-       <p>{{ dform.submit() }}</p>
-   </form>
+<div class="row">
+        <div class="col-md-4">
+            {{ wtf.quick_form(dform) }}
+        </div>
 </div>
 
-<div>
 <img id='img' src="{{ url_for('htmlplot') }}" alt="loading the log ..." width="500">
 
 <div>

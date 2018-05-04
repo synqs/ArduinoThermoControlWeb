@@ -21,12 +21,11 @@ df = pd.DataFrame(d);
 fname = '';
 
 def create_test_data():
-    timestamp = pd.Timestamp(datetime.utcnow())
+    timestamp = datetime.utcnow()
     Verr = np.random.randint(10);
     Vmeas = np.random.randint(750);
     Vinp = np.random.randint(50);
     d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
-    #dapp = pd.DataFrame(d, index = d['timestamp']);
     return d
 
 @app.route('/')
@@ -38,13 +37,11 @@ def index():
         #the following note is horrible and should be changed !!!!!
         global df
         df = df.append(create_test_data(), ignore_index = True);
-        #df = df2;
-        #print(df)
         flash('We would like to submit some data locally. We have here {}'.format(df))
         flash('We would like to submit some data remote. We have here {}'.format(app.config['REMOTE_FILE']))
-        #vals.append(1)
         return redirect('/index')
 
+    # this could now actually become the last hundred lines of the dataframe.
     lyseout = 'This is some dummy output from lyse.'
     return render_template('index.html', lyseout=fname, dform = dform)
 
@@ -73,7 +70,8 @@ def config():
 def file(filename):
     '''function to save the values of the hdf5 file'''
 
-    # just a dummy for the moment.
+    # We should add the latest value of the database here. Better would be to trigger the readout.
+    # Let us see how this actually works.
     vals = [1, 2, 3];
     with h5py.File(filename, "a") as f:
         if 'globals' in f.keys():
@@ -90,14 +88,21 @@ def file(filename):
 def htmlplot():
     # make the figure
     #t = np.linspace(0,2*np.pi,100);
+    t = df['timestamp'];
     y = df['Verr'];
     f, ax = plt.subplots()
-    ax.plot(y)
+    ax.plot(t,y)
     #df.plot(ax=ax)
     figfile = BytesIO()
     f.savefig(figfile);
     figfile.seek(0)
     return send_file(figfile, mimetype='image/png')
+
+@app.route("/chartData/<entries>")
+def chartData(entries):
+
+    # Return the result with JSON format
+    return df.to_json()
 
 @app.errorhandler(500)
 def internal_error(error):
