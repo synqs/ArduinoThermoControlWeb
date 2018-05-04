@@ -1,12 +1,25 @@
-<html>
-<head>
-  <title> Arduino Web-Interface</title>
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+Arduino Web-Interface
+{% endblock %}
+{% block metas %}
 <meta http-equiv="refresh" content="5" >
-</head>
-<body>
-  <div><a href="/index">Home</a>
-          <a href="/config">Config</a></div>
-        <hr>
+{% endblock %}
+{% block navbar %}
+
+<nav class="navbar navbar-default">
+    <div class="container">
+      <ul class="nav navbar-nav">
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('config') }}">Config</a></li>
+      </ul>
+    </div>
+</nav>
+{% endblock %}
+
+{%block content %}
+<div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <ul>
