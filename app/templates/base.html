@@ -3,9 +3,6 @@
 {% block title %}
 Arduino Web-Interface
 {% endblock %}
-{% block metas %}
-<meta http-equiv="refresh" content="5" >
-{% endblock %}
 {% block navbar %}
 
 <nav class="navbar navbar-default">
@@ -25,9 +22,9 @@ Arduino Web-Interface
         <ul>
             {% for category, message in messages %}
             {% if category == 'error' %}
-              <li><span style="color: red;">{{ message }}</span></li>
+              <div class="alert alert-warning" role="alert">{{ message }}</div>
             {% else %}
-              <li>{{ message }}</li>
+              <div class="alert alert-info" role="alert">{{ message }}</div>
             {% endif %}
             {% endfor %}
         </ul>
