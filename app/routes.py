@@ -35,6 +35,7 @@ def index():
     # test the data form
     dform = DataForm()
     if dform.validate_on_submit():
+        socketio.emit('my_event', namespace='/test')
         #the following note is horrible and should be changed !!!!!
         global df
         df = df.append(create_test_data(), ignore_index = True);
