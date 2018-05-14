@@ -1,26 +1,12 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
-<div class="row">
-        <div class="col-md-4">
-            {{ wtf.quick_form(dform) }}
-        </div>
-</div>
-
-<img id='img' src="{{ url_for('htmlplot') }}" alt="loading the log ..." width="500">
-  {% if lyseout %}
-      {{lyseout}}
-  {% else%}
-    Here we will have the results printed at some point.
-  {% endif %}
-</div>
 <p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
-<h2>Send:</h2>
 <form id="emit" method="POST" action='#'>
-    <input type="submit" value="Echo">
+    <input type="submit" value="Test">
 </form>
-<h2>Receive:</h2>
+<h2>Received data:</h2>
 <div id="log"></div>
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>

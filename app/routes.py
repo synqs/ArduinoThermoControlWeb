@@ -3,29 +3,23 @@ from app.forms import ConnectForm, DataForm
 import serial
 import h5py
 from threading import Lock
-from flask import render_template, flash, redirect, send_file, url_for, session
+from flask import render_template, flash, redirect, url_for, session
 from flask_socketio import emit, disconnect
 
 # for subplots
-from io import BytesIO
-import base64
 import numpy as np
-import matplotlib as mpl
-import pandas as pd
 from datetime import datetime
-mpl.use('AGG')
-
-import matplotlib.pyplot as plt
 
 thread = None
 thread_lock = Lock()
 
 #create the dummy dataframed
-d = {'timestamp':[], 'Verr':[], 'Vmeas':[], 'Vinp':[]}
-df = pd.DataFrame(d);
 fname = '';
 
 def create_test_data():
+    '''
+    A function to create test data for plotting.
+    '''
     timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
     Verr = np.random.randint(10);
     Vmeas = np.random.randint(750);
@@ -37,20 +31,10 @@ def create_test_data():
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    # test the data form
-    dform = DataForm()
-    if dform.validate_on_submit():
-        socketio.emit('my_event', namespace='/test')
-        #the following note is horrible and should be changed !!!!!
-        global df
-        df = df.append(create_test_data(), ignore_index = True);
-        flash('We would like to submit some data locally. We have here {}'.format(df))
-        flash('We would like to submit some data remote. We have here {}'.format(app.config['REMOTE_FILE']))
-        return redirect(url_for('index'))
-
-    # this could now actually become the last hundred lines of the dataframe.
-    lyseout = 'This is some dummy output from lyse.'
-    return render_template('index.html', lyseout=fname, dform = dform, async_mode=socketio.async_mode)
+    '''
+    The main function for rendering the principal site.
+    '''
+    return render_template('index.html', async_mode=socketio.async_mode)
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
@@ -91,26 +75,6 @@ def file(filename):
             flash('The file {} did not have the global group yet.'.format(filename), 'error')
     return render_template('file.html', file = filename)
 
-@app.route('/fig')
-def htmlplot():
-    # make the figure
-    #t = np.linspace(0,2*np.pi,100);
-    t = df['timestamp'];
-    y = df['Verr'];
-    f, ax = plt.subplots()
-    ax.plot(t,y)
-    #df.plot(ax=ax)
-    figfile = BytesIO()
-    f.savefig(figfile);
-    figfile.seek(0)
-    return send_file(figfile, mimetype='image/png')
-
-@app.route("/chartData/<entries>")
-def chartData(entries):
-
-    # Return the result with JSON format
-    return df.to_json()
-
 # communication with the websocket
 def background_thread():
     """Example of how to send server generated events to clients."""
@@ -143,20 +107,6 @@ def test_message(message):
     Vinp = np.random.randint(50);
     emit('my_response',
          {'data': Vinp, 'count': session['receive_count']})
-
-@socketio.on('my_broadcast_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
-
-@socketio.on('disconnect_request', namespace='/test')
-def test_disconnect():
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
-    disconnect()
 
 # error handling
 @app.errorhandler(500)
