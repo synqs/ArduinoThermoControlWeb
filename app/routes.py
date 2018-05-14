@@ -23,7 +23,9 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    return render_template('index.html', async_mode=socketio.async_mode)
+    global ser;
+    is_open = ser.is_open;
+    return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open)
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
@@ -58,11 +60,15 @@ def config():
         flash('Closed the serial connection')
         return redirect(url_for('config'))
     if cform.validate_on_submit():
-        ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-        is_open = ser.is_open;
-        flash('Opened the serial connection')
-        return redirect(url_for('config'))
-
+        try:
+            ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+            is_open = ser.is_open;
+            flash('Opened the serial connection')
+            socketio.emit('connect', namespace='/test')
+            return redirect(url_for('config'))
+        except Exception as e:
+             flash('{}'.format(e), 'error')
+             return redirect(url_for('config'))
     return render_template('config.html', port = port, form=uform,
         is_open= is_open, dform = dform, cform = cform)
 
@@ -135,7 +141,6 @@ def test_connect():
     global thread
     global ser
     if not ser.is_open:
-        emit('redirect', {'url': url_for('config')})
         flash('Open the serial port first', 'error')
         return
     with thread_lock:

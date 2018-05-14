@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
+<div class="row">
+  {% if is_open %}
+    <div class="p-3 mb-2 bg-success text-white">The port is open.</div>
+  {% else %}
+      <div class="p-3 mb-2 bg-danger text-white">The port is closed.</div>
+      <a href="{{ url_for('config') }}" class="text-danger">You can configure it here.</a>
+  {% endif %}
+</div>
 <p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <form id="emit" method="POST" action='#'>
@@ -27,10 +35,6 @@
         // server is established.
         socket.on('connect', function() {
             socket.emit('my_event', {data: 'I\'m connected!'});
-        });
-        // Event handler for direction
-        socket.on('redirect', function (data) {
-            window.location = data.url;
         });
         // Event handler for server sent data.
         // The callback function is invoked whenever the server emits data
