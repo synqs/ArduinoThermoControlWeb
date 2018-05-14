@@ -13,23 +13,9 @@ from datetime import datetime
 thread = None
 thread_lock = Lock()
 
-ser = None
+ser = serial.Serial()
 #create the dummy dataframed
 fname = '';
-
-def get_arduino_data():
-    '''
-    A function to create test data for plotting.
-    '''
-
-    global ser;
-    ser.flushInput();
-    line = ser.readline();
-    ard_str = line.decode(encoding='windows-1252');
-
-    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
-    d_str = timestamp + '\t' + ard_str;
-    return d_str
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -47,10 +33,17 @@ def config():
     if form.validate_on_submit():
         n_port =  form.serial_port.data;
         try:
+            global ser
+            ser.close()
             ser = serial.Serial(n_port, 9600, timeout = 1)
-            app.config['SERIAL_PORT'] = n_port;
-            flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
-            return redirect(url_for('index'))
+            if ser.is_open:
+                app.config['SERIAL_PORT'] = n_port;
+                socketio.emit('connect', namespace='/test')
+                flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
+                return redirect(url_for('index'))
+            else:
+                 flash('Something went wrong', 'error')
+                 return redirect(url_for('config'))
         except Exception as e:
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
@@ -76,34 +69,67 @@ def file(filename):
     return render_template('file.html', file = filename)
 
 # communication with the websocket
+def get_arduino_data():
+    '''
+    A function to create test data for plotting.
+    '''
+
+    global ser;
+    ser.flushInput();
+    line = ser.readline();
+    ard_str = line.decode(encoding='windows-1252');
+
+    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
+    d_str = timestamp + '\t' + ard_str;
+    return d_str
+
 def background_thread():
     """Example of how to send server generated events to clients."""
     count = 0
-    while True:
+    run = True;
+    while run:
         socketio.sleep(10)
         count += 1
         #data_str = create_test_data()
-        try:
-            data_str = get_arduino_data()
-            socketio.emit('my_response',
-                      {'data': data_str, 'count': count},
+        global ser;
+        if ser.is_open:
+            try:
+                data_str = get_arduino_data()
+                socketio.emit('my_response',
+                        {'data': data_str, 'count': count},
                       namespace='/test')
-        except Exception as e:
+            except Exception as e:
+                socketio.emit('my_response',
+                {'data': '{}'.format(e), 'count': count},
+                namespace='/test')
+                run = False
+        else:
+            run = False
             socketio.emit('my_response',
-            {'data': '{}'.format(e), 'count': count},
-            namespace='/test')
+                {'data': 'Port closed please configure one properly', 'count': count},
+                namespace='/test')
+
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
+    '''
+    we are connecting the client to the server. This will only work if the
+    Arduino already has a serial connection
+    '''
     global thread
     global ser
+    if not ser.is_open:
+        emit('redirect', {'url': url_for('config')})
+        flash('Open the serial port first', 'error')
+        return
     with thread_lock:
         if thread is None:
-            try:
-                ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-            except Exception as e:
-                flash('{}'.format(e), 'error')
             thread = socketio.start_background_task(target=background_thread)
+        else:
+            if not thread.is_alive():
+                thread = None
+                emit('connect', namespace='/test')
+                return
     emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping', namespace='/test')
