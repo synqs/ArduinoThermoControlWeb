@@ -17,18 +17,6 @@ ser = None
 #create the dummy dataframed
 fname = '';
 
-def create_test_data():
-    '''
-    A function to create test data for plotting.
-    '''
-    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
-    Verr = np.random.randint(10);
-    Vmeas = np.random.randint(750);
-    Vinp = np.random.randint(50);
-    d_str = timestamp + '\t' + str(Verr) + '\t' + str(Vmeas) + '\t' + str(Vinp);
-    #d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
-    return d_str
-
 def get_arduino_data():
     '''
     A function to create test data for plotting.
@@ -61,15 +49,10 @@ def config():
     form = ConnectForm()
 
     if form.validate_on_submit():
-
         app.config['SERIAL_PORT'] = form.serial_port.data
         flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
         try:
             ser = serial.Serial(form.serial_port.data, 9600, timeout = 1)
-        # except serial.SerialException:
-        #     s.close()
-        #     ser.close()
-        #     ser = serial.Serial('COM32', 9600, timeout = 1)
         except Exception as e:
              flash('{}'.format(e), 'error')
         return redirect(url_for('index'))
@@ -114,12 +97,7 @@ def test_connect():
     with thread_lock:
         if thread is None:
             try:
-                #ser=serial.Serial('/dev/cu.usbmodem1421',9600)
                 ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-                # except serial.SerialException:
-                #     s.close()
-                #     ser.close()
-                #     ser = serial.Serial('COM32', 9600, timeout = 1)
             except Exception as e:
                 flash('{}'.format(e), 'error')
             thread = socketio.start_background_task(target=background_thread)
