@@ -21,19 +21,15 @@ def get_arduino_data():
     '''
     A function to create test data for plotting.
     '''
-    global ser;
 
-    try:
-        ser.flushInput();
-        line = ser.readline();
-        ard_str = line.decode(encoding='windows-1252');
-    except Exception as e:
-        flash('{}'.format(e), 'error')
+    global ser;
+    ser.flushInput();
+    line = ser.readline();
+    ard_str = line.decode(encoding='windows-1252');
 
     timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
     d_str = timestamp + '\t' + ard_str;
     return d_str
-
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -49,13 +45,15 @@ def config():
     form = ConnectForm()
 
     if form.validate_on_submit():
-        app.config['SERIAL_PORT'] = form.serial_port.data
-        flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
+        n_port =  form.serial_port.data;
         try:
-            ser = serial.Serial(form.serial_port.data, 9600, timeout = 1)
+            ser = serial.Serial(n_port, 9600, timeout = 1)
+            app.config['SERIAL_PORT'] = n_port;
+            flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
+            return redirect(url_for('index'))
         except Exception as e:
              flash('{}'.format(e), 'error')
-        return redirect(url_for('index'))
+             return redirect(url_for('config'))
 
     return render_template('config.html', port = port, form=form)
 
@@ -85,10 +83,15 @@ def background_thread():
         socketio.sleep(10)
         count += 1
         #data_str = create_test_data()
-        data_str = get_arduino_data()
-        socketio.emit('my_response',
+        try:
+            data_str = get_arduino_data()
+            socketio.emit('my_response',
                       {'data': data_str, 'count': count},
                       namespace='/test')
+        except Exception as e:
+            socketio.emit('my_response',
+            {'data': '{}'.format(e), 'count': count},
+            namespace='/test')
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
@@ -119,7 +122,6 @@ def test_message(message):
 def internal_error(error):
     flash('An error occured {}'.format(error), 'error')
     return render_template('500.html'), 500
-
 
 @socketio.on_error_default
 def default_error_handler(e):
