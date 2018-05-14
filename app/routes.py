@@ -26,12 +26,13 @@ df = pd.DataFrame(d);
 fname = '';
 
 def create_test_data():
-    timestamp = datetime.utcnow()
+    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
     Verr = np.random.randint(10);
     Vmeas = np.random.randint(750);
     Vinp = np.random.randint(50);
-    d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
-    return d
+    d_str = timestamp + '\t' + str(Verr) + '\t' + str(Vmeas) + '\t' + str(Vinp);
+    #d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
+    return d_str
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -118,8 +119,10 @@ def background_thread():
         socketio.sleep(10)
         #session['receive_count'] = session.get('receive_count', 0) + 1
         count += 1
+        data_str = create_test_data()
+
         socketio.emit('my_response',
-                      {'data': 'Server generated event', 'count': count},
+                      {'data': data_str, 'count': count},
                       namespace='/test')
 
 @socketio.on('connect', namespace='/test')
