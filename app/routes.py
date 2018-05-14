@@ -13,6 +13,7 @@ from datetime import datetime
 thread = None
 thread_lock = Lock()
 
+ser = None
 #create the dummy dataframed
 fname = '';
 
@@ -27,6 +28,24 @@ def create_test_data():
     d_str = timestamp + '\t' + str(Verr) + '\t' + str(Vmeas) + '\t' + str(Vinp);
     #d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
     return d_str
+
+def get_arduino_data():
+    '''
+    A function to create test data for plotting.
+    '''
+    global ser;
+
+    try:
+        ser.flushInput();
+        line = ser.readline();
+        ard_str = line.decode(encoding='windows-1252');
+    except Exception as e:
+        flash('{}'.format(e), 'error')
+
+    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
+    d_str = timestamp + '\t' + ard_str;
+    return d_str
+
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -81,10 +100,9 @@ def background_thread():
     count = 0
     while True:
         socketio.sleep(10)
-        #session['receive_count'] = session.get('receive_count', 0) + 1
         count += 1
-        data_str = create_test_data()
-
+        #data_str = create_test_data()
+        data_str = get_arduino_data()
         socketio.emit('my_response',
                       {'data': data_str, 'count': count},
                       namespace='/test')
@@ -92,8 +110,18 @@ def background_thread():
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global thread
+    global ser
     with thread_lock:
         if thread is None:
+            try:
+                #ser=serial.Serial('/dev/cu.usbmodem1421',9600)
+                ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+                # except serial.SerialException:
+                #     s.close()
+                #     ser.close()
+                #     ser = serial.Serial('COM32', 9600, timeout = 1)
+            except Exception as e:
+                flash('{}'.format(e), 'error')
             thread = socketio.start_background_task(target=background_thread)
     emit('my_response', {'data': 'Connected', 'count': 0})
 
@@ -113,3 +141,9 @@ def test_message(message):
 def internal_error(error):
     flash('An error occured {}'.format(error), 'error')
     return render_template('500.html'), 500
+
+
+@socketio.on_error_default
+def default_error_handler(e):
+    print(request.event["message"]) # "my error event"
+    print(request.event["args"])    # (data,)
