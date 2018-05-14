@@ -1,3 +1,14 @@
 # ArduinoMagnetometerWeb
 
-A flask server that should simplify the logging of our temp control. Should serve as a boilerplate for our other sensors too.
+A flask server that should simplify the logging of our temp control. It only shows data for the moment. Should serve as a boilerplate for our other sensors too.
+
+The website assumes that the Arduino is connected via a serial device. 
+
+- Communication with the Arduino is done through the Serial interface.
+- Updates are done through flask_socketio
+- The layout is made nice through flask_bootstrap.
+
+TODO:
+1.) For the moment the update of the serial connection is not working properly.
+2.) Send the last data to the hdf5 file.
+3.) Plots ? 
