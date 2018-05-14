@@ -2,6 +2,7 @@ from app import app, socketio
 from app.forms import ConnectForm, DataForm
 import serial
 import h5py
+from threading import Lock
 from flask import render_template, flash, redirect, send_file, url_for, session
 from flask_socketio import emit, disconnect
 
@@ -15,6 +16,9 @@ from datetime import datetime
 mpl.use('AGG')
 
 import matplotlib.pyplot as plt
+
+thread = None
+thread_lock = Lock()
 
 #create the dummy dataframed
 d = {'timestamp':[], 'Verr':[], 'Vmeas':[], 'Vinp':[]}
@@ -107,6 +111,25 @@ def chartData(entries):
     return df.to_json()
 
 # communication with the websocket
+def background_thread():
+    """Example of how to send server generated events to clients."""
+    count = 0
+    while True:
+        socketio.sleep(10)
+        #session['receive_count'] = session.get('receive_count', 0) + 1
+        count += 1
+        socketio.emit('my_response',
+                      {'data': 'Server generated event', 'count': count},
+                      namespace='/test')
+
+@socketio.on('connect', namespace='/test')
+def test_connect():
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
+    emit('my_response', {'data': 'Connected', 'count': 0})
+
 @socketio.on('my_ping', namespace='/test')
 def ping_pong():
     emit('my_pong')
@@ -124,10 +147,6 @@ def test_message(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']},
          broadcast=True)
-
-@socketio.on('connect', namespace='/test')
-def test_connect():
-    emit('my response', {'data': 'Connected'})
 
 @socketio.on('disconnect_request', namespace='/test')
 def test_disconnect():
