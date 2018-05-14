@@ -1,5 +1,5 @@
 from app import app, socketio
-from app.forms import ConnectForm, DataForm
+from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm
 import serial
 import h5py
 from threading import Lock
@@ -28,12 +28,15 @@ def index():
 @app.route('/config', methods=['GET', 'POST'])
 def config():
     port = app.config['SERIAL_PORT']
-    form = ConnectForm()
-
-    if form.validate_on_submit():
-        n_port =  form.serial_port.data;
+    uform = UpdateForm()
+    dform = DisconnectForm()
+    cform = ConnectForm()
+    global ser;
+    is_open = ser.is_open;
+    if uform.validate_on_submit():
+        #Update the port.
+        n_port =  uform.serial_port.data;
         try:
-            global ser
             ser.close()
             ser = serial.Serial(n_port, 9600, timeout = 1)
             if ser.is_open:
@@ -48,7 +51,20 @@ def config():
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
 
-    return render_template('config.html', port = port, form=form)
+    if is_open and dform.validate_on_submit():
+        #Disconnect the port.
+        ser.close()
+        is_open = ser.is_open;
+        flash('Closed the serial connection')
+        return redirect(url_for('config'))
+    if cform.validate_on_submit():
+        ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+        is_open = ser.is_open;
+        flash('Opened the serial connection')
+        return redirect(url_for('config'))
+
+    return render_template('config.html', port = port, form=uform,
+        is_open= is_open, dform = dform, cform = cform)
 
 @app.route('/file/<filename>')
 def file(filename):

@@ -3,9 +3,21 @@
 
 {% block app_content %}
 <div>
-  <p>We are currently listening for the Arduino on port: {{ port }}</p>
 </div>
 <div class="row">
+  {% if is_open %}
+    <div class="p-3 mb-2 bg-success text-white">The port is open </div>
+    <p>We are currently listening for the Arduino on port: {{ port }}</p>
+    <div class="col-md-4">
+        {{ wtf.quick_form(dform) }}
+    </div>
+  {% else %}
+      <div class="p-3 mb-2 bg-danger text-white">The port is closed.</div>
+      <p>We are currently listening for the Arduino on port: {{ port }}</p>
+      <div class="col-md-4">
+          {{ wtf.quick_form(cform) }}
+      </div>
+  {% endif %}
         <div class="col-md-4">
             {{ wtf.quick_form(form) }}
         </div>
