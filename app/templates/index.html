@@ -2,25 +2,21 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
 <div class="row">
-        <div class="col-md-4">
-            {{ wtf.quick_form(dform) }}
-        </div>
-</div>
-
-<img id='img' src="{{ url_for('htmlplot') }}" alt="loading the log ..." width="500">
-  {% if lyseout %}
-      {{lyseout}}
-  {% else%}
-    Here we will have the results printed at some point.
+  {% if is_open %}
+    <div class="p-3 mb-2 bg-success text-white">The port is open.</div>
+  {% else %}
+      <div class="p-3 mb-2 bg-warning">The port is closed.</div>
+      <p>You can configure it <a href="{{ url_for('config') }}" class="text-warning">here.</a></p>
+  {% endif %}
+  {% if is_alive %}
+    <div class="p-3 mb-2 bg-success text-white">The communication with the Arduino is running.</div>
+  {% else %}
+      <div class="p-3 mb-2 bg-warning">The communication with the Arduino dead.</div>
   {% endif %}
 </div>
 <p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
-<h2>Send:</h2>
-<form id="emit" method="POST" action='#'>
-    <input type="submit" value="Echo">
-</form>
-<h2>Receive:</h2>
+<h2>Received data:</h2>
 <div id="log"></div>
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
@@ -40,7 +36,7 @@
         // The callback function is invoked when a connection with the
         // server is established.
         socket.on('connect', function() {
-            socket.emit('my_event', {data: 'I\'m connected!'});
+            socket.emit('my_response', {data: 'I\'m connected!'});
         });
         // Event handler for server sent data.
         // The callback function is invoked whenever the server emits data
@@ -69,13 +65,6 @@
             for (var i = 0; i < ping_pong_times.length; i++)
                 sum += ping_pong_times[i];
             $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
-        });
-        // Handlers for the different forms in the page.
-        // These accept data from the user and send it to the server in a
-        // variety of ways
-        $('form#emit').submit(function(event) {
-            socket.emit('my_event', {data: $('#emit_data').val()});
-            return false;
         });
     });
 </script>

@@ -1,77 +1,90 @@
 from app import app, socketio
-from app.forms import ConnectForm, DataForm
+from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm
 import serial
 import h5py
 from threading import Lock
-from flask import render_template, flash, redirect, send_file, url_for, session
+from flask import render_template, flash, redirect, url_for, session
 from flask_socketio import emit, disconnect
 
 # for subplots
-from io import BytesIO
-import base64
 import numpy as np
-import matplotlib as mpl
-import pandas as pd
 from datetime import datetime
-mpl.use('AGG')
-
-import matplotlib.pyplot as plt
 
 thread = None
 thread_lock = Lock()
 
+ser = serial.Serial()
 #create the dummy dataframed
-d = {'timestamp':[], 'Verr':[], 'Vmeas':[], 'Vinp':[]}
-df = pd.DataFrame(d);
 fname = '';
-
-def create_test_data():
-    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
-    Verr = np.random.randint(10);
-    Vmeas = np.random.randint(750);
-    Vinp = np.random.randint(50);
-    d_str = timestamp + '\t' + str(Verr) + '\t' + str(Vmeas) + '\t' + str(Vinp);
-    #d = {'timestamp': timestamp, 'Verr': Verr, 'Vmeas': Vmeas, 'Vinp': Vinp}
-    return d_str
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    # test the data form
-    dform = DataForm()
-    if dform.validate_on_submit():
-        socketio.emit('my_event', namespace='/test')
-        #the following note is horrible and should be changed !!!!!
-        global df
-        df = df.append(create_test_data(), ignore_index = True);
-        flash('We would like to submit some data locally. We have here {}'.format(df))
-        flash('We would like to submit some data remote. We have here {}'.format(app.config['REMOTE_FILE']))
-        return redirect(url_for('index'))
+    '''
+    The main function for rendering the principal site.
+    '''
+    global ser;
+    global thread;
+    is_open = ser.is_open;
+    is_alive = False;
+    if thread:
+        if thread.is_alive():
+            is_alive = True;
 
-    # this could now actually become the last hundred lines of the dataframe.
-    lyseout = 'This is some dummy output from lyse.'
-    return render_template('index.html', lyseout=fname, dform = dform, async_mode=socketio.async_mode)
+    return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
     port = app.config['SERIAL_PORT']
-    form = ConnectForm()
+    uform = UpdateForm()
+    dform = DisconnectForm()
+    cform = ConnectForm()
+    global ser;
+    global thread;
+    is_open = ser.is_open;
+    is_alive = False;
+    if thread:
+        if thread.is_alive():
+            is_alive = True;
 
-    if form.validate_on_submit():
+    if is_open and dform.validate_on_submit():
+        #Disconnect the port.
+        # TODO: Close the Arduino connection properly.
+        ser.close()
+        is_open = ser.is_open;
+        flash('Closed the serial connection')
+        return redirect(url_for('config'))
 
-        app.config['SERIAL_PORT'] = form.serial_port.data
-        flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
+    if uform.validate_on_submit():
+        #Update the port.
+        n_port =  uform.serial_port.data;
         try:
-            ser = serial.Serial(form.serial_port.data, 9600, timeout = 1)
-        # except serial.SerialException:
-        #     s.close()
-        #     ser.close()
-        #     ser = serial.Serial('COM32', 9600, timeout = 1)
+            ser.close()
+            ser = serial.Serial(n_port, 9600, timeout = 1)
+            if ser.is_open:
+                app.config['SERIAL_PORT'] = n_port;
+                socketio.emit('connect', namespace='/test')
+                flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
+                return redirect(url_for('index'))
+            else:
+                 flash('Something went wrong', 'error')
+                 return redirect(url_for('config'))
         except Exception as e:
              flash('{}'.format(e), 'error')
-        return redirect(url_for('index'))
+             return redirect(url_for('config'))
 
-    return render_template('config.html', port = port, form=form)
+    if cform.validate_on_submit():
+        try:
+            ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+            is_open = ser.is_open;
+            flash('Opened the serial connection')
+            socketio.emit('connect', namespace='/test')
+            return redirect(url_for('index'))
+        except Exception as e:
+             flash('{}'.format(e), 'error')
+             return redirect(url_for('config'))
+    return render_template('config.html', port = port, form=uform,
+        is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
 
 @app.route('/file/<filename>')
 def file(filename):
@@ -91,72 +104,73 @@ def file(filename):
             flash('The file {} did not have the global group yet.'.format(filename), 'error')
     return render_template('file.html', file = filename)
 
-@app.route('/fig')
-def htmlplot():
-    # make the figure
-    #t = np.linspace(0,2*np.pi,100);
-    t = df['timestamp'];
-    y = df['Verr'];
-    f, ax = plt.subplots()
-    ax.plot(t,y)
-    #df.plot(ax=ax)
-    figfile = BytesIO()
-    f.savefig(figfile);
-    figfile.seek(0)
-    return send_file(figfile, mimetype='image/png')
-
-@app.route("/chartData/<entries>")
-def chartData(entries):
-
-    # Return the result with JSON format
-    return df.to_json()
-
 # communication with the websocket
+def get_arduino_data():
+    '''
+    A function to create test data for plotting.
+    '''
+
+    global ser;
+    ser.flushInput();
+    line = ser.readline();
+    ard_str = line.decode(encoding='windows-1252');
+
+    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
+    d_str = timestamp + '\t' + ard_str;
+    return d_str
+
 def background_thread():
     """Example of how to send server generated events to clients."""
     count = 0
-    while True:
+    run = True;
+    while run:
         socketio.sleep(10)
-        #session['receive_count'] = session.get('receive_count', 0) + 1
         count += 1
-        data_str = create_test_data()
-
-        socketio.emit('my_response',
-                      {'data': data_str, 'count': count},
+        global ser;
+        if ser.is_open:
+            try:
+                data_str = get_arduino_data()
+                socketio.emit('my_response',
+                        {'data': data_str, 'count': count},
                       namespace='/test')
+            except Exception as e:
+                socketio.emit('my_response',
+                {'data': '{}'.format(e), 'count': count},
+                namespace='/test')
+                run = False
+        else:
+            run = False
+            # TODO: Make this a link
+            error_str = 'Port closed. please configure one properly under config.'
+            socketio.emit('my_response',
+                {'data': error_str, 'count': count},
+                namespace='/test')
+
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
+    '''
+    we are connecting the client to the server. This will only work if the
+    Arduino already has a serial connection
+    '''
     global thread
+    global ser
+    if not ser.is_open:
+        flash('Open the serial port first', 'error')
+        return
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(target=background_thread)
+        else:
+            if not thread.is_alive():
+                thread = None
+                emit('connect', namespace='/test')
+                return
     emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping', namespace='/test')
 def ping_pong():
     emit('my_pong')
-
-@socketio.on('my_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    Vinp = np.random.randint(50);
-    emit('my_response',
-         {'data': Vinp, 'count': session['receive_count']})
-
-@socketio.on('my_broadcast_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
-
-@socketio.on('disconnect_request', namespace='/test')
-def test_disconnect():
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
-    disconnect()
 
 # error handling
 @app.errorhandler(500)
