@@ -24,8 +24,14 @@ def index():
     The main function for rendering the principal site.
     '''
     global ser;
+    global thread;
     is_open = ser.is_open;
-    return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open)
+    is_alive = False;
+    if thread:
+        if thread.is_alive():
+            is_alive = True;
+
+    return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
@@ -34,7 +40,21 @@ def config():
     dform = DisconnectForm()
     cform = ConnectForm()
     global ser;
+    global thread;
     is_open = ser.is_open;
+    is_alive = False;
+    if thread:
+        if thread.is_alive():
+            is_alive = True;
+
+    if is_open and dform.validate_on_submit():
+        #Disconnect the port.
+        # TODO: Close the Arduino connection properly.
+        ser.close()
+        is_open = ser.is_open;
+        flash('Closed the serial connection')
+        return redirect(url_for('config'))
+
     if uform.validate_on_submit():
         #Update the port.
         n_port =  uform.serial_port.data;
@@ -53,24 +73,18 @@ def config():
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
 
-    if is_open and dform.validate_on_submit():
-        #Disconnect the port.
-        ser.close()
-        is_open = ser.is_open;
-        flash('Closed the serial connection')
-        return redirect(url_for('config'))
     if cform.validate_on_submit():
         try:
             ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
             is_open = ser.is_open;
             flash('Opened the serial connection')
             socketio.emit('connect', namespace='/test')
-            return redirect(url_for('config'))
+            return redirect(url_for('index'))
         except Exception as e:
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
     return render_template('config.html', port = port, form=uform,
-        is_open= is_open, dform = dform, cform = cform)
+        is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
 
 @app.route('/file/<filename>')
 def file(filename):
@@ -112,7 +126,6 @@ def background_thread():
     while run:
         socketio.sleep(10)
         count += 1
-        #data_str = create_test_data()
         global ser;
         if ser.is_open:
             try:
@@ -127,8 +140,10 @@ def background_thread():
                 run = False
         else:
             run = False
+            # TODO: Make this a link
+            error_str = 'Port closed. please configure one properly under config.'
             socketio.emit('my_response',
-                {'data': 'Port closed please configure one properly', 'count': count},
+                {'data': error_str, 'count': count},
                 namespace='/test')
 
 
@@ -157,20 +172,8 @@ def test_connect():
 def ping_pong():
     emit('my_pong')
 
-@socketio.on('my_event', namespace='/test')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    Vinp = np.random.randint(50);
-    emit('my_response',
-         {'data': Vinp, 'count': session['receive_count']})
-
 # error handling
 @app.errorhandler(500)
 def internal_error(error):
     flash('An error occured {}'.format(error), 'error')
     return render_template('500.html'), 500
-
-@socketio.on_error_default
-def default_error_handler(e):
-    print(request.event["message"]) # "my error event"
-    print(request.event["args"])    # (data,)
