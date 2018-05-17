@@ -63,7 +63,7 @@ def config():
             ser = serial.Serial(n_port, 9600, timeout = 1)
             if ser.is_open:
                 app.config['SERIAL_PORT'] = n_port;
-                socketio.emit('connect', namespace='/test')
+                socketio.emit('connect')
                 flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
                 return redirect(url_for('index'))
             else:
@@ -78,7 +78,7 @@ def config():
             ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
             is_open = ser.is_open;
             flash('Opened the serial connection')
-            socketio.emit('connect', namespace='/test')
+            socketio.emit('connect')
             return redirect(url_for('index'))
         except Exception as e:
              flash('{}'.format(e), 'error')
@@ -131,23 +131,20 @@ def background_thread():
             try:
                 data_str = get_arduino_data()
                 socketio.emit('my_response',
-                        {'data': data_str, 'count': count},
-                      namespace='/test')
+                        {'data': data_str, 'count': count})
             except Exception as e:
                 socketio.emit('my_response',
-                {'data': '{}'.format(e), 'count': count},
-                namespace='/test')
+                {'data': '{}'.format(e), 'count': count})
                 run = False
         else:
             run = False
             # TODO: Make this a link
             error_str = 'Port closed. please configure one properly under config.'
             socketio.emit('my_response',
-                {'data': error_str, 'count': count},
-                namespace='/test')
+                {'data': error_str, 'count': count})
 
 
-@socketio.on('connect', namespace='/test')
+@socketio.on('connect')
 def test_connect():
     '''
     we are connecting the client to the server. This will only work if the
@@ -164,11 +161,11 @@ def test_connect():
         else:
             if not thread.is_alive():
                 thread = None
-                emit('connect', namespace='/test')
+                emit('connect')
                 return
     emit('my_response', {'data': 'Connected', 'count': 0})
 
-@socketio.on('my_ping', namespace='/test')
+@socketio.on('my_ping')
 def ping_pong():
     emit('my_pong')
 

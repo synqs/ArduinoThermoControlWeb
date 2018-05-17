@@ -10,9 +10,9 @@ The website assumes that the Arduino is connected via a serial device.
 
 # TODO
 
- 1. Make the config site look better.
+ 1. Verify the connections cleaner.
  2. Send the last data to the hdf5 file.
- 3. Plots and nicer table ? 
+ 3. Plots and nicer table ?
 
 # Installation
 
