@@ -17,6 +17,7 @@ from datetime import datetime
 thread = None
 workerObject= None
 thread_lock = Lock()
+ssTunnel = None
 
 ser = serial.Serial()
 
@@ -59,7 +60,8 @@ def config():
 
     if workerObject:
         is_alive = workerObject.is_alive();
-
+    print(is_alive)
+    print('Render the config page.')
     return render_template('config.html', port = port, form=uform,
         is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
 
@@ -83,9 +85,6 @@ def start():
             ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
             is_open = ser.is_open;
             flash('Opened the serial connection')
-
-            print('Emit the connect.')
-            socketio.emit('connect')
             return redirect(url_for('config'))
         except Exception as e:
             flash('{}'.format(e), 'error')
@@ -187,6 +186,25 @@ def get_arduino_data():
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
+class SerialSocketTunnel(object):
+    '''
+    A class which combines the serial connection and the socket into a single
+    class, such that we can handle these things more properly.
+    '''
+    
+    serial = None
+    switch = False
+    unit_of_work = 0
+
+    def __init__(self, socketio):
+        """
+        assign socketio object to emit
+        """
+        self.serial = serial.Serial()
+        self.is_open = False
+        self.switch = True
+
+
 class Worker(object):
 
     switch = False
@@ -281,6 +299,27 @@ def run_disconnect():
 
     workerObject.stop()
     disconnect()
+
+@socketio.on('join')
+def run_join():
+    print('Should join')
+    global thread
+    global ser
+    global workerObject
+    with thread_lock:
+        print('Connecting the websocket')
+        if thread is None:
+             workerObject = Worker(socketio)
+             thread = socketio.start_background_task(target=workerObject.do_work)
+             print('Start the background task')
+        else:
+
+             print('Thread already exists')
+             if not thread.is_alive():
+                 thread = None
+                 emit('connect')
+                 return
+    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping')
 def ping_pong():
