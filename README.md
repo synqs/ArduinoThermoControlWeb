@@ -8,12 +8,6 @@ The website assumes that the Arduino is connected via a serial device.
 - Updates are done through flask_socketio
 - The layout is made nice through flask_bootstrap.
 
-# TODO
-
- 1. Verify the connections cleaner.
- 2. Send the last data to the hdf5 file.
- 3. Plots and nicer table ?
-
 # Installation
 
 - create a new directory
@@ -22,3 +16,21 @@ The website assumes that the Arduino is connected via a serial device.
 - activate the virtualenv through 'source activate YOURNAME'
 - install the dependencies through 'pip install -r requirements.txt'
 - start it through 'start.sh'
+- open it in a brower on 'localhost:5000'
+
+# Usage
+
+## The server itself
+ - activate the virtualenv through 'source activate YOURNAME'
+ - start it through 'start.sh'
+ - runs on 'localhost:5000'
+
+## Test without Arduino
+ If you want to test the serial port without having an Arduino, you should just
+ start another terminal, start the python console and run 'import simSerialPort'
+
+# TODO
+
+ 1. Verify the connections cleaner.
+ 2. Send the last data to the hdf5 file.
+ 3. Plots and nicer table ?
