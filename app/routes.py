@@ -94,6 +94,7 @@ def config():
     return render_template('config.html', port = port, form=uform,
         is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
 
+
 @app.route('/file/<filename>')
 def file(filename):
     '''function to save the values of the hdf5 file'''
@@ -176,7 +177,7 @@ class Worker(object):
         self.switch = False
 
 @socketio.on('connect')
-def test_connect():
+def run_connect():
     '''
     we are connecting the client to the server. This will only work if the
     Arduino already has a serial connection
@@ -196,15 +197,19 @@ def test_connect():
                  thread = None
                  emit('connect')
                  return
-    emit('my_response', {'data': 'Connected', 'count': 0})
+    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('stop')
-def test_disconnect():
+def run_disconnect():
     print('Should disconnect')
     session['receive_count'] = session.get('receive_count', 0) + 1
     emit('my_response',
         {'data': 'Disconnected!', 'count': session['receive_count']})
     global workerObject
+    global ser
+    if  ser.is_open:
+        ser.close();
+
     workerObject.stop()
     disconnect()
 
