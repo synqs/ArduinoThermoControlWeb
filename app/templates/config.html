@@ -6,10 +6,10 @@
   <div class="row">
     {% if is_open %}
     <div class="col bg-success">The port is open </div>
-    <div class="col"> {{ wtf.quick_form(dform, id="disconnect") }} </div>
+    <div class="col"> {{ wtf.quick_form(dform, id="stop", action="/stop") }} </div>
     {% else %}
     <div class="col bg-warning">The port is closed.</div>
-    <div class="col-sm"> {{ wtf.quick_form(cform, id="connect") }} </div>
+    <div class="col-sm"> {{ wtf.quick_form(cform, id="connect", action="/start") }} </div>
     {% endif %}
   </div>
   <div class="row">
@@ -21,7 +21,7 @@
   </div>
   <div class="row">
     <div class="col">We are currently listening for the Arduino on port: {{ port }}</div>
-    <div class="col"> {{ wtf.quick_form(form) }}</div>
+    <div class="col"> {{ wtf.quick_form(form, action="/update") }}</div>
   </div>
 </div>
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
@@ -37,10 +37,10 @@ $(document).ready(function() {
   socket.on('connect', function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
-  $('form#dform').submit(function(event) {
-      socket.emit('stop');
-      return false;
-  });
+  // $('form#stop').submit(function(event) {
+  //     socket.emit('stop');
+  // //    return false;
+  // });
 });
 </script>
 {% endblock %}

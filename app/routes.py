@@ -5,6 +5,8 @@ import h5py
 from threading import Lock
 from flask import render_template, flash, redirect, url_for, session
 
+import time
+
 from flask_socketio import emit, disconnect
 import eventlet
 
@@ -29,42 +31,110 @@ def index():
     '''
     global ser;
     global thread;
+    global workerObject
     is_open = ser.is_open;
     is_alive = False;
-    if thread:
-        if thread.is_alive():
-            is_alive = True;
+
+    if workerObject:
+        is_alive = workerObject.is_alive();
+
+    dform = DisconnectForm();
 
     socketio.emit('connect')
-    return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
+    return render_template('index.html', dform = dform, async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
 
-@app.route('/config', methods=['GET', 'POST'])
+@app.route('/config')
 def config():
     port = app.config['SERIAL_PORT']
     uform = UpdateForm()
     dform = DisconnectForm()
     cform = ConnectForm()
+
     global ser;
     global thread;
+    global workerObject;
+
     is_open = ser.is_open;
     is_alive = False;
-    if thread:
-        if thread.is_alive():
-            is_alive = True;
+
+    if workerObject:
+        is_alive = workerObject.is_alive();
+
+    return render_template('config.html', port = port, form=uform,
+        is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
+
+@app.route('/start', methods=['POST'])
+def start():
+
+    cform = ConnectForm()
+
+    global ser;
+    global thread;
+    global workerObject;
+
+    is_open = ser.is_open;
+    is_alive = False;
+
+    if workerObject:
+        is_alive = workerObject.is_alive();
+
+    if cform.validate_on_submit():
+        try:
+            ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+            is_open = ser.is_open;
+            flash('Opened the serial connection')
+
+            print('Emit the connect.')
+            socketio.emit('connect')
+            return redirect(url_for('config'))
+        except Exception as e:
+            flash('{}'.format(e), 'error')
+            return redirect(url_for('config'))
+
+    return redirect(url_for('config'))
+
+@app.route('/stop', methods=['POST'])
+def stop():
+    port = app.config['SERIAL_PORT']
+    dform = DisconnectForm()
+
+    global ser;
+    global thread;
+    global workerObject;
+
+    is_open = ser.is_open;
+    is_alive = False;
+
+    if workerObject:
+        is_alive = workerObject.is_alive();
 
     if is_open and dform.validate_on_submit():
         #Disconnect the port.
-        # TODO: Close the Arduino connection properly.
+        workerObject.stop()
         ser.close()
-        is_open = ser.is_open;
-        socketio.emit('stop')
-        # TODO: Close the Arduino connection properly.
 
         flash('Closed the serial connection')
         return redirect(url_for('config'))
 
+    return redirect(url_for('config'))
+
+@app.route('/update', methods=['POST'])
+def update():
+    '''
+    Update the serial port.
+    '''
+    uform = UpdateForm()
+    global ser;
+    global thread;
+    global workerObject;
+
+    is_open = ser.is_open;
+    is_alive = False;
+
+    if workerObject:
+        is_alive = workerObject.is_alive();
+
     if uform.validate_on_submit():
-        #Update the port.
         n_port =  uform.serial_port.data;
         try:
             ser.close()
@@ -73,7 +143,7 @@ def config():
                 app.config['SERIAL_PORT'] = n_port;
                 socketio.emit('connect')
                 flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
-                return redirect(url_for('index'))
+                return redirect(url_for('config'))
             else:
                  flash('Something went wrong', 'error')
                  return redirect(url_for('config'))
@@ -81,19 +151,7 @@ def config():
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
 
-    if cform.validate_on_submit():
-        try:
-            ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-            is_open = ser.is_open;
-            flash('Opened the serial connection')
-            socketio.emit('connect')
-            return redirect(url_for('index'))
-        except Exception as e:
-             flash('{}'.format(e), 'error')
-             return redirect(url_for('config'))
-    return render_template('config.html', port = port, form=uform,
-        is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
-
+    return redirect(url_for('config'))
 
 @app.route('/file/<filename>')
 def file(filename):
@@ -112,6 +170,7 @@ def file(filename):
         else:
             flash('The file {} did not have the global group yet.'.format(filename), 'error')
     return render_template('file.html', file = filename)
+
 
 # communication with the websocket
 def get_arduino_data():
@@ -139,6 +198,12 @@ class Worker(object):
         """
         self.socketio = socketio
         self.switch = True
+
+    def is_alive(self):
+        """
+        return the running status
+        """
+        return self.switch
 
     def do_work(self):
         """
@@ -182,6 +247,7 @@ def run_connect():
     we are connecting the client to the server. This will only work if the
     Arduino already has a serial connection
     '''
+    print('Connecting the websocket')
     global thread
     global ser
     global workerObject
@@ -192,7 +258,10 @@ def run_connect():
          if thread is None:
              workerObject = Worker(socketio)
              thread = socketio.start_background_task(target=workerObject.do_work)
+             print('Start the background task')
          else:
+
+             print('Thread already exists')
              if not thread.is_alive():
                  thread = None
                  emit('connect')

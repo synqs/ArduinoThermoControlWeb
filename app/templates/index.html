@@ -18,9 +18,7 @@
     {% endif %}
   </div>
 </div>
-<form id="stop" method="POST" action="#">
-    <input type="submit" value="Disconnect">
-</form>
+ {{ wtf.quick_form(dform, id="stop") }}
 <p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Received data:</h2>
