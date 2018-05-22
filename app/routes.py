@@ -4,17 +4,21 @@ import serial
 import h5py
 from threading import Lock
 from flask import render_template, flash, redirect, url_for, session
+
 from flask_socketio import emit, disconnect
+import eventlet
 
 # for subplots
 import numpy as np
 from datetime import datetime
 
 thread = None
+workerObject= None
 thread_lock = Lock()
 
 ser = serial.Serial()
-#create the dummy dataframed
+
+#create the dummy dataframe
 fname = '';
 
 @app.route('/')
@@ -31,6 +35,7 @@ def index():
         if thread.is_alive():
             is_alive = True;
 
+    socketio.emit('connect')
     return render_template('index.html', async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
 
 @app.route('/config', methods=['GET', 'POST'])
@@ -52,6 +57,9 @@ def config():
         # TODO: Close the Arduino connection properly.
         ser.close()
         is_open = ser.is_open;
+        socketio.emit('stop')
+        # TODO: Close the Arduino connection properly.
+
         flash('Closed the serial connection')
         return redirect(url_for('config'))
 
@@ -119,30 +127,53 @@ def get_arduino_data():
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
-def background_thread():
-    """Example of how to send server generated events to clients."""
-    count = 0
-    run = True;
-    while run:
-        socketio.sleep(10)
-        count += 1
-        global ser;
-        if ser.is_open:
-            try:
-                data_str = get_arduino_data()
-                socketio.emit('my_response',
-                        {'data': data_str, 'count': count})
-            except Exception as e:
-                socketio.emit('my_response',
-                {'data': '{}'.format(e), 'count': count})
-                run = False
-        else:
-            run = False
-            # TODO: Make this a link
-            error_str = 'Port closed. please configure one properly under config.'
-            socketio.emit('my_response',
-                {'data': error_str, 'count': count})
+class Worker(object):
 
+    switch = False
+    unit_of_work = 0
+
+    def __init__(self, socketio):
+        """
+        assign socketio object to emit
+        """
+        self.socketio = socketio
+        self.switch = True
+
+    def do_work(self):
+        """
+        do work and emit message
+        """
+
+        while self.switch:
+            self.unit_of_work += 1
+
+            # must call emit from the socket io
+            # must specify the namespace
+            global ser;
+            if ser.is_open:
+                try:
+                    data_str = get_arduino_data()
+                    self.socketio.emit('my_response',
+                    {'data': data_str, 'count': self.unit_of_work})
+                except Exception as e:
+                    self.socketio.emit('my_response',
+                    {'data': '{}'.format(e), 'count': self.unit_of_work})
+                    self.switch = False
+            else:
+                self.switch = False
+                # TODO: Make this a link
+                error_str = 'Port closed. please configure one properly under config.'
+                self.socketio.emit('my_response',
+                {'data': error_str, 'count': self.unit_of_work})
+
+                # important to use eventlet's sleep method
+                eventlet.sleep(1)
+
+    def stop(self):
+        """
+        stop the loop
+        """
+        self.switch = False
 
 @socketio.on('connect')
 def test_connect():
@@ -152,18 +183,30 @@ def test_connect():
     '''
     global thread
     global ser
+    global workerObject
     if not ser.is_open:
-        flash('Open the serial port first', 'error')
-        return
+         flash('Open the serial port first', 'error')
+         return
     with thread_lock:
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
-        else:
-            if not thread.is_alive():
-                thread = None
-                emit('connect')
-                return
+         if thread is None:
+             workerObject = Worker(socketio)
+             thread = socketio.start_background_task(target=workerObject.do_work)
+         else:
+             if not thread.is_alive():
+                 thread = None
+                 emit('connect')
+                 return
     emit('my_response', {'data': 'Connected', 'count': 0})
+
+@socketio.on('stop')
+def test_disconnect():
+    print('Should disconnect')
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+        {'data': 'Disconnected!', 'count': session['receive_count']})
+    global workerObject
+    workerObject.stop()
+    disconnect()
 
 @socketio.on('my_ping')
 def ping_pong():

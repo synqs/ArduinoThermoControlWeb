@@ -18,6 +18,12 @@
     {% endif %}
   </div>
 </div>
+<form id="stop" method="POST" action="#">
+    <input type="submit" value="Disconnect">
+</form>
+<form id="connect" method="POST" action="#">
+    <input type="submit" value="Connect">
+</form>
 <p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Received data:</h2>
@@ -32,11 +38,21 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
   // Event handler for new connections.
-  // The callback function is invoked when a connection with the
-  // server is established.
   socket.on('connect', function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
+  // Event handler for disconnection
+
+  $('form#stop').submit(function(event) {
+      socket.emit('stop');
+      return false;
+  });
+
+  $('form#connect').submit(function(event) {
+      socket.emit('connect');
+      return false;
+  });
+
   // Event handler for server sent data.
   // The callback function is invoked whenever the server emits data
   // to the client. The data is then displayed in the "Received"
