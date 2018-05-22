@@ -17,12 +17,35 @@ from datetime import datetime
 thread = None
 workerObject= None
 thread_lock = Lock()
-ssTunnel = None
-
-ser = serial.Serial()
+ssProto = None
 
 #create the dummy dataframe
 fname = '';
+
+class SerialSocketProtocol(object):
+    '''
+    A class which combines the serial connection and the socket into a single
+    class, such that we can handle these things more properly.
+    '''
+
+    serial = None
+    switch = False
+    unit_of_work = 0
+
+    def __init__(self, socketio):
+        """
+        assign socketio object to emit
+        """
+        self.serial = serial.Serial()
+        self.switch = True
+
+    def is_open(self):
+        '''
+        test if the serial connection is open
+        '''
+        return self.serial.is_open
+
+ssProto = SerialSocketProtocol(socketio)
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
@@ -33,7 +56,8 @@ def index():
     global ser;
     global thread;
     global workerObject
-    is_open = ser.is_open;
+    global ssProto
+    is_open = ssProto.is_open();
     is_alive = False;
 
     if workerObject:
@@ -51,11 +75,10 @@ def config():
     dform = DisconnectForm()
     cform = ConnectForm()
 
-    global ser;
-    global thread;
     global workerObject;
+    global ssProto;
 
-    is_open = ser.is_open;
+    is_open = ssProto.is_open();
     is_alive = False;
 
     if workerObject:
@@ -70,11 +93,11 @@ def start():
 
     cform = ConnectForm()
 
-    global ser;
     global thread;
     global workerObject;
+    global ssProto;
 
-    is_open = ser.is_open;
+    is_open = ssProto.is_open();
     is_alive = False;
 
     if workerObject:
@@ -82,8 +105,8 @@ def start():
 
     if cform.validate_on_submit():
         try:
-            ser = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-            is_open = ser.is_open;
+            ssProto.serial = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+            is_open = ssProto.is_open();
             flash('Opened the serial connection')
             return redirect(url_for('config'))
         except Exception as e:
@@ -97,11 +120,11 @@ def stop():
     port = app.config['SERIAL_PORT']
     dform = DisconnectForm()
 
-    global ser;
     global thread;
     global workerObject;
+    global ssProto;
 
-    is_open = ser.is_open;
+    is_open = ssProto.is_open();
     is_alive = False;
 
     if workerObject:
@@ -110,7 +133,7 @@ def stop():
     if is_open and dform.validate_on_submit():
         #Disconnect the port.
         workerObject.stop()
-        ser.close()
+        ssProto.serial.close()
 
         flash('Closed the serial connection')
         return redirect(url_for('config'))
@@ -123,11 +146,10 @@ def update():
     Update the serial port.
     '''
     uform = UpdateForm()
-    global ser;
     global thread;
     global workerObject;
-
-    is_open = ser.is_open;
+    global ssProto
+    is_open = ssProto.is_open();
     is_alive = False;
 
     if workerObject:
@@ -136,9 +158,9 @@ def update():
     if uform.validate_on_submit():
         n_port =  uform.serial_port.data;
         try:
-            ser.close()
-            ser = serial.Serial(n_port, 9600, timeout = 1)
-            if ser.is_open:
+            ssProto.serial.close()
+            ssProto.serial = serial.Serial(n_port, 9600, timeout = 1)
+            if ssProto.is_open():
                 app.config['SERIAL_PORT'] = n_port;
                 socketio.emit('connect')
                 flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
@@ -177,7 +199,8 @@ def get_arduino_data():
     A function to create test data for plotting.
     '''
 
-    global ser;
+    global ssProto;
+    ser = ssProto.serial;
     ser.flushInput();
     line = ser.readline();
     ard_str = line.decode(encoding='windows-1252');
@@ -186,23 +209,6 @@ def get_arduino_data():
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
-class SerialSocketTunnel(object):
-    '''
-    A class which combines the serial connection and the socket into a single
-    class, such that we can handle these things more properly.
-    '''
-    
-    serial = None
-    switch = False
-    unit_of_work = 0
-
-    def __init__(self, socketio):
-        """
-        assign socketio object to emit
-        """
-        self.serial = serial.Serial()
-        self.is_open = False
-        self.switch = True
 
 
 class Worker(object):
@@ -233,7 +239,9 @@ class Worker(object):
 
             # must call emit from the socket io
             # must specify the namespace
-            global ser;
+            global ssProto;
+            ser = ssProto.serial;
+
             if ser.is_open:
                 try:
                     data_str = get_arduino_data()
@@ -267,8 +275,10 @@ def run_connect():
     '''
     print('Connecting the websocket')
     global thread
-    global ser
     global workerObject
+    global ssProto;
+    ser = ssProto.serial;
+
     if not ser.is_open:
          flash('Open the serial port first', 'error')
          return
@@ -293,7 +303,9 @@ def run_disconnect():
     emit('my_response',
         {'data': 'Disconnected!', 'count': session['receive_count']})
     global workerObject
-    global ser
+    global ssProto;
+    ser = ssProto.serial;
+
     if  ser.is_open:
         ser.close();
 
@@ -304,7 +316,6 @@ def run_disconnect():
 def run_join():
     print('Should join')
     global thread
-    global ser
     global workerObject
     with thread_lock:
         print('Connecting the websocket')
