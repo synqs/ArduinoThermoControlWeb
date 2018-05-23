@@ -59,7 +59,15 @@ class SerialSocketProtocol(object):
         """
         stop the loop and later also the serial port
         """
-        self.switch = True
+        if not self.switch:
+            if not self.is_open():
+                print('the serial port should be open right now')
+            else:
+                self.switch = True
+                thread = self.socketio.start_background_task(target=self.do_work)
+                print('Started')
+        else:
+            print('Already running')
 
     def do_work(self):
         """
@@ -230,19 +238,8 @@ def run_connect():
     we are connecting the client to the server. This will only work if the
     Arduino already has a serial connection
     '''
-    print('Connecting the websocket')
     global ssProto;
-    ser = ssProto.serial;
-
-    if not ssProto.is_alive():
-        if not ssProto.is_open():
-            print('this should be open right now')
-
-        ssProto.start();
-        thread = socketio.start_background_task(target=ssProto.do_work)
-        print('Start the background task')
-    else:
-        print('Already runnig')
+    ssProto.start();
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('stop')
@@ -259,19 +256,9 @@ def run_disconnect():
 @socketio.on('join')
 def run_join():
     print('Should join')
-    global thread
     global ssProto;
-    ser = ssProto.serial;
+    ssProto.start();
 
-    if not ssProto.is_alive():
-        if not ssProto.is_open():
-            print('this should be open right now')
-
-        ssProto.start();
-        thread = socketio.start_background_task(target=ssProto.do_work)
-        print('Start the background task')
-    else:
-        print('Already runnig')
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping')
