@@ -14,9 +14,6 @@ import eventlet
 import numpy as np
 from datetime import datetime
 
-thread = None
-workerObject= None
-thread_lock = Lock()
 ssProto = None
 
 #create the dummy dataframe
@@ -72,12 +69,10 @@ class SerialSocketProtocol(object):
         while self.switch:
             self.unit_of_work += 1
 
-            # must call emit from the socket io
+            # must call emit from the socketio
             # must specify the namespace
-            global ssProto;
-            ser = ssProto.serial;
 
-            if ser.is_open:
+            if self.is_open():
                 try:
                     data_str = get_arduino_data()
                     self.socketio.emit('my_response',
@@ -236,25 +231,18 @@ def run_connect():
     Arduino already has a serial connection
     '''
     print('Connecting the websocket')
-    global thread
     global ssProto;
     ser = ssProto.serial;
 
-    if not ser.is_open:
-         flash('Open the serial port first', 'error')
-         return
-    with thread_lock:
-         if thread is None:
-             ssProto.start();
-             thread = socketio.start_background_task(target=ssProto.do_work)
-             print('Start the background task')
-         else:
+    if not ssProto.is_alive():
+        if not ssProto.is_open():
+            print('this should be open right now')
 
-             print('Thread already exists')
-             if not thread.is_alive():
-                 thread = None
-                 emit('connect')
-                 return
+        ssProto.start();
+        thread = socketio.start_background_task(target=ssProto.do_work)
+        print('Start the background task')
+    else:
+        print('Already runnig')
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('stop')
@@ -265,29 +253,25 @@ def run_disconnect():
         {'data': 'Disconnected!', 'count': session['receive_count']})
     global ssProto;
     ser = ssProto.serial;
-
-    if  ser.is_open:
-        ser.close();
-
+    ser.close();
     ssProto.stop()
-    disconnect()
 
 @socketio.on('join')
 def run_join():
     print('Should join')
     global thread
-    with thread_lock:
-        print('Connecting the websocket')
-        if thread is None:
-             thread = socketio.start_background_task(target=ssProto.do_work)
-             print('Start the background task')
-        else:
+    global ssProto;
+    ser = ssProto.serial;
 
-             print('Thread already exists')
-             if not thread.is_alive():
-                 thread = None
-                 emit('connect')
-                 return
+    if not ssProto.is_alive():
+        if not ssProto.is_open():
+            print('this should be open right now')
+
+        ssProto.start();
+        thread = socketio.start_background_task(target=ssProto.do_work)
+        print('Start the background task')
+    else:
+        print('Already runnig')
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping')
