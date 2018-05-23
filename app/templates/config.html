@@ -4,19 +4,12 @@
 {% block app_content %}
 <div class="container">
   <div class="row">
-    {% if is_open %}
-    <div class="col bg-success">The port is open </div>
+    {% if conn_open %}
+    <div class="col bg-success">The connection is established. </div>
     <div class="col"> {{ wtf.quick_form(dform, id="stop", action="/stop") }} </div>
     {% else %}
-    <div class="col bg-warning">The port is closed.</div>
+    <div class="col bg-warning">The connection is closed.</div>
     <div class="col-sm"> {{ wtf.quick_form(cform, id="connect", action="/start") }} </div>
-    {% endif %}
-  </div>
-  <div class="row">
-    {% if is_alive %}
-    <div class="col bg-success">The communication with the Arduino is running.</div>
-    {% else %}
-    <div class="col bg-warning">The communication with the Arduino dead.</div>
     {% endif %}
   </div>
   <div class="row">
@@ -37,13 +30,6 @@ $(document).ready(function() {
   socket.on('connect', function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
-  $('form#connect').submit(function(event) {
-      socket.emit('connect');
-  });
-  // $('form#stop').submit(function(event) {
-  //     socket.emit('stop');
-  // //    return false;
-  // });
 });
 </script>
 {% endblock %}

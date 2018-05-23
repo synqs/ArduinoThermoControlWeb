@@ -2,7 +2,6 @@ from app import app, socketio
 from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm
 import serial
 import h5py
-from threading import Lock
 from flask import render_template, flash, redirect, url_for, session
 
 import time
@@ -49,6 +48,12 @@ class SerialSocketProtocol(object):
         """
         return self.switch
 
+    def connection_open(self):
+        '''
+        Is the protocol running ?
+        '''
+        return self.is_alive() and self.is_open()
+
     def stop(self):
         """
         stop the loop and later also the serial port
@@ -68,6 +73,17 @@ class SerialSocketProtocol(object):
                 print('Started')
         else:
             print('Already running')
+
+    def open_serial(self, port, baud_rate, timeout = 1):
+        """
+        stop the loop and later also the serial port
+        """
+        if self.is_open():
+            print('Already open')
+            self.serial.close()
+        else:
+            print('Open it')
+        self.serial = serial.Serial(port, 9600, timeout = 1)
 
     def do_work(self):
         """
@@ -108,15 +124,10 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    global thread;
     global ssProto
-    is_open = ssProto.is_open();
-    is_alive = ssProto.is_alive();
-
+    conn_open = ssProto.connection_open()
     dform = DisconnectForm();
-
-    socketio.emit('connect')
-    return render_template('index.html', dform = dform, async_mode=socketio.async_mode, is_open = is_open, is_alive = is_alive)
+    return render_template('index.html', dform = dform, async_mode=socketio.async_mode, conn_open = conn_open)
 
 @app.route('/config')
 def config():
@@ -126,28 +137,24 @@ def config():
     cform = ConnectForm()
 
     global ssProto;
+    conn_open = ssProto.connection_open()
 
-    is_open = ssProto.is_open();
-    is_alive = ssProto.is_alive();
-
-    return render_template('config.html', port = port, form=uform,
-        is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
+    return render_template('config.html', port = port, form=uform, dform = dform,
+        cform = cform, conn_open = conn_open)
 
 @app.route('/start', methods=['POST'])
 def start():
 
     cform = ConnectForm()
 
-    global thread;
     global ssProto;
 
     if cform.validate_on_submit():
         try:
-            ssProto.serial = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-
-            #TODO: also open the arduino here.
-            flash('Opened the serial connection')
-            return redirect(url_for('config'))
+            ssProto.open_serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
+            ssProto.start()
+            flash('Started the connection')
+            return redirect(url_for('index'))
         except Exception as e:
             flash('{}'.format(e), 'error')
             return redirect(url_for('config'))
@@ -175,27 +182,27 @@ def update():
     Update the serial port.
     '''
     uform = UpdateForm()
-    global thread;
     global ssProto
 
     if uform.validate_on_submit():
         n_port =  uform.serial_port.data;
         try:
-            ssProto.serial.close()
-            ssProto.serial = serial.Serial(n_port, 9600, timeout = 1)
+
+            ssProto.open_serial(n_port, 9600, timeout = 1)
+            ssProto.start()
             if ssProto.is_open():
                 app.config['SERIAL_PORT'] = n_port;
-                socketio.emit('connect')
                 flash('We set the serial port to {}'.format(app.config['SERIAL_PORT']))
-                return redirect(url_for('config'))
+                return redirect(url_for('index'))
             else:
-                 flash('Something went wrong', 'error')
+                 flash('Update of the serial port went wrong', 'error')
                  return redirect(url_for('config'))
         except Exception as e:
              flash('{}'.format(e), 'error')
              return redirect(url_for('config'))
-
-    return redirect(url_for('config'))
+    else:
+        flash('Update of the serial port went wrong', 'error')
+        return redirect(url_for('config'))
 
 @app.route('/file/<filename>')
 def file(filename):
@@ -238,8 +245,6 @@ def run_connect():
     we are connecting the client to the server. This will only work if the
     Arduino already has a serial connection
     '''
-    global ssProto;
-    ssProto.start();
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('stop')
@@ -251,7 +256,7 @@ def run_disconnect():
     global ssProto;
     ser = ssProto.serial;
     ser.close();
-    ssProto.stop()
+    ssProto.stop();
 
 @socketio.on('join')
 def run_join():
