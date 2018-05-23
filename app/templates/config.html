@@ -38,7 +38,7 @@ $(document).ready(function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
   $('form#connect').submit(function(event) {
-      socket.emit('join');
+      socket.emit('connect');
   });
   // $('form#stop').submit(function(event) {
   //     socket.emit('stop');

@@ -37,13 +37,65 @@ class SerialSocketProtocol(object):
         assign socketio object to emit
         """
         self.serial = serial.Serial()
-        self.switch = True
+        self.switch = False
+        self.socketio = socketio
 
     def is_open(self):
         '''
         test if the serial connection is open
         '''
         return self.serial.is_open
+
+    def is_alive(self):
+        """
+        return the running status
+        """
+        return self.switch
+
+    def stop(self):
+        """
+        stop the loop and later also the serial port
+        """
+        self.switch = False
+
+    def start(self):
+        """
+        stop the loop and later also the serial port
+        """
+        self.switch = True
+
+    def do_work(self):
+        """
+        do work and emit message
+        """
+
+        while self.switch:
+            self.unit_of_work += 1
+
+            # must call emit from the socket io
+            # must specify the namespace
+            global ssProto;
+            ser = ssProto.serial;
+
+            if ser.is_open:
+                try:
+                    data_str = get_arduino_data()
+                    self.socketio.emit('my_response',
+                    {'data': data_str, 'count': self.unit_of_work})
+                except Exception as e:
+                    self.socketio.emit('my_response',
+                    {'data': '{}'.format(e), 'count': self.unit_of_work})
+                    self.switch = False
+            else:
+                self.switch = False
+                # TODO: Make this a link
+                error_str = 'Port closed. please configure one properly under config.'
+                self.socketio.emit('my_response',
+                {'data': error_str, 'count': self.unit_of_work})
+
+                # important to use eventlet's sleep method
+                eventlet.sleep(1)
+
 
 ssProto = SerialSocketProtocol(socketio)
 
@@ -53,15 +105,10 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    global ser;
     global thread;
-    global workerObject
     global ssProto
     is_open = ssProto.is_open();
-    is_alive = False;
-
-    if workerObject:
-        is_alive = workerObject.is_alive();
+    is_alive = ssProto.is_alive();
 
     dform = DisconnectForm();
 
@@ -75,16 +122,11 @@ def config():
     dform = DisconnectForm()
     cform = ConnectForm()
 
-    global workerObject;
     global ssProto;
 
     is_open = ssProto.is_open();
-    is_alive = False;
+    is_alive = ssProto.is_alive();
 
-    if workerObject:
-        is_alive = workerObject.is_alive();
-    print(is_alive)
-    print('Render the config page.')
     return render_template('config.html', port = port, form=uform,
         is_open= is_open, is_alive = is_alive, dform = dform, cform = cform)
 
@@ -94,19 +136,13 @@ def start():
     cform = ConnectForm()
 
     global thread;
-    global workerObject;
     global ssProto;
-
-    is_open = ssProto.is_open();
-    is_alive = False;
-
-    if workerObject:
-        is_alive = workerObject.is_alive();
 
     if cform.validate_on_submit():
         try:
             ssProto.serial = serial.Serial(app.config['SERIAL_PORT'], 9600, timeout = 1)
-            is_open = ssProto.is_open();
+
+            #TODO: also open the arduino here.
             flash('Opened the serial connection')
             return redirect(url_for('config'))
         except Exception as e:
@@ -117,22 +153,12 @@ def start():
 
 @app.route('/stop', methods=['POST'])
 def stop():
-    port = app.config['SERIAL_PORT']
     dform = DisconnectForm()
-
-    global thread;
-    global workerObject;
     global ssProto;
 
-    is_open = ssProto.is_open();
-    is_alive = False;
-
-    if workerObject:
-        is_alive = workerObject.is_alive();
-
-    if is_open and dform.validate_on_submit():
+    if dform.validate_on_submit():
         #Disconnect the port.
-        workerObject.stop()
+        ssProto.stop()
         ssProto.serial.close()
 
         flash('Closed the serial connection')
@@ -147,13 +173,7 @@ def update():
     '''
     uform = UpdateForm()
     global thread;
-    global workerObject;
     global ssProto
-    is_open = ssProto.is_open();
-    is_alive = False;
-
-    if workerObject:
-        is_alive = workerObject.is_alive();
 
     if uform.validate_on_submit():
         n_port =  uform.serial_port.data;
@@ -209,64 +229,6 @@ def get_arduino_data():
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
-
-
-class Worker(object):
-
-    switch = False
-    unit_of_work = 0
-
-    def __init__(self, socketio):
-        """
-        assign socketio object to emit
-        """
-        self.socketio = socketio
-        self.switch = True
-
-    def is_alive(self):
-        """
-        return the running status
-        """
-        return self.switch
-
-    def do_work(self):
-        """
-        do work and emit message
-        """
-
-        while self.switch:
-            self.unit_of_work += 1
-
-            # must call emit from the socket io
-            # must specify the namespace
-            global ssProto;
-            ser = ssProto.serial;
-
-            if ser.is_open:
-                try:
-                    data_str = get_arduino_data()
-                    self.socketio.emit('my_response',
-                    {'data': data_str, 'count': self.unit_of_work})
-                except Exception as e:
-                    self.socketio.emit('my_response',
-                    {'data': '{}'.format(e), 'count': self.unit_of_work})
-                    self.switch = False
-            else:
-                self.switch = False
-                # TODO: Make this a link
-                error_str = 'Port closed. please configure one properly under config.'
-                self.socketio.emit('my_response',
-                {'data': error_str, 'count': self.unit_of_work})
-
-                # important to use eventlet's sleep method
-                eventlet.sleep(1)
-
-    def stop(self):
-        """
-        stop the loop
-        """
-        self.switch = False
-
 @socketio.on('connect')
 def run_connect():
     '''
@@ -275,7 +237,6 @@ def run_connect():
     '''
     print('Connecting the websocket')
     global thread
-    global workerObject
     global ssProto;
     ser = ssProto.serial;
 
@@ -284,8 +245,8 @@ def run_connect():
          return
     with thread_lock:
          if thread is None:
-             workerObject = Worker(socketio)
-             thread = socketio.start_background_task(target=workerObject.do_work)
+             ssProto.start();
+             thread = socketio.start_background_task(target=ssProto.do_work)
              print('Start the background task')
          else:
 
@@ -302,26 +263,23 @@ def run_disconnect():
     session['receive_count'] = session.get('receive_count', 0) + 1
     emit('my_response',
         {'data': 'Disconnected!', 'count': session['receive_count']})
-    global workerObject
     global ssProto;
     ser = ssProto.serial;
 
     if  ser.is_open:
         ser.close();
 
-    workerObject.stop()
+    ssProto.stop()
     disconnect()
 
 @socketio.on('join')
 def run_join():
     print('Should join')
     global thread
-    global workerObject
     with thread_lock:
         print('Connecting the websocket')
         if thread is None:
-             workerObject = Worker(socketio)
-             thread = socketio.start_background_task(target=workerObject.do_work)
+             thread = socketio.start_background_task(target=ssProto.do_work)
              print('Start the background task')
         else:
 
