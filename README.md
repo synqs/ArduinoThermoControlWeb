@@ -31,6 +31,7 @@ The website assumes that the Arduino is connected via a serial device.
 
 # TODO
 
- 1. Verify the connections cleaner.
- 2. Send the last data to the hdf5 file.
- 3. Plots and nicer table ?
+ 1. Send the last data to the hdf5 file.
+ 2. Plots and nicer table ?
+ 3. Error logger to communicate with slack or via email.
+ 4. move to gunicorn for work that is not on localhost
