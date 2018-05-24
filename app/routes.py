@@ -113,7 +113,7 @@ class SerialSocketProtocol(object):
                 {'data': error_str, 'count': self.unit_of_work})
 
                 # important to use eventlet's sleep method
-                eventlet.sleep(1)
+            eventlet.sleep(3)
 
 
 ssProto = SerialSocketProtocol(socketio)
@@ -231,7 +231,9 @@ def get_arduino_data():
 
     global ssProto;
     ser = ssProto.serial;
-    ser.flushInput();
+    # how do we only read the very last line ?
+    # TODO: I am pretty sure that the flushInput is a real noise source
+    #ser.flushInput();
     line = ser.readline();
     ard_str = line.decode(encoding='windows-1252');
 

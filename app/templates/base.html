@@ -22,10 +22,19 @@ Arduino Web-Interface
         <ul>
             {% for category, message in messages %}
             {% if category == 'error' %}
-              <div class="alert alert-warning" role="alert">{{ message }}</div>
+              <div class="alert alert-warning alert-dismissible" role="alert">{{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
             {% else %}
-              <div class="alert alert-info" role="alert">{{ message }}</div>
+              <div class="alert alert-info alert-dismissible" role="alert">{{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
             {% endif %}
+
             {% endfor %}
         </ul>
         {% endif %}
@@ -33,4 +42,9 @@ Arduino Web-Interface
 
         {% block app_content %}{% endblock %}
 </div>
+
+
+<footer class="page-footer font-small blue pt-4 mt-4">
+  <div class="footer-copyright text-center py-3"> &copy; SynQS</div>
+</footer>
 {% endblock %}
