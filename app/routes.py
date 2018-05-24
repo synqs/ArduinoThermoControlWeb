@@ -14,9 +14,7 @@ import numpy as np
 from datetime import datetime
 
 ssProto = None
-
-#create the dummy dataframe
-fname = '';
+ard_str = '';
 
 class SerialSocketProtocol(object):
     '''
@@ -70,7 +68,6 @@ class SerialSocketProtocol(object):
             else:
                 self.switch = True
                 thread = self.socketio.start_background_task(target=self.do_work)
-                print('Started')
         else:
             print('Already running')
 
@@ -79,11 +76,9 @@ class SerialSocketProtocol(object):
         stop the loop and later also the serial port
         """
         if self.is_open():
-            print('Already open')
             self.serial.close()
         else:
-            print('Open it')
-        self.serial = serial.Serial(port, 9600, timeout = 1)
+            self.serial = serial.Serial(port, 9600, timeout = 1)
 
     def do_work(self):
         """
@@ -210,18 +205,22 @@ def file(filename):
 
     # We should add the latest value of the database here. Better would be to trigger the readout.
     # Let us see how this actually works.
-    vals = [1, 2, 3];
-    with h5py.File(filename, "a") as f:
-        if 'globals' in f.keys():
-            params = f['globals']
-            params.attrs['T_Verr'] = vals[0]
-            params.attrs['T_Vmeas'] = vals[1]
-            params.attrs['T_Vinp'] = vals[2]
-            flash('The added vals to the file {}'.format(filename))
-        else:
-            flash('The file {} did not have the global group yet.'.format(filename), 'error')
-    return render_template('file.html', file = filename)
+    vals = ard_str.split(',');
+    if vals:
+        print(vals)
+        with h5py.File(filename, "a") as f:
+            if 'globals' in f.keys():
+                params = f['globals']
+                params.attrs['T_Verr'] = int(vals[0])
+                params.attrs['T_Vmeas'] = int(vals[1])
+                params.attrs['T_Vinp'] = int(vals[2])
+                flash('Added the vals {} to the file {}'.format(ard_str, filename))
+            else:
+                flash('The file {} did not have the global group yet.'.format(filename), 'error')
+    else:
+        flash('Did not have any values to save', 'error')
 
+    return render_template('file.html', file = filename, vals = vals)
 
 # communication with the websocket
 def get_arduino_data():
@@ -230,14 +229,14 @@ def get_arduino_data():
     '''
 
     global ssProto;
+    global ard_str;
     ser = ssProto.serial;
-    # how do we only read the very last line ?
-    # TODO: I am pretty sure that the flushInput is a real noise source
-    #ser.flushInput();
-    line = ser.readline();
-    ard_str = line.decode(encoding='windows-1252');
+    stream = ser.read(ser.in_waiting);
+    s_str = stream.decode(encoding='windows-1252');
+    lines = s_str.split('\r\n');
+    ard_str = lines[0];
 
-    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
+    timestamp = datetime.now().replace(microsecond=0).isoformat();
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
@@ -259,14 +258,6 @@ def run_disconnect():
     ser = ssProto.serial;
     ser.close();
     ssProto.stop();
-
-@socketio.on('join')
-def run_join():
-    print('Should join')
-    global ssProto;
-    ssProto.start();
-
-    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('my_ping')
 def ping_pong():
