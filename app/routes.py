@@ -231,7 +231,12 @@ def get_arduino_data():
 
     global ssProto;
     ser = ssProto.serial;
-    ser.flushInput();
+    print(ser.in_waiting)
+    ser.reset_input_buffer();
+    #ard_str = '';
+    #for line in ser:
+    #    ard_str = line.decode(encoding='windows-1252');
+    #    print(line)
     line = ser.readline();
     ard_str = line.decode(encoding='windows-1252');
 
