@@ -70,7 +70,6 @@ class SerialSocketProtocol(object):
             else:
                 self.switch = True
                 thread = self.socketio.start_background_task(target=self.do_work)
-                print('Started')
         else:
             print('Already running')
 
@@ -79,11 +78,9 @@ class SerialSocketProtocol(object):
         stop the loop and later also the serial port
         """
         if self.is_open():
-            print('Already open')
             self.serial.close()
         else:
-            print('Open it')
-        self.serial = serial.Serial(port, 9600, timeout = 1)
+            self.serial = serial.Serial(port, 9600, timeout = 1)
 
     def do_work(self):
         """
@@ -113,7 +110,7 @@ class SerialSocketProtocol(object):
                 {'data': error_str, 'count': self.unit_of_work})
 
                 # important to use eventlet's sleep method
-                eventlet.sleep(1)
+            eventlet.sleep(3)
 
 
 ssProto = SerialSocketProtocol(socketio)
@@ -231,16 +228,12 @@ def get_arduino_data():
 
     global ssProto;
     ser = ssProto.serial;
-    print(ser.in_waiting)
-    ser.reset_input_buffer();
-    #ard_str = '';
-    #for line in ser:
-    #    ard_str = line.decode(encoding='windows-1252');
-    #    print(line)
-    line = ser.readline();
-    ard_str = line.decode(encoding='windows-1252');
+    stream = ser.read(ser.in_waiting);
+    s_str = stream.decode(encoding='windows-1252');
+    lines = s_str.split('\r\n');
+    ard_str = lines[0];
 
-    timestamp = datetime.utcnow().replace(microsecond=0).isoformat();
+    timestamp = datetime.now().replace(microsecond=0).isoformat();
     d_str = timestamp + '\t' + ard_str;
     return d_str
 
