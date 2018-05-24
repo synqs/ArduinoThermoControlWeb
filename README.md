@@ -22,13 +22,13 @@ The project should serve as a boilerplate for our other sensors too.
 - open it in a brower on 'localhost:5000'
 
 # Usage
-
 ## The server itself
  - activate the virtualenv through 'source activate YOURNAME'
  - start it through 'start.sh'
  - runs on 'localhost:5000'
 
 ## Test without Arduino
+
  If you want to test the serial port without having an Arduino, you should just
  start another terminal, start the python console and run 'import simSerialPort'
 
@@ -38,7 +38,6 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 
 # TODO
 
- 1. Send the last data to the hdf5 file.
- 2. Plots and nicer table ?
- 3. Error logger to communicate with slack or via email.
- 4. move to gunicorn for work that is not on localhost
+ 1. Plots and nicer table ?
+ 2. Error logger to communicate with slack or via email.
+ 3. Allow for changing the parameters of the feedback loop through some serial communication.
