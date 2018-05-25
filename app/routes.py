@@ -93,9 +93,13 @@ class SerialSocketProtocol(object):
 
             if self.is_open():
                 try:
-                    data_str = get_arduino_data()
-                    self.socketio.emit('my_response',
-                    {'data': data_str, 'count': self.unit_of_work})
+                    timestamp, ard_str = get_arduino_data()
+
+                    vals = ard_str.split(',');
+                    if vals:
+                        print(vals)
+                    self.socketio.emit('log_response',
+                    {'time':timestamp, 'data': vals, 'count': self.unit_of_work})
                 except Exception as e:
                     self.socketio.emit('my_response',
                     {'data': '{}'.format(e), 'count': self.unit_of_work})
@@ -104,7 +108,7 @@ class SerialSocketProtocol(object):
                 self.switch = False
                 # TODO: Make this a link
                 error_str = 'Port closed. please configure one properly under config.'
-                self.socketio.emit('my_response',
+                self.socketio.emit('log_response',
                 {'data': error_str, 'count': self.unit_of_work})
 
                 # important to use eventlet's sleep method
@@ -227,7 +231,6 @@ def get_arduino_data():
     '''
     A function to create test data for plotting.
     '''
-
     global ssProto;
     global ard_str;
     ser = ssProto.serial;
@@ -235,10 +238,8 @@ def get_arduino_data():
     s_str = stream.decode(encoding='windows-1252');
     lines = s_str.split('\r\n');
     ard_str = lines[0];
-
     timestamp = datetime.now().replace(microsecond=0).isoformat();
-    d_str = timestamp + '\t' + ard_str;
-    return d_str
+    return timestamp, ard_str
 
 @socketio.on('connect')
 def run_connect():

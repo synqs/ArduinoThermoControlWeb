@@ -18,6 +18,10 @@
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Received data:</h2>
 <div id="log"></div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
@@ -33,16 +37,24 @@ $(document).ready(function() {
   });
 
   // Event handler for server sent data.
-  // The callback function is invoked whenever the server emits data
-  // to the client. The data is then displayed in the "Received"
-  // section of the page.
   socket.on('my_response', function(msg) {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
   });
 
+  // Event handler for server sent data.
+  socket.on('log_response', function(msg) {
+    var count = msg.count;
+    var data = msg.data;
+    var time = msg.time;
+    var log_str = 'Log #' + count + ': ' + time;
+    for (var i=0; i<data.length; i++){
+        log_str = log_str + '\t' + data[i];
+    }
+
+    $('#log').prepend('<br>' + $('<div/>').text(log_str).html());
+  });
+
   // Interval function that tests message latency by sending a "ping"
-  // message. The server then responds with a "pong" message and the
-  // round trip time is measured.
   var ping_pong_times = [];
   var start_time;
   window.setInterval(function() {

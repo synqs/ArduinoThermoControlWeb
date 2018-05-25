@@ -30,7 +30,7 @@ The project should serve as a boilerplate for our other sensors too.
 ## Test without Arduino
 
  If you want to test the serial port without having an Arduino, you should just
- start another terminal, start the python console and run 'import simSerialPort'
+ start another terminal, and run the _simSerialPort.py_ file through 'python simSerialPort.py'
 
 ## Saving to hdf5
 
