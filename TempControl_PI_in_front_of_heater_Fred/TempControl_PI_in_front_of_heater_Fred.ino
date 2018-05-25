@@ -104,11 +104,6 @@ void loop() {
 
     //output some stuff to the serial port for monitoring
 
-
-
-
-
-
   }
 
   /////////// second part of the wavepacket control
