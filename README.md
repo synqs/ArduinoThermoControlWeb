@@ -27,7 +27,7 @@ The website assumes that the Arduino is connected via a serial device.
 
 ## Test without Arduino
  If you want to test the serial port without having an Arduino, you should just
- start another terminal, start the python console and run 'import simSerialPort'
+ start another terminal, and run the _simSerialPort.py_ file through 'python simSerialPort.py'
 
 # TODO
 
