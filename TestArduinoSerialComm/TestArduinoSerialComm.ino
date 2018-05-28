@@ -4,9 +4,7 @@ long output;
 double setpoint;
 
 
-int incomingByte = 0;   // for incoming serial data
 char mode;   // for incoming serial data
-char tmpStr;   // for incoming serial data
 
 void setup()
 {

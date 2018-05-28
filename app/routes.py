@@ -215,16 +215,23 @@ def arduino():
     if aform.validate_on_submit():
         n_setpoint =  aform.setpoint.data;
         if ssProto.is_open():
-            print('s' + n_setpoint)
             o_str = 's{}'.format(n_setpoint)
             b = o_str.encode()
-            #b = str('s' + n_setpoint).encode()
             ssProto.serial.write(b)
             flash('We set the serial port to {}'.format(n_setpoint))
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('config'))
+    else:
+        port = app.config['SERIAL_PORT']
+        uform = UpdateForm()
+        dform = DisconnectForm()
+        cform = ConnectForm()
 
+        conn_open = ssProto.connection_open()
+
+        return render_template('config.html', port = port, form=uform, dform = dform,
+            cform = cform, conn_open = conn_open, arduino_form = aform)
 
 @app.route('/file/<filename>')
 def file(filename):

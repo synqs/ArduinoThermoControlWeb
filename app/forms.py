@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import DataRequired, FileRequired
-from wtforms import StringField, SubmitField, FileField
+from wtforms import StringField, SubmitField, FileField, IntegerField
+from wtforms.validators import DataRequired, ValidationError, NumberRange
 
 class UpdateForm(FlaskForm):
     '''
@@ -13,9 +13,8 @@ class UpdateArduinoForm(FlaskForm):
     '''
     The form for connecting to the Arduino
     '''
-    setpoint = StringField('New setpoint:', validators=[DataRequired()])
+    setpoint = IntegerField('New setpoint:', [DataRequired(), NumberRange(0,1023)])
     submit = SubmitField('Update setpoint')
-
 
 class DisconnectForm(FlaskForm):
     '''
