@@ -18,6 +18,7 @@
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Received data:</h2>
 <div id="log"></div>
+<div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
 <table class="table" id ="ard_log">
   <thead>
   <tr>
@@ -35,6 +36,7 @@
 
 {% block scripts %}
 {{super()}}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
@@ -69,6 +71,11 @@ $(document).ready(function() {
     ard_log_str = ard_log_str + '</tr>'
 
       $('#ard_log > tbody').prepend(ard_log_str).html()
+
+    Plotly.extendTraces('plot', {
+      x:[[count], [count]],
+      y:[[data[0]], [data[1]]]
+    }, [0,1])
   });
 
   // Interval function that tests message latency by sending a "ping"
@@ -91,5 +98,22 @@ $(document).ready(function() {
     $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
   });
 });
+
+var trace1 = {
+  x: [],
+  y: [],
+  mode: 'lines'
+};
+
+var trace2 = {
+  x: [],
+  y: [],
+  mode: 'lines'
+};
+
+var data = [ trace1, trace2];
+var layout = {};
+
+Plotly.newPlot('plot', data, layout);
 </script>
 {% endblock %}
