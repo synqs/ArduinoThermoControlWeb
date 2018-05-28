@@ -9,6 +9,14 @@ class UpdateForm(FlaskForm):
     serial_port = StringField('Update to port:', validators=[DataRequired()])
     submit = SubmitField('Update port')
 
+class UpdateArduinoForm(FlaskForm):
+    '''
+    The form for connecting to the Arduino
+    '''
+    setpoint = StringField('New setpoint:', validators=[DataRequired()])
+    submit = SubmitField('Update setpoint')
+
+
 class DisconnectForm(FlaskForm):
     '''
     The form for disconnecting from the Arduino
