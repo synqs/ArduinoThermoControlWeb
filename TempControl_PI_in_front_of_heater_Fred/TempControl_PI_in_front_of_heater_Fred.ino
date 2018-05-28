@@ -25,7 +25,7 @@ void setup()
   pinMode(outPin, OUTPUT);
   pinMode(outLEDPin, OUTPUT);
 
-  setpoint = 700;
+  setpoint = 725;
 
   ////////PID parameters
   tau = 1000;// in s and obtained from the time constant as we apply a step function
@@ -101,9 +101,6 @@ void loop() {
     //reset number of aquired measurements and measurement accumulator
     sumval = 0;
     measnum = 0;
-
-    //output some stuff to the serial port for monitoring
-
   }
 
   /////////// second part of the wavepacket control
@@ -120,5 +117,14 @@ void loop() {
     }
   }
   ////////////////////
-
+  // send data only when you receive data:
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    // say what you got:
+    mode = Serial.read();
+    if (mode == 's') {
+      long out;
+      setpoint = Serial.parseInt();
+    }
+  }
 }
