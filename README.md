@@ -39,6 +39,6 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 
 # TODO
 
- 1. Plots and nicer table ?
+ 1. Allow for changing the parameters of the feedback loop through some serial communication.
+ 2. Allow for csv control and a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
  2. Error logger to communicate with slack or via email.
- 3. Allow for changing the parameters of the feedback loop through some serial communication.
