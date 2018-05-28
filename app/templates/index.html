@@ -18,6 +18,19 @@
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Received data:</h2>
 <div id="log"></div>
+<table class="table" id ="ard_log">
+  <thead>
+  <tr>
+    <th>#</th>
+    <th>Date</th>
+    <th>Setpoint</th>
+    <th>Input</th>
+    <th>Error</th>
+    <th>Output</th>
+  </tr>
+</thead>
+<tbody> </tbody>
+</table>
 {% endblock %}
 
 {% block scripts %}
@@ -46,12 +59,16 @@ $(document).ready(function() {
     var count = msg.count;
     var data = msg.data;
     var time = msg.time;
-    var log_str = 'Log #' + count + ': ' + time;
-    for (var i=0; i<data.length; i++){
-        log_str = log_str + '\t' + data[i];
-    }
 
-    $('#log').prepend('<br>' + $('<div/>').text(log_str).html());
+    var ard_log_str = '<tr>'
+    ard_log_str = ard_log_str + '<td>' + msg.count +'</td>';
+    ard_log_str = ard_log_str + '<td>' + msg.time +'</td>';
+    for (var i=0; i<data.length; i++){
+        ard_log_str = ard_log_str + '<td>' + data[i] +'</td>';
+    }
+    ard_log_str = ard_log_str + '</tr>'
+
+      $('#ard_log > tbody').prepend(ard_log_str).html()
   });
 
   // Interval function that tests message latency by sending a "ping"
