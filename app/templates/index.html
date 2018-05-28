@@ -73,9 +73,9 @@ $(document).ready(function() {
       $('#ard_log > tbody').prepend(ard_log_str).html()
 
     Plotly.extendTraces('plot', {
-      x:[[count], [count]],
-      y:[[data[0]], [data[1]]]
-    }, [0,1])
+      x:[[time], [time], [time]],
+      y:[[data[0]], [data[1]], [data[3]]]
+    }, [0,1,2])
   });
 
   // Interval function that tests message latency by sending a "ping"
@@ -99,19 +99,28 @@ $(document).ready(function() {
   });
 });
 
-var trace1 = {
+var setpoint_trace = {
   x: [],
   y: [],
-  mode: 'lines'
+  name: 'Setpoint',
+  type: 'scatter'
 };
 
-var trace2 = {
+var input_trace = {
   x: [],
   y: [],
-  mode: 'lines'
+  name: 'Measured T',
+  type: 'scatter'
 };
 
-var data = [ trace1, trace2];
+var control_trace = {
+  x: [],
+  y: [],
+  name: 'Control',
+  type: 'scatter'
+};
+
+var data = [ setpoint_trace, input_trace, control_trace];
 var layout = {};
 
 Plotly.newPlot('plot', data, layout);
