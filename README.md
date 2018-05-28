@@ -3,6 +3,7 @@
 A flask server that should simplify the logging of our temp control. The website assumes that the Arduino is connected via a serial device. For the moment we have to following abilities:
 - It shows data in a long list for the moment.
 - It is possible to save the values to an hdf5 file.
+- The setpoint can be changed in the config page.
 
 On the technical side we use the following ingredients:
 - Communication with the Arduino is done through the Serial interface.
