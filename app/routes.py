@@ -214,7 +214,12 @@ def arduino():
 
     if aform.validate_on_submit():
         n_setpoint =  aform.setpoint.data;
-        flash('We set the serial port to {}'.format(n_setpoint))
+        if ssProto.is_open():
+            b = str('s' + n_setpoint).encode('windows-1252')
+            ssProto.serial.write(b)
+            flash('We set the serial port to {}'.format(n_setpoint))
+        else:
+            flash('Serial port not open.', 'error')
         return redirect(url_for('config'))
 
 

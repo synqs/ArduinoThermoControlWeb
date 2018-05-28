@@ -5,6 +5,7 @@ double setpoint;
 
 
 int incomingByte = 0;   // for incoming serial data
+char mode;   // for incoming serial data
 
 
 void setup()
@@ -29,14 +30,14 @@ void loop() {
   Serial.print(", ");
   Serial.println(output, DEC);
   delay(1000);
-  
+
   // send data only when you receive data:
   if (Serial.available() > 0) {
     // read the incoming byte:
-    incomingByte = Serial.read();
+    mode = Serial.read();
 
     // say what you got:
     Serial.print("I received: ");
-    Serial.println(incomingByte, DEC);
+    Serial.println(mode, DEC);
   }
 }
