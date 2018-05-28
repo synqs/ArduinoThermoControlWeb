@@ -1,5 +1,5 @@
 from app import app, socketio
-from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm
+from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm, UpdateArduinoForm
 import serial
 import h5py
 from flask import render_template, flash, redirect, url_for, session
@@ -134,12 +134,13 @@ def config():
     uform = UpdateForm()
     dform = DisconnectForm()
     cform = ConnectForm()
+    arduino_form = UpdateArduinoForm()
 
     global ssProto;
     conn_open = ssProto.connection_open()
 
     return render_template('config.html', port = port, form=uform, dform = dform,
-        cform = cform, conn_open = conn_open)
+        cform = cform, conn_open = conn_open, arduino_form = arduino_form)
 
 @app.route('/start', methods=['POST'])
 def start():
@@ -203,6 +204,35 @@ def update():
         flash('Update of the serial port went wrong', 'error')
         return redirect(url_for('config'))
 
+@app.route('/arduino', methods=['POST'])
+def arduino():
+    '''
+    Configure now settings for the arduino.
+    '''
+    aform = UpdateArduinoForm()
+    global ssProto
+
+    if aform.validate_on_submit():
+        n_setpoint =  aform.setpoint.data;
+        if ssProto.is_open():
+            o_str = 's{}'.format(n_setpoint)
+            b = o_str.encode()
+            ssProto.serial.write(b)
+            flash('We set the serial port to {}'.format(n_setpoint))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('config'))
+    else:
+        port = app.config['SERIAL_PORT']
+        uform = UpdateForm()
+        dform = DisconnectForm()
+        cform = ConnectForm()
+
+        conn_open = ssProto.connection_open()
+
+        return render_template('config.html', port = port, form=uform, dform = dform,
+            cform = cform, conn_open = conn_open, arduino_form = aform)
+
 @app.route('/file/<filename>')
 def file(filename):
     '''function to save the values of the hdf5 file'''
@@ -236,7 +266,9 @@ def get_arduino_data():
     ser = ssProto.serial;
     stream = ser.read(ser.in_waiting);
     s_str = stream.decode(encoding='windows-1252');
+    ard_str = stream.decode(encoding='windows-1252');
     lines = s_str.split('\r\n');
+    print(lines)
     ard_str = lines[0];
     timestamp = datetime.now().replace(microsecond=0).isoformat();
     return timestamp, ard_str
