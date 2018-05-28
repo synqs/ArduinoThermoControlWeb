@@ -5,6 +5,7 @@
   <div class="row">
     {% if conn_open %}
     <div class="col bg-success">The connection is established.</div>
+    {{ wtf.quick_form(dform, id="stop", action="/stop") }}
     {% else %}
     <div class="col bg-warning">The connection is closed.</div>
     <div class="col">You can configure it <a href="{{ url_for('config') }}" class="text-warning">here.</a></div>
@@ -12,9 +13,6 @@
   </div>
 </div>
 
-{{ wtf.quick_form(dform, id="stop", action="/stop") }}
-
-<p>Async mode is: <b>{{ async_mode }}</b></p>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <h2>Messages:</h2>
 <div id="log"></div>

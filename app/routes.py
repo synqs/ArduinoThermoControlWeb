@@ -57,6 +57,7 @@ class SerialSocketProtocol(object):
         stop the loop and later also the serial port
         """
         self.switch = False
+        self.unit_of_work = 0
 
     def start(self):
         """
@@ -73,7 +74,7 @@ class SerialSocketProtocol(object):
 
     def open_serial(self, port, baud_rate, timeout = 1):
         """
-        stop the loop and later also the serial port
+        open the serial port
         """
         if self.is_open():
             self.serial.close()
@@ -126,7 +127,7 @@ def index():
     global ssProto
     conn_open = ssProto.connection_open()
     dform = DisconnectForm();
-    return render_template('index.html', dform = dform, async_mode=socketio.async_mode, conn_open = conn_open)
+    return render_template('index.html', dform = dform, conn_open = conn_open)
 
 @app.route('/config')
 def config():
