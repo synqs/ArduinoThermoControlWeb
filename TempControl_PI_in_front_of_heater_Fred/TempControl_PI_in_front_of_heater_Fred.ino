@@ -10,6 +10,7 @@ long sumval;
 int measnum;
 int loopcount;
 
+char mode;   // for incoming serial data
 
 long inputspannung;
 
@@ -106,9 +107,11 @@ void loop() {
   /////////// second part of the wavepacket control
   if (loopcount == nloopcount) {
     loopcount = 0;
-    Serial.print(error);
+    Serial.print(setpoint);
     Serial.print(", ");
     Serial.print(input);
+    Serial.print(", ");
+    Serial.print(error);
     Serial.print(", ");
     Serial.println(output, DEC);
     if (output > 0) {
