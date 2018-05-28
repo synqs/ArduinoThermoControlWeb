@@ -215,7 +215,10 @@ def arduino():
     if aform.validate_on_submit():
         n_setpoint =  aform.setpoint.data;
         if ssProto.is_open():
-            b = str('s' + n_setpoint).encode('windows-1252')
+            print('s' + n_setpoint)
+            o_str = 's{}'.format(n_setpoint)
+            b = o_str.encode()
+            #b = str('s' + n_setpoint).encode()
             ssProto.serial.write(b)
             flash('We set the serial port to {}'.format(n_setpoint))
         else:
@@ -256,7 +259,9 @@ def get_arduino_data():
     ser = ssProto.serial;
     stream = ser.read(ser.in_waiting);
     s_str = stream.decode(encoding='windows-1252');
+    ard_str = stream.decode(encoding='windows-1252');
     lines = s_str.split('\r\n');
+    print(lines)
     ard_str = lines[0];
     timestamp = datetime.now().replace(microsecond=0).isoformat();
     return timestamp, ard_str
