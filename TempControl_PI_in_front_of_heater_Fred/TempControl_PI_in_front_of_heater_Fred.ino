@@ -9,7 +9,6 @@ unsigned long now;
 long sumval;
 int measnum;
 int loopcount;
-char mode;
 
 
 long inputspannung;
