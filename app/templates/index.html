@@ -17,18 +17,19 @@
 <div id="log"></div>
 <h2>Data:</h2>
 <div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
-<table class="table" id ="ard_log">
+<table class="table table-hover" id ="ard_log">
   <thead>
   <tr>
-    <th>#</th>
-    <th>Date</th>
-    <th>Setpoint</th>
-    <th>Input</th>
-    <th>Error</th>
-    <th>Output</th>
+    <th scope="col">#</th>
+    <th scope="col">Date</th>
+    <th scope="col">Setpoint</th>
+    <th scope="col">Input</th>
+    <th scope="col">Error</th>
+    <th scope="col">Output</th>
   </tr>
 </thead>
-<tbody> </tbody>
+<tbody>
+ </tbody>
 </table>
 {% endblock %}
 
@@ -54,16 +55,21 @@ $(document).ready(function() {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
   });
 
-  // Event handler for server sent data.
+  // Event handler for logging data.
   socket.on('log_response', function(msg) {
     var count = msg.count;
     var data = msg.data;
     var time = msg.time;
-
-    var ard_log_str = '<tr>'
-    ard_log_str = ard_log_str + '<td>' + msg.count +'</td>';
+    if (data.length == 4 && data[3] == 0) {
+      var ard_log_str = '<tr class="warning">';
+    }
+    else {
+      var ard_log_str = '<tr>';
+    }
+    ard_log_str = ard_log_str + '<th scope="row">' + msg.count +'</th>';
     ard_log_str = ard_log_str + '<td>' + msg.time +'</td>';
     for (var i=0; i<data.length; i++){
+
         ard_log_str = ard_log_str + '<td>' + data[i] +'</td>';
     }
     ard_log_str = ard_log_str + '</tr>'

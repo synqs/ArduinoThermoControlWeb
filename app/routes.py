@@ -97,8 +97,6 @@ class SerialSocketProtocol(object):
                     timestamp, ard_str = get_arduino_data()
 
                     vals = ard_str.split(',');
-                    if vals:
-                        print(vals)
                     self.socketio.emit('log_response',
                     {'time':timestamp, 'data': vals, 'count': self.unit_of_work})
                 except Exception as e:
