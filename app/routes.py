@@ -2,6 +2,7 @@ from app import app, socketio
 from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm, UpdateArduinoForm
 import serial
 import h5py
+import numpy as np
 from flask import render_template, flash, redirect, url_for, session
 
 import time
@@ -244,9 +245,9 @@ def file(filename):
         with h5py.File(filename, "a") as f:
             if 'globals' in f.keys():
                 params = f['globals']
-                params.attrs['T_Verr'] = int(vals[0])
-                params.attrs['T_Vmeas'] = int(vals[1])
-                params.attrs['T_Vinp'] = int(vals[2])
+                params.attrs['T_Verr'] = np.float(vals[0])
+                params.attrs['T_Vmeas'] = np.float(vals[1])
+                params.attrs['T_Vinp'] = np.float(vals[2])
                 flash('Added the vals {} to the file {}'.format(ard_str, filename))
             else:
                 flash('The file {} did not have the global group yet.'.format(filename), 'error')
