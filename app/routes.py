@@ -267,7 +267,6 @@ def get_arduino_data():
     s_str = stream.decode(encoding='windows-1252');
     ard_str = stream.decode(encoding='windows-1252');
     lines = s_str.split('\r\n');
-    print(lines)
     ard_str = lines[0];
     timestamp = datetime.now().replace(microsecond=0).isoformat();
     return timestamp, ard_str

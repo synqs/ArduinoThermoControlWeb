@@ -4,13 +4,18 @@ A flask server that should simplify the logging of our temp control. The website
 - It shows data in a long list for the moment.
 - It is possible to save the values to an hdf5 file.
 - The setpoint can be changed in the config page.
+- The data can be exported to csv and txt.
 
 On the technical side we use the following ingredients:
 - Communication with the Arduino is done through the Serial interface.
 - Updates are done through flask_socketio
 - The layout is made nice through flask_bootstrap.
+- Graphics are done with plotly.js
+- the table export happens through the tableExport plug-in
 
 The project should serve as a boilerplate for our other sensors too.
+
+Further, we will most likely not install saving of the data on the server as this would make the whole thing MUCH more complicated (where and who to store the data. Which data should we show etc.)
 
 # Installation
 
@@ -39,6 +44,10 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 
 # TODO
 
- 1. Allow for changing the parameters of the feedback loop through some serial communication.
- 2. Allow for csv control and a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
- 2. Error logger to communicate with slack or via email.
+ [] Allow for changing the parameters of the feedback loop through some serial communication.
+
+ [] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
+
+ [] Error logger to communicate with slack or via email.
+
+ [] make this readme the about page. 

@@ -17,6 +17,7 @@
 <div id="log"></div>
 <h2>Data:</h2>
 <div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
+<button class="btn btn-default" id="exp_button"> Export to csv</button>
 <table class="table table-hover" id ="ard_log">
   <thead>
   <tr>
@@ -36,8 +37,6 @@
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/TableExport/5.0.2/js/tableexport.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
@@ -83,7 +82,6 @@ $(document).ready(function() {
       y:[[data[0]], [data[1]], [data[3]]]
     }, [0,1,2])
 
-    ard_log_exp.reset()
   });
 
   // Interval function that tests message latency by sending a "ping"
@@ -93,9 +91,8 @@ $(document).ready(function() {
     start_time = (new Date).getTime();
     socket.emit('my_ping');
   }, 1000);
-  // Handler for the "pong" message. When the pong is received, the
-  // time from the ping is stored, and the average of the last 30
-  // samples is average and displayed.
+
+
   socket.on('my_pong', function() {
     var latency = (new Date).getTime() - start_time;
     ping_pong_times.push(latency);
@@ -106,7 +103,63 @@ $(document).ready(function() {
     $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
   });
 
-  var ard_log_exp = new TableExport($('#ard_log'), {formats: ['csv', 'txt'], bootstrap: true})
+
+  function download_csv(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    // CSV FILE
+    csvFile = new Blob([csv], {type: "text/csv"});
+
+    // Download link
+    downloadLink = document.createElement("a");
+
+    // File name
+    downloadLink.download = filename;
+
+    // We have to create a link to the file
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+    // Make sure that the link is not displayed
+    downloadLink.style.display = "none";
+
+    // Add the link to your DOM
+    document.body.appendChild(downloadLink);
+
+    // Lanzamos
+    downloadLink.click();
+}
+
+function export_table_to_csv(html, filename) {
+	var csv = [];
+	var rows = document.querySelectorAll("table tr");
+
+    for (var i = 0; i < rows.length; i++) {
+		var row = [], cols = rows[i].querySelectorAll("td, th");
+
+        for (var j = 0; j < cols.length; j++)
+            row.push(cols[j].innerText);
+
+		csv.push(row.join(","));
+	}
+
+    // Download CSV
+    download_csv(csv.join("\n"), filename);
+}
+
+document.querySelector("button").addEventListener("click", function () {
+    var html = document.querySelector("table").outerHTML;
+	export_table_to_csv(html, "table.csv");
+});
+
+  // $( "#exp_button" ).click(function() {
+  //   ard_log_exp.reset();
+  //   $( "#ard_log_exp" ).ready(function() {
+  //     var exportData = ard_log_exp.getExportData()['ard_log']['csv'];
+  //     ard_log_exp.export2file(exportData.data, exportData.mimeType, exportData.filename, exportData.fileExtension);
+  //   })
+  //   alert( "Handler for .click() called." );
+  // });
 
   // set up the plotting
   var setpoint_trace = {
@@ -127,11 +180,19 @@ $(document).ready(function() {
     x: [],
     y: [],
     name: 'Control',
-    type: 'scatter'
+    type: 'scatter',
+    yaxis: 'y2'
   };
 
   var data = [ setpoint_trace, input_trace, control_trace];
-  var layout = {};
+  var layout = {
+    yaxis2: {
+    title: 'Control',
+    overlaying: 'y',
+    side: 'right',
+    tickfont: {color: '#2ca02c'},
+    titlefont: {color: '#2ca02c'},
+  }};
 
   Plotly.newPlot('plot', data, layout);
 });
