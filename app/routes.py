@@ -2,6 +2,7 @@ from app import app, socketio
 from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm, UpdateArduinoForm
 import serial
 import h5py
+import git
 import numpy as np
 from flask import render_template, flash, redirect, url_for, session
 
@@ -127,6 +128,18 @@ def index():
     conn_open = ssProto.connection_open()
     dform = DisconnectForm();
     return render_template('index.html', dform = dform, conn_open = conn_open)
+
+@app.context_processor
+def git_url():
+    '''
+    The main function for rendering the principal site.
+    '''
+    repo = git.Repo(search_parent_directories=True)
+    add =repo.remote().url
+    add_c = add.split('.git')[0];
+    comm = repo.head.object.hexsha;
+    return dict(git_url = add_c + '/tree/' + comm);
+
 
 @app.route('/config')
 def config():
