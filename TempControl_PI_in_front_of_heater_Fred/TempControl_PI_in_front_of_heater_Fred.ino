@@ -107,9 +107,11 @@ void loop() {
   /////////// second part of the wavepacket control
   if (loopcount == nloopcount) {
     loopcount = 0;
-    Serial.print(error);
+    Serial.print(setpoint);
     Serial.print(", ");
     Serial.print(input);
+    Serial.print(", ");
+    Serial.print(error);
     Serial.print(", ");
     Serial.println(output, DEC);
     if (output > 0) {
