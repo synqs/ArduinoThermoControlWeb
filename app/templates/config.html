@@ -13,13 +13,24 @@
     {% endif %}
   </div>
 
-<h1>Update settings</h1>
+<h1>Update connection settings</h1>
 <div class="row">
   <div class="col">We are currently listening for the Arduino on port: {{ port }}</div>
   <div class="col"> {{ wtf.quick_form(form, action="/update") }}</div>
 </div>
+
+<h1>Update settings on the Arduino</h1>
 <div class="row">
     <div class="col"> {{ wtf.quick_form(arduino_form, action="/arduino") }}</div>
+  </div>
+  <div class="row">
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain") }}</div>
+  </div>
+  <div class="row">
+      <div class="col"> {{ wtf.quick_form(iform, action="/integral") }}</div>
+  </div>
+  <div class="row">
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff") }}</div>
   </div>
 </div>
 {% endblock %}

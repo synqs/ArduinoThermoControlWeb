@@ -1,5 +1,6 @@
 from app import app, socketio
-from app.forms import UpdateForm, DataForm, DisconnectForm, ConnectForm, UpdateArduinoForm
+from app.forms import UpdateForm, DisconnectForm, ConnectForm, SerialWaitForm
+from app.forms import UpdateArduinoForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 import serial
 import h5py
 import git
@@ -113,7 +114,7 @@ class SerialSocketProtocol(object):
                 {'data': error_str, 'count': self.unit_of_work})
 
                 # important to use eventlet's sleep method
-            eventlet.sleep(3)
+            eventlet.sleep(app.config['SERIAL_TIME'])
 
 
 ssProto = SerialSocketProtocol(socketio)
@@ -144,16 +145,23 @@ def git_url():
 @app.route('/config')
 def config():
     port = app.config['SERIAL_PORT']
-    uform = UpdateForm()
     dform = DisconnectForm()
     cform = ConnectForm()
+
+    uform = UpdateForm()
+    wform = SerialWaitForm()
+
     arduino_form = UpdateArduinoForm()
+    gform = UpdateGainForm()
+    iform = UpdateIntegralForm()
+    diff_form = UpdateDifferentialForm()
 
     global ssProto;
     conn_open = ssProto.connection_open()
 
     return render_template('config.html', port = port, form=uform, dform = dform,
-        cform = cform, conn_open = conn_open, arduino_form = arduino_form)
+        cform = cform, conn_open = conn_open, arduino_form = arduino_form,
+        gform = gform, iform = iform,diff_form = diff_form, wform = wform);
 
 @app.route('/start', methods=['POST'])
 def start():
@@ -237,14 +245,124 @@ def arduino():
         return redirect(url_for('config'))
     else:
         port = app.config['SERIAL_PORT']
+
         uform = UpdateForm()
+
+        wform = SerialWaitForm()
         dform = DisconnectForm()
         cform = ConnectForm()
+        gform = UpdateGainForm()
+        iform = UpdateIntegralForm()
+        diff_form = UpdateDifferentialForm()
 
         conn_open = ssProto.connection_open()
 
         return render_template('config.html', port = port, form=uform, dform = dform,
-            cform = cform, conn_open = conn_open, arduino_form = aform)
+            cform = cform, conn_open = conn_open, arduino_form = aform,
+            gform = gform, iform = iform, diff_form = diff_form, wform = wform)
+
+@app.route('/gain', methods=['POST'])
+def gain():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    gform = UpdateGainForm()
+    global ssProto
+
+    if gform.validate_on_submit():
+        n_gain =  gform.gain.data;
+        if ssProto.is_open():
+            o_str = 'p{}'.format(n_gain)
+            b = o_str.encode()
+            ssProto.serial.write(b)
+            flash('We set the gain to {}'.format(n_gain))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('config'))
+    else:
+        port = app.config['SERIAL_PORT']
+        uform = UpdateForm()
+        wform = SerialWaitForm()
+        dform = DisconnectForm()
+        cform = ConnectForm()
+
+        aform = UpdateArduinoForm()
+        iform = UpdateIntegralForm()
+        diff_form = UpdateDifferentialForm()
+
+        conn_open = ssProto.connection_open()
+
+        return render_template('config.html', port = port, form=uform, dform = dform,
+            cform = cform, conn_open = conn_open, arduino_form = aform,
+            gform = gform, iform = iform, diff_form = diff_form, wform = wform)
+
+@app.route('/integral', methods=['POST'])
+def integral():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    iform = UpdateIntegralForm()
+    global ssProto
+
+    if iform.validate_on_submit():
+        n_tau =  iform.tau.data;
+        if ssProto.is_open():
+            o_str = 'i{}'.format(n_tau)
+            b = o_str.encode()
+            ssProto.serial.write(b)
+            flash('We set the integration time  to {} seconds'.format(n_tau))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('config'))
+    else:
+        port = app.config['SERIAL_PORT']
+        uform = UpdateForm()
+        wform = SerialWaitForm()
+        dform = DisconnectForm()
+        cform = ConnectForm()
+
+        aform = UpdateArduinoForm()
+        gform = UpdateGainForm()
+        diff_form = UpdateDifferentialForm()
+        conn_open = ssProto.connection_open()
+
+        return render_template('config.html', port = port, form=uform, dform = dform,
+            cform = cform, conn_open = conn_open, arduino_form = aform,
+            gform = gform, iform = iform, diff_form = diff_form, wform = wform)
+
+@app.route('/diff', methods=['POST'])
+def diff():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    diff_form = UpdateDifferentialForm()
+    global ssProto
+
+    if diff_form.validate_on_submit():
+        n_tau =  diff_form.tau.data;
+        if ssProto.is_open():
+            o_str = 'd{}'.format(n_tau)
+            b = o_str.encode()
+            ssProto.serial.write(b)
+            flash('We set the differentiation time  to {} seconds'.format(n_tau))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('config'))
+    else:
+        port = app.config['SERIAL_PORT']
+        uform = UpdateForm()
+        wform = SerialWaitForm()
+        dform = DisconnectForm()
+        cform = ConnectForm()
+
+        aform = UpdateArduinoForm()
+        gform = UpdateGainForm()
+        iform = UpdateIntegralForm()
+        conn_open = ssProto.connection_open()
+
+        return render_template('config.html', port = port, form=uform, dform = dform,
+            cform = cform, conn_open = conn_open, arduino_form = aform,
+            gform = gform, iform = iform, diff_form = diff_form, wform = wform)
 
 @app.route('/file/<filename>')
 def file(filename):
@@ -277,11 +395,12 @@ def get_arduino_data():
     global ssProto;
     global ard_str;
     ser = ssProto.serial;
+    # only read out on ask
+    o_str = 'w'
+    b = o_str.encode()
+    ssProto.serial.write(b);
     stream = ser.read(ser.in_waiting);
-    s_str = stream.decode(encoding='windows-1252');
     ard_str = stream.decode(encoding='windows-1252');
-    lines = s_str.split('\r\n');
-    ard_str = lines[0];
     timestamp = datetime.now().replace(microsecond=0).isoformat();
     return timestamp, ard_str
 
