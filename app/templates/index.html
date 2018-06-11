@@ -1,40 +1,44 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
-<div class="container">
-  <div class="row">
-    {% if conn_open %}
-    <div class="col bg-success">The connection is established.</div>
-    {{ wtf.quick_form(dform, id="stop", action="/stop") }}
-    {% else %}
-    <div class="col bg-warning">The connection is closed.</div>
-    <div class="col">You can configure it <a href="{{ url_for('config') }}" class="text-warning">here.</a></div>
-    {% endif %}
-  </div>
-</div>
-<h2>Messages:</h2>
-<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
-<div id="log"></div>
-<h2>Data:</h2>
-<div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
-<button class="btn btn-default" id="exp_button"> Export to csv</button>
-<table class="table table-hover" id ="ard_log">
+<table class="table table-hover" id ="arduino overview">
   <thead>
   <tr>
     <th scope="col">#</th>
-    <th scope="col">Date</th>
+    <th scope="col">Name</th>
+    <th scope="col">Port</th>
+    <th scope="col">Status</th>
     <th scope="col">Setpoint</th>
-    <th scope="col">Input</th>
-    <th scope="col">Error</th>
-    <th scope="col">Output</th>
-    <th scope="col">Gain</th>
-    <th scope="col">tauI (s)</th>
-    <th scope="col">tauD (s)</th>
+    <th scope="col">Current Value</th>
+    <th scope="col">Other actions </th>
   </tr>
-</thead>
-<tbody>
+  </thead>
+  <tbody>
+    {% for ard in props %}
+    <tr>
+      <td>{{ ard.id }}</td>
+      <td>{{ ard.name }}</td>
+      <td>{{ ard.port }}</td>
+      {% if ard.active %}
+      <td class="bg-success">Open</td>
+      {% else %}
+      <td class="bg-warning">Closed</td>
+      {% endif %}
+      <td>{{ ard.setpoint }}</td>
+      <td id ='{{ ard.label}}'>Not implemented.</td>
+      <td>
+        <a class='btn btn-default' href="{{url_for('change_arduino', ard_nr = ard.id)}}">Settings</a>
+        <a class='btn btn-default' href="{{url_for('details', ard_nr = ard.id)}}">Log</a><td>
+        <!-- <a class='btn btn-default' href="{{url_for('index')}}"><span class ="glyphicon glyphicon-remove"></span></a><td> -->
+    </tr>
+    {% endfor %}
  </tbody>
 </table>
+<a class="btn btn-default" id="add_arduino" href="{{url_for('add_arduino')}}"> Add another Arduino.</a>
+
+<h2>General stuff:</h2>
+<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
+<div id="log"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -59,33 +63,14 @@ $(document).ready(function() {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
   });
 
-  // Event handler for logging data.
-  socket.on('log_response', function(msg) {
-    var count = msg.count;
-    var data = msg.data;
-    var time = msg.time;
-    if (data.length == 4 && data[3] == 0) {
-      var ard_log_str = '<tr class="warning">';
-    }
-    else {
-      var ard_log_str = '<tr>';
-    }
-    ard_log_str = ard_log_str + '<th scope="row">' + msg.count +'</th>';
-    ard_log_str = ard_log_str + '<td>' + msg.time +'</td>';
-    for (var i=0; i<data.length; i++){
-
-        ard_log_str = ard_log_str + '<td>' + data[i] +'</td>';
-    }
-    ard_log_str = ard_log_str + '</tr>'
-
-      $('#ard_log > tbody').prepend(ard_log_str).html()
-
-    Plotly.extendTraces('plot', {
-      x:[[time], [time], [time]],
-      y:[[data[0]], [data[1]], [data[3]]]
-    }, [0,1,2])
-
+  socket.on('temp_value', function(msg) {
+    var temp = msg.data;
+    var id = msg.id;
+    var el_name = '#read' + msg.id;
+    console.log(el_name);
+    $(el_name).html(temp);
   });
+
 
   // Interval function that tests message latency by sending a "ping"
   var ping_pong_times = [];
@@ -105,99 +90,6 @@ $(document).ready(function() {
     sum += ping_pong_times[i];
     $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
   });
-
-
-  function download_csv(csv, filename) {
-    var csvFile;
-    var downloadLink;
-
-    // CSV FILE
-    csvFile = new Blob([csv], {type: "text/csv"});
-
-    // Download link
-    downloadLink = document.createElement("a");
-
-    // File name
-    downloadLink.download = filename;
-
-    // We have to create a link to the file
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-
-    // Make sure that the link is not displayed
-    downloadLink.style.display = "none";
-
-    // Add the link to your DOM
-    document.body.appendChild(downloadLink);
-
-    // Lanzamos
-    downloadLink.click();
-}
-
-function export_table_to_csv(html, filename) {
-	var csv = [];
-	var rows = document.querySelectorAll("table tr");
-
-    for (var i = 0; i < rows.length; i++) {
-		var row = [], cols = rows[i].querySelectorAll("td, th");
-
-        for (var j = 0; j < cols.length; j++)
-            row.push(cols[j].innerText);
-
-		csv.push(row.join(","));
-	}
-
-    // Download CSV
-    download_csv(csv.join("\n"), filename);
-}
-
-document.querySelector("button").addEventListener("click", function () {
-    var html = document.querySelector("table").outerHTML;
-	export_table_to_csv(html, "table.csv");
-});
-
-  // $( "#exp_button" ).click(function() {
-  //   ard_log_exp.reset();
-  //   $( "#ard_log_exp" ).ready(function() {
-  //     var exportData = ard_log_exp.getExportData()['ard_log']['csv'];
-  //     ard_log_exp.export2file(exportData.data, exportData.mimeType, exportData.filename, exportData.fileExtension);
-  //   })
-  //   alert( "Handler for .click() called." );
-  // });
-
-  // set up the plotting
-  var setpoint_trace = {
-    x: [],
-    y: [],
-    name: 'Setpoint',
-    type: 'scatter'
-  };
-
-  var input_trace = {
-    x: [],
-    y: [],
-    name: 'Measured T',
-    type: 'scatter'
-  };
-
-  var control_trace = {
-    x: [],
-    y: [],
-    name: 'Control',
-    type: 'scatter',
-    yaxis: 'y2'
-  };
-
-  var data = [ setpoint_trace, input_trace, control_trace];
-  var layout = {
-    yaxis2: {
-    title: 'Control',
-    overlaying: 'y',
-    side: 'right',
-    tickfont: {color: '#2ca02c'},
-    titlefont: {color: '#2ca02c'},
-  }};
-
-  Plotly.newPlot('plot', data, layout);
 });
 </script>
 {% endblock %}

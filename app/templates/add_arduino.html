@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+You have currently {{ n_ards }} arduinos connected.
+<h1>Connect an Arduino</h1>
+<div class="row">
+  <div class="col">We should connect him on a serial port like: {{ port }}</div>
+  <div class="col"> {{ wtf.quick_form(cform, action="/add_arduino") }}</div>
+</div>
+{% endblock %}

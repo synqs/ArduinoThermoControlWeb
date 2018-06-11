@@ -1,17 +1,21 @@
 # ArduinoThermoControlWeb
 
-A flask server that should simplify the logging of our temp control. The website assumes that the Arduino is connected via a serial device. For the moment we have to following abilities:
+A flask server that should simplify the logging of our temp control. The website assumes that the Arduinos are connected via a serial device. For the moment we have to following abilities:
+
+- Add a few arduinos.
+- Give setpoint and live temperature in overview.
 - It shows data in a long list for the moment.
 - It is possible to save the values to an hdf5 file.
 - The setpoint can be changed in the config page.
-- The data can be exported to csv and txt.
+- The data can be exported to csv.
+- PID values can be set from the interface.
+
 
 On the technical side we use the following ingredients:
-- Communication with the Arduino is done through the Serial interface.
-- Updates are done through flask_socketio
+- Communication with the Arduino is done through the Serial interface. We will look into the ethernet interface at some point.
+- Updates on the client are done through flask_socketio.
 - The layout is made nice through flask_bootstrap.
 - Graphics are done with plotly.js
-- the table export happens through the tableExport plug-in
 
 The project should serve as a boilerplate for our other sensors too.
 
@@ -44,10 +48,18 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 
 # TODO
 
- [] Allow for changing the parameters of the feedback loop through some serial communication.
+ [x] Allow for changing the parameters of the feedback loop through some serial communication.
 
- [] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
+ [x] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
+
+ [] Allow to change the different axis by hand in the plotly stuff.
+ 
+ [] Move the information about communications and users into a local database. I think that would make it much more robust.
+
+ [] Tidy up the connections and also the code in the back-end.
+
+ [] Always make it look cuter.
 
  [] Error logger to communicate with slack or via email.
 
- [] make this readme the about page. 
+ [] make this readme the about page.

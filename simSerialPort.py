@@ -11,10 +11,21 @@ def test_serial():
         meas = np.random.randint(700, 800)
         err = setpoint - meas;
         control = np.random.randint(10)
-        ard_str = str(setpoint) + ',' + str(meas) + ',' + str(err) + ',' + str(control) + '\r\n'
-        b = ard_str.encode('windows-1252')
-        os.write(master, b)
-        print('Wrote to master')
-        time.sleep(1)
+        gain =1
+        tauI = 100
+        tauD = 1
+        mode = os.read(master, 1);
+        if mode:
+            print('mode {}'.format(mode))
+            if mode == b'w':
+                ard_str = str(setpoint) + ',' + str(meas) + ',' + str(err) + ',' + str(control)
+                ard_str = ard_str + ',' + str(gain) + ',' + str(tauI) +',' + str(tauD) + '\r\n'
+                out = ard_str.encode('windows-1252')
+                os.write(master, out)
+            if mode == b's':
+                set = os.read(master, 20);
+                setpoint = int(set.decode('windows-1252'));
+                print('s{}'.format(setpoint));
+        time.sleep(0.1)
 if __name__=='__main__':
     test_serial()
