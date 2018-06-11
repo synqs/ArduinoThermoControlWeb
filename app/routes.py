@@ -196,6 +196,10 @@ def details(ard_nr):
     n_ards = len(arduinos);
 
     arduino = arduinos[int(ard_nr)];
+    name = arduino.name;
+    port = arduino.serial.port;
+    conn_open = arduino.connection_open()
+
     n_ards = len(arduinos);
     props = [];
     for ii, arduino in enumerate(arduinos):
@@ -206,9 +210,6 @@ def details(ard_nr):
         'label': temp_field_str};
         props.append(dict)
 
-    name = arduino.name;
-    port = arduino.serial.port;
-    conn_open = arduino.connection_open()
     return render_template('details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
 
