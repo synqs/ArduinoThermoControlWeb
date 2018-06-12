@@ -9,6 +9,7 @@
     <th scope="col">#</th>
     <th scope="col">Name</th>
     <th scope="col">Port</th>
+    <th scope="col">Wait time</th>
     <th scope="col">Status</th>
     <th scope="col">Setpoint</th>
     <th scope="col">Gain</th>
@@ -22,6 +23,7 @@
       <td>{{ props.id }}</td>
       <td>{{ props.name }}</td>
       <td>{{ props.port }}</td>
+      <td>{{ props.wait }}</td>
       {% if props.active %}
       <td class="bg-success">Open</td>
       {% else %}
@@ -55,6 +57,9 @@
   </div>
   <div class="row">
       <div class="col"> {{ wtf.quick_form(diff_form, action="/diff") }}</div>
+  </div>
+  <div class="row">
+      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait") }}</div>
   </div>
 </div>
 {% endblock %}

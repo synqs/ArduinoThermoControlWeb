@@ -1,5 +1,5 @@
 from app import app, socketio
-from app.forms import UpdateForm, DisconnectForm, ConnectForm, SerialWaitForm, ReConnectForm
+from app.forms import UpdateForm, DisconnectForm, ConnectForm, SerialWaitForm, ReConnectForm, SerialWaitForm
 from app.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 import serial
 import h5py
@@ -34,6 +34,7 @@ class SerialSocketProtocol(object):
     integral = None;
     gain = None;
     ard_str = '';
+    sleeptime = app.config['SERIAL_TIME'];
 
     def __init__(self, socketio):
         """
@@ -41,7 +42,7 @@ class SerialSocketProtocol(object):
         """
         self.serial = serial.Serial()
         self.switch = False
-        self.socketio = socketio
+        self.socketio = socketio;
 
     def __init__(self, socketio, name):
         """
@@ -51,6 +52,7 @@ class SerialSocketProtocol(object):
         self.switch = False
         self.socketio = socketio
         self.name = name;
+
 
     def is_open(self):
         '''
@@ -134,7 +136,7 @@ class SerialSocketProtocol(object):
                 {'data': error_str, 'count': self.unit_of_work})
 
                 # important to use eventlet's sleep method
-            eventlet.sleep(app.config['SERIAL_TIME'])
+            eventlet.sleep(self.sleeptime)
 
     def pull_data(self):
         '''
@@ -257,11 +259,6 @@ def add_arduino():
     n_ards = len(arduinos)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards);
 
-def change_arduino_param(ard_nr):
-    '''
-    The function, which allows to combine the different views
-    '''
-
 @app.route('/change_arduino/<ard_nr>')
 def change_arduino(ard_nr):
     '''
@@ -276,7 +273,8 @@ def change_arduino(ard_nr):
     arduino = arduinos[int(ard_nr)];
     props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+            'wait': arduino.sleeptime};
 
     uform = UpdateForm(id=ard_nr)
 
@@ -334,7 +332,50 @@ def update():
     else:
         props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+            'wait': arduino.sleeptime};
+
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            cform = cform,  sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, props=props);
+
+@app.route('/serialwait', methods=['POST'])
+def serialwait():
+    '''
+    Update the serial waiting time.
+    '''
+    global arduinos
+    if not arduinos:
+        flash('No arduino yet.', 'error')
+        return redirect(url_for('add_arduino'))
+
+    sform = UpdateSetpointForm();
+    uform = UpdateForm();
+    wform = SerialWaitForm()
+    dform = DisconnectForm()
+    cform = ReConnectForm()
+    gform = UpdateGainForm()
+    iform = UpdateIntegralForm()
+    diff_form = UpdateDifferentialForm()
+
+    id = int(wform.id.data);
+    arduino = arduinos[id];
+
+    if wform.validate_on_submit():
+
+        arduino = arduinos[int(id)];
+        n_wait =  wform.serial_time.data;
+        try:
+            arduino.sleeptime = n_wait;
+            flash('We updated every {} s'.format(n_wait))
+        except Exception as e:
+             flash('{}'.format(e), 'error')
+        return redirect(url_for('change_arduino', ard_nr = id))
+    else:
+        props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
+            'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
+            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+            'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
@@ -376,7 +417,8 @@ def arduino():
     else:
         props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+                'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
@@ -418,7 +460,8 @@ def gain():
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+                'wait': arduino.sleeptime};
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, props=props);
@@ -459,7 +502,8 @@ def integral():
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+                'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
@@ -501,7 +545,8 @@ def diff():
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff};
+                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
+                'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,

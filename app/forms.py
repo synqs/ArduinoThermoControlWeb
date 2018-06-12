@@ -14,7 +14,8 @@ class SerialWaitForm(FlaskForm):
     '''
     The form for connecting to the Arduino
     '''
-    serial_time = StringField('Time between measurements:', validators=[DataRequired()])
+    id = HiddenField('A hidden field');
+    serial_time = IntegerField('Time between measurements (s):', [DataRequired(), NumberRange(2,300)])
     submit = SubmitField('Update waiting time.')
 
 class UpdateSetpointForm(FlaskForm):
