@@ -17,7 +17,6 @@ import numpy as np
 from datetime import datetime
 
 arduinos = [];
-ard_str = '';
 
 class SerialSocketProtocol(object):
     '''
@@ -34,6 +33,7 @@ class SerialSocketProtocol(object):
     diff = None;
     integral = None;
     gain = None;
+    ard_str = '';
 
     def __init__(self, socketio):
         """
@@ -140,16 +140,15 @@ class SerialSocketProtocol(object):
         '''
         Pulling the actual data from the arduino.
         '''
-        global ard_str;
         ser = self.serial;
         # only read out on ask
         o_str = 'w'
         b = o_str.encode()
         ser.write(b);
         stream = ser.read(ser.in_waiting);
-        ard_str = stream.decode(encoding='windows-1252');
+        self.ard_str = stream.decode(encoding='windows-1252');
         timestamp = datetime.now().replace(microsecond=0).isoformat();
-        return timestamp, ard_str
+        return timestamp, self.ard_str
 
 @app.context_processor
 def git_url():
@@ -551,22 +550,38 @@ def stop():
 
     return redirect(url_for('config'))
 
-@app.route('/file/<filename>')
-def file(filename):
-    '''function to save the values of the hdf5 file'''
+@app.route('/file/<filestring>')
+def file(filestring):
+    '''function to save the values of the hdf5 file. It should have the following structure
+    <ard_nr>+<filename>
+    '''
+    # first let us devide into the right parts
+    print(filestring)
+    parts = filestring.split('+');
+    if not len(parts) == 2:
+        flash('The filestring should be of the form')
+        return redirect(url_for('index'))
 
+    filename = parts[1]
+    id = int(parts[0])
+
+    global arduinos;
+
+    if id >= len(arduinos):
+        flash('Arduino Index out of range.')
+        return redirect(url_for('index'))
+
+    arduino = arduinos[id];
     # We should add the latest value of the database here. Better would be to trigger the readout.
     # Let us see how this actually works.
-    vals = ard_str.split(',');
+    vals = arduino.ard_str.split(',');
     if vals:
-        print(vals)
         with h5py.File(filename, "a") as f:
             if 'globals' in f.keys():
                 params = f['globals']
-                params.attrs['T_Verr'] = np.float(vals[0])
-                params.attrs['T_Vmeas'] = np.float(vals[1])
-                params.attrs['T_Vinp'] = np.float(vals[2])
-                flash('Added the vals {} to the file {}'.format(ard_str, filename))
+                params.attrs['TSet'] = np.float(vals[0])
+                params.attrs['TMeasure'] = np.float(vals[1])
+                flash('Added the vals {} to the file {}'.format(arduino.ard_str, filename))
             else:
                 flash('The file {} did not have the global group yet.'.format(filename), 'error')
     else:
