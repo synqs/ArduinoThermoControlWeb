@@ -36,17 +36,29 @@ def index():
     '''
     global tempcontrols
 
-    n_ards = len(tempcontrols);
-    props = [];
+    n_tcs = len(tempcontrols);
+    tc_props = [];
     for ii, arduino in enumerate(tempcontrols):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
         dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
         'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
         'label': temp_field_str};
-        props.append(dict)
+        tc_props.append(dict)
 
-    return render_template('index.html',n_ards = n_ards, props = props);
+    global serialmonitors
+
+    n_sm = len(serialmonitors);
+    sm_props = [];
+    for ii, arduino in enumerate(serialmonitors):
+        # create also the name for the readout field of the temperature
+        temp_field_str = 'read_sm' + str(arduino.id);
+        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
+        'active': arduino.connection_open(), 'label': temp_field_str};
+        sm_props.append(dict)
+
+    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tc_props,
+    n_sm = n_sm, serialmonitors = sm_props);
 
 
 @app.route('/details/<ard_nr>', methods=['GET', 'POST'])

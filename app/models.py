@@ -95,9 +95,8 @@ class SerialArduinoMonitor(object):
                     timestamp, ard_str = self.pull_data()
 
                     vals = ard_str.split(',');
-                    if len(vals)>=2:
-                        self.socketio.emit('temp_value',
-                            {'data': vals[1], 'id': self.id})
+                    self.socketio.emit('serial_value',
+                        {'data': ard_str, 'id': self.id})
 
                     self.socketio.emit('log_response',
                     {'time':timestamp, 'data': vals, 'count': self.unit_of_work,

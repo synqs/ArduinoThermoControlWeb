@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
-<table class="table table-hover" id ="arduino overview">
+<a class="btn btn-default" id="add_tempcontrol" href="{{url_for('add_tempcontrol')}}"> Add another Temp control.</a>
+<a class="btn btn-default" id="add_serialmonitor" href="{{url_for('add_serialmonitor')}}"> Add another serial monitor.</a>
+{% if n_tcs %}
+<h1> Temp controls </h1>
+<table class="table table-hover" id ="tempcontrols">
   <thead>
   <tr>
     <th scope="col">#</th>
@@ -14,7 +18,7 @@
   </tr>
   </thead>
   <tbody>
-    {% for ard in props %}
+    {% for ard in tempcontrols %}
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
@@ -34,9 +38,41 @@
     {% endfor %}
  </tbody>
 </table>
-<a class="btn btn-default" id="add_tempcontrol" href="{{url_for('add_tempcontrol')}}"> Add another Temp control.</a>
-<a class="btn btn-default" id="add_serialmonitor" href="{{url_for('add_serialmonitor')}}"> Add another serial monitor.</a>
+{% endif %}
+{% if n_sm %}
+<h1> Serial monitors</h1>
+<table class="table table-hover" id ="tempcontrols">
+  <thead>
+  <tr>
+    <th scope="col">#</th>
+    <th scope="col">Name</th>
+    <th scope="col">Port</th>
+    <th scope="col">Status</th>
+    <th scope="col">Current Value</th>
+    <th scope="col">Other actions </th>
+  </tr>
+  </thead>
+  <tbody>
+    {% for ard in serialmonitors %}
+    <tr>
+      <td>{{ ard.id }}</td>
+      <td>{{ ard.name }}</td>
+      <td>{{ ard.port }}</td>
+      {% if ard.active %}
+      <td class="bg-success">Open</td>
+      {% else %}
+      <td class="bg-warning">Closed</td>
+      {% endif %}
+      <td id ='{{ ard.label}}'>Not implemented.</td>
+      <td>
+        <a class='btn btn-default' href="{{url_for('change_arduino', ard_nr = ard.id)}}">Settings</a>
+        <!-- <a class='btn btn-default' href="{{url_for('index')}}"><span class ="glyphicon glyphicon-remove"></span></a><td> -->
+    </tr>
+    {% endfor %}
+ </tbody>
+</table>
 
+{% endif %}
 <h2>General stuff:</h2>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <div id="log"></div>
@@ -68,10 +104,15 @@ $(document).ready(function() {
     var temp = msg.data;
     var id = msg.id;
     var el_name = '#read' + msg.id;
-    console.log(el_name);
     $(el_name).html(temp);
   });
 
+  socket.on('serial_value', function(msg) {
+    var temp = msg.data;
+    var id = msg.id;
+    var el_name = '#read_sm' + msg.id;
+    $(el_name).html(temp);
+  });
 
   // Interval function that tests message latency by sending a "ping"
   var ping_pong_times = [];
