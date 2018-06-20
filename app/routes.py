@@ -1,7 +1,7 @@
 from app import app, socketio
 from app.forms import UpdateForm, DisconnectForm, ConnectForm, SerialWaitForm, ReConnectForm, SerialWaitForm
 from app.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.models import SerialArduinoTempControl
+from app.models import SerialArduinoTempControl, SerialArduinoMonitor
 import h5py
 import git
 import numpy as np
@@ -14,7 +14,8 @@ from flask_socketio import emit, disconnect
 # for subplots
 import numpy as np
 
-arduinos = [];
+tempcontrols = [];
+serialmonitors = [];
 
 @app.context_processor
 def git_url():
@@ -33,11 +34,11 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    global arduinos
+    global tempcontrols
 
-    n_ards = len(arduinos);
+    n_ards = len(tempcontrols);
     props = [];
-    for ii, arduino in enumerate(arduinos):
+    for ii, arduino in enumerate(tempcontrols):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
         dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
@@ -53,21 +54,21 @@ def details(ard_nr):
     '''
     The main function for rendering the principal site.
     '''
-    global arduinos;
-    if not arduinos:
-        flash('No arduinos installed', 'error')
+    global tempcontrols;
+    if not tempcontrols:
+        flash('No tempcontrols installed', 'error')
         return redirect(url_for('index'))
 
-    n_ards = len(arduinos);
+    n_ards = len(tempcontrols);
 
-    arduino = arduinos[int(ard_nr)];
+    arduino = tempcontrols[int(ard_nr)];
     name = arduino.name;
     port = arduino.serial.port;
     conn_open = arduino.connection_open()
 
-    n_ards = len(arduinos);
+    n_ards = len(tempcontrols);
     props = [];
-    for ii, arduino in enumerate(arduinos):
+    for ii, arduino in enumerate(tempcontrols):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
         dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
@@ -78,63 +79,51 @@ def details(ard_nr):
     return render_template('details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
 
-@app.route('/overview')
-def overview():
-    '''
-    The  function summarizing the status of each Arduino.
-    '''
-    global arduinos
-    n_ards = len(arduinos);
-    props = [];
-    for arduino in arduinos:
-        dict = {'name': arduino.name, 'port': arduino.serial.port};
-        props.append(dict)
-    return render_template('status_overview.html', n_ards = n_ards, props = props)
-
-@app.route('/add_arduino', methods=['GET', 'POST'])
-def add_arduino():
+@app.route('/add_tempcontrol', methods=['GET', 'POST'])
+def add_tempcontrol():
     '''
     Add an arduino to the set up
     '''
-    global arduinos;
+    global tempcontrols;
     cform = ConnectForm();
 
     if cform.validate_on_submit():
         n_port =  cform.serial_port.data;
         name = cform.name.data;
         ssProto = SerialArduinoTempControl(socketio, name);
-        ssProto.id = len(arduinos)
+        ssProto.id = len(tempcontrols)
         try:
             ssProto.open_serial(n_port, 9600, timeout = 1)
             ssProto.start()
             if ssProto.is_open():
                 app.config['SERIAL_PORT'] = n_port;
-                arduinos.append(ssProto)
+                tempcontrols.append(ssProto)
                 flash('We added a new arduino {}'.format(app.config['SERIAL_PORT']))
                 return redirect(url_for('index'))
             else:
                  flash('Adding the Arduino went wrong', 'error')
-                 return redirect(url_for('add_arduino'))
+                 return redirect(url_for('add_tempcontrol'))
         except Exception as e:
              flash('{}'.format(e), 'error')
-             return redirect(url_for('add_arduino'))
+             return redirect(url_for('add_tempcontrol'))
 
     port = app.config['SERIAL_PORT']
-    n_ards = len(arduinos)
-    return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards);
+    n_ards = len(tempcontrols)
+    return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
+    device_type = 'temp control');
 
 @app.route('/change_arduino/<ard_nr>')
 def change_arduino(ard_nr):
     '''
     Change the parameters of a specific arduino
     '''
-    global arduinos;
-    if not arduinos:
-        flash('No arduinos installed', 'error')
-        return redirect(url_for('add_arduino'))
+    global tempcontrols;
+    if not tempcontrols:
+        flash('No tempcontrols installed', 'error')
+        return redirect(url_for('add_tempcontrol'))
 
-    n_ards = len(arduinos);
-    arduino = arduinos[int(ard_nr)];
+    n_ards = len(tempcontrols);
+    arduino = tempcontrols[int(ard_nr)];
     props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
             'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
@@ -160,10 +149,10 @@ def update():
     '''
     Update the serial port.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -175,11 +164,11 @@ def update():
     diff_form = UpdateDifferentialForm()
 
     id = int(uform.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if uform.validate_on_submit():
 
-        arduino = arduinos[int(id)];
+        arduino = tempcontrols[int(id)];
         n_port =  uform.serial_port.data;
         try:
             if arduino.connection_open():
@@ -208,10 +197,10 @@ def serialwait():
     '''
     Update the serial waiting time.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -223,11 +212,11 @@ def serialwait():
     diff_form = UpdateDifferentialForm()
 
     id = int(wform.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if wform.validate_on_submit():
 
-        arduino = arduinos[int(id)];
+        arduino = tempcontrols[int(id)];
         n_wait =  wform.serial_time.data;
         try:
             arduino.sleeptime = n_wait;
@@ -250,10 +239,10 @@ def arduino():
     '''
     Configure now settings for the arduino.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -265,7 +254,7 @@ def arduino():
     diff_form = UpdateDifferentialForm()
 
     id = int(sform.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if sform.validate_on_submit():
         n_setpoint =  sform.setpoint.data;
@@ -293,10 +282,10 @@ def gain():
     '''
     Configure the new gain for the arduino.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -308,7 +297,7 @@ def gain():
     diff_form = UpdateDifferentialForm()
 
     id = int(gform.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if gform.validate_on_submit():
         n_gain =  gform.gain.data;
@@ -335,10 +324,10 @@ def integral():
     '''
     Configure the new gain for the arduino.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -350,7 +339,7 @@ def integral():
     diff_form = UpdateDifferentialForm()
 
     id = int(iform.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if iform.validate_on_submit():
         n_tau =  iform.tau.data;
@@ -378,10 +367,10 @@ def diff():
     '''
     Configure the new gain for the arduino.
     '''
-    global arduinos
-    if not arduinos:
+    global tempcontrols
+    if not tempcontrols:
         flash('No arduino yet.', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -393,7 +382,7 @@ def diff():
     diff_form = UpdateDifferentialForm()
 
     id = int(diff_form.id.data);
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
 
     if diff_form.validate_on_submit():
         n_tau =  diff_form.tau.data;
@@ -421,12 +410,12 @@ def start():
 
     cform = ReConnectForm()
 
-    global arduinos;
-    if arduinos:
-        ssProto = arduinos[0];
+    global tempcontrols;
+    if tempcontrols:
+        ssProto = tempcontrols[0];
     else:
         flash('No arduino connection existing yet', 'error')
-        return redirect(url_for('add_arduino'))
+        return redirect(url_for('add_tempcontrol'))
 
     if cform.validate_on_submit():
         try:
@@ -443,9 +432,9 @@ def start():
 @app.route('/stop', methods=['POST'])
 def stop():
     dform = DisconnectForm()
-    global arduinos;
-    if arduinos:
-        ssProto = arduinos[0];
+    global tempcontrols;
+    if tempcontrols:
+        ssProto = tempcontrols[0];
     else:
         flash('Nothing to disconnect from', 'error')
 
@@ -474,13 +463,13 @@ def file(filestring):
     filename = parts[1]
     id = int(parts[0])
 
-    global arduinos;
+    global tempcontrols;
 
-    if id >= len(arduinos):
+    if id >= len(tempcontrols):
         flash('Arduino Index out of range.')
         return redirect(url_for('index'))
 
-    arduino = arduinos[id];
+    arduino = tempcontrols[id];
     # We should add the latest value of the database here. Better would be to trigger the readout.
     # Let us see how this actually works.
     vals = arduino.ard_str.split(',');
@@ -513,10 +502,10 @@ def run_disconnect():
 
     session['receive_count'] = session.get('receive_count', 0) + 1
 
-    global arduinos;
+    global tempcontrols;
     # we should even kill the arduino properly.
-    if arduinos:
-        ssProto = arduinos[0];
+    if tempcontrols:
+        ssProto = tempcontrols[0];
         ser = ssProto.serial;
         ser.close();
         ssProto.stop();
@@ -529,6 +518,41 @@ def run_disconnect():
 @socketio.on('my_ping')
 def ping_pong():
     emit('my_pong')
+
+############ The serial SerialArduinoMonitor stuff
+
+@app.route('/add_serialmonitor', methods=['GET', 'POST'])
+def add_serialmonitor():
+    '''
+    Add an arduino to the set up
+    '''
+    global serialmonitors;
+    cform = ConnectForm();
+
+    if cform.validate_on_submit():
+        n_port =  cform.serial_port.data;
+        name = cform.name.data;
+        ssProto = SerialArduinoMonitor(socketio, name);
+        ssProto.id = len(serialmonitors);
+        try:
+            ssProto.open_serial(n_port, 9600, timeout = 1)
+            ssProto.start()
+            if ssProto.is_open():
+                app.config['SERIAL_PORT'] = n_port;
+                serialmonitors.append(ssProto)
+                flash('We added a new arduino {}'.format(app.config['SERIAL_PORT']))
+                return redirect(url_for('index'))
+            else:
+                 flash('Adding the Arduino went wrong', 'error')
+                 return redirect(url_for('add_serialmonitor'))
+        except Exception as e:
+             flash('{}'.format(e), 'error')
+             return redirect(url_for('add_serialmonitor'))
+
+    port = app.config['SERIAL_PORT']
+    n_ards = len(serialmonitors)
+    return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
+    device_type = 'serial monitor');
 
 # error handling
 @app.errorhandler(500)
