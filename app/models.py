@@ -98,7 +98,7 @@ class SerialArduinoMonitor(object):
                     self.socketio.emit('serial_value',
                         {'data': ard_str, 'id': self.id})
 
-                    self.socketio.emit('log_response',
+                    self.socketio.emit('serial_log',
                     {'time':timestamp, 'data': vals, 'count': self.unit_of_work,
                         'id': self.id})
                 except Exception as e:
