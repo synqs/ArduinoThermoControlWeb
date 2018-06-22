@@ -3,6 +3,9 @@
 {% block app_content %}
 <a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
 <a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
+{% if not props %}
+<a class="btn btn-default" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
+{% endif %}
 {% if n_tcs %}
 <h1> Temp controls </h1>
 <table class="table table-hover" id ="tempcontrols">
@@ -73,6 +76,48 @@
 </table>
 
 {% endif %}
+
+
+{% if n_cameras %}
+<h1> Cameras</h1>
+<table class="table table-hover" id ="arduino overview">
+  <thead>
+  <tr>
+    <th scope="col">#</th>
+    <th scope="col">Name</th>
+    <th scope="col">Folder</th>
+    <th scope="col">Status</th>
+    <th scope="col">xMin</th>
+    <th scope="col">xMax</th>
+    <th scope="col">yMin</th>
+    <th scope="col">yMax</th>
+    <th scope="col">Other actions </th>
+  </tr>
+  </thead>
+  <tbody>
+    {% for ard in cameras %}
+    <tr>
+      <td>{{ ard.id }}</td>
+      <td>{{ ard.name }}</td>
+      <td>{{ ard.folder }}</td>
+      {% if ard.active %}
+      <td class="bg-success">Open</td>
+      {% else %}
+      <td class="bg-warning">Closed</td>
+      {% endif %}
+
+      <td>{{ ard.xmin }}</td>
+      <td>{{ ard.xmax }}</td>
+      <td>{{ ard.ymin }}</td>
+      <td>{{ ard.ymax }}</td>
+      <td>
+        <a class='btn btn-default' href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
+    </tr>
+    {% endfor %}
+ </tbody>
+</table>
+{% endif %}
+
 <h2>General stuff:</h2>
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <div id="log"></div>
