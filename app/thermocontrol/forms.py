@@ -50,13 +50,6 @@ class UpdateDifferentialForm(FlaskForm):
     tau = FloatField('New tauD in seconds:', [DataRequired(), NumberRange(0)])
     submit = SubmitField('Update tauD')
 
-class DisconnectForm(FlaskForm):
-    '''
-    The form for disconnecting from the Arduino
-    '''
-    id = HiddenField('A hidden field');
-    submit = SubmitField('Disconnect')
-
 class ConnectForm(FlaskForm):
     '''
     The form for connecting to the Arduino
@@ -66,9 +59,9 @@ class ConnectForm(FlaskForm):
     name = StringField('Name of the Arduino:', description = 'Name', default = 'Arduino')
     submit = SubmitField('Connect')
 
-class ReConnectForm(FlaskForm):
+class DisconnectForm(FlaskForm):
     '''
-    The form for recconnecting to the Arduino
+    The form for disconnecting from the Arduino
     '''
     id = HiddenField('A hidden field');
-    submit = SubmitField('Connect')
+    submit = SubmitField('Disconnect')

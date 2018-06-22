@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
-<a class="btn btn-default" id="add_tempcontrol" href="{{url_for('add_tempcontrol')}}"> Add another Temp control.</a>
-<a class="btn btn-default" id="add_serialmonitor" href="{{url_for('add_serialmonitor')}}"> Add another serial monitor.</a>
+<a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
+<a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
 {% if n_tcs %}
 <h1> Temp controls </h1>
 <table class="table table-hover" id ="tempcontrols">
@@ -31,9 +31,9 @@
       <td>{{ ard.setpoint }}</td>
       <td id ='{{ ard.label}}'>Not implemented.</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('change_arduino', ard_nr = ard.id)}}">Settings</a>
-        <a class='btn btn-default' href="{{url_for('details', ard_nr = ard.id)}}">Log</a><td>
-        <!-- <a class='btn btn-default' href="{{url_for('index')}}"><span class ="glyphicon glyphicon-remove"></span></a><td> -->
+        <a class='btn btn-default' href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
+        <a class='btn btn-default' href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a><td>
+        <td>
     </tr>
     {% endfor %}
  </tbody>
@@ -65,8 +65,8 @@
       {% endif %}
       <td id ='{{ ard.label}}'>Not implemented.</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('change_arduino', ard_nr = ard.id)}}">Settings</a>
-        <!-- <a class='btn btn-default' href="{{url_for('index')}}"><span class ="glyphicon glyphicon-remove"></span></a><td> -->
+        Not implemented
+      <td>
     </tr>
     {% endfor %}
  </tbody>
