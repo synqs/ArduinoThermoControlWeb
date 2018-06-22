@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+You have currently {{ n_ards }} cameras connected.
+<h1>Connect a camera</h1>
+<div class="row">
+  <div class="col">We should select a folder to watch: {{ folder }}</div>
+  <div class="col"> {{ wtf.quick_form(cform, action="/add_camera") }}</div>
+</div>
+{% endblock %}

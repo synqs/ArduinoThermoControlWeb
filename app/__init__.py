@@ -27,3 +27,6 @@ app.register_blueprint(thermocontrol_bp)
 
 from app.serialmonitor import bp as serialmonitor_bp
 app.register_blueprint(serialmonitor_bp)
+
+from app.cameracontrol import bp as camera_bp
+app.register_blueprint(camera_bp)
