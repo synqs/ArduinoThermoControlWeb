@@ -137,7 +137,7 @@ def update():
                 flash('Update of the serial port went wrong.', 'error')
         except Exception as e:
              flash('{}'.format(e), 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
@@ -178,7 +178,7 @@ def serialwait():
             flash('We updated every {} s'.format(n_wait))
         except Exception as e:
              flash('{}'.format(e), 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
@@ -220,7 +220,7 @@ def arduino():
             flash('We set the setpoint to {}'.format(n_setpoint))
         else:
             flash('Serial port not open.', 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
@@ -262,7 +262,7 @@ def gain():
             flash('We set the gain to {}'.format(n_gain))
         else:
             flash('Serial port not open.', 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
@@ -303,7 +303,7 @@ def integral():
             flash('We set the integration time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
@@ -345,7 +345,7 @@ def diff():
             flash('We set the differentiation time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
                 'active': arduino.connection_open(), 'setpoint': arduino.setpoint,

@@ -1,19 +1,20 @@
 {% extends 'bootstrap/base.html' %}
 
 {% block title %}
-Arduino Web-Interface
+Device control server
 {% endblock %}
 {% block navbar %}
 
 <nav class="navbar navbar-default">
     <div class="container">
       <div class="navbar-header">
-      <a class="navbar-brand" href="{{ url_for('main.index') }}">Arduino Thermo Control</a>
+      <a class="navbar-brand" href="{{ url_for('main.index') }}">Device Control</a>
     </div>
       <ul class="nav navbar-nav">
           <li><a href="{{ url_for('main.index') }}">Home</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
+          <li><a target="_blank" href="{{ issues_url }}">Report Issue</a></li>
           <li><a target="_blank" href="{{ git_url }}">Source code</a></li>
       </ul>
     </div>

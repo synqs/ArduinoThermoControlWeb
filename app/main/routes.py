@@ -23,7 +23,11 @@ def git_url():
     add =repo.remote().url
     add_c = add.split('.git')[0];
     comm = repo.head.object.hexsha;
-    return dict(git_url = add_c + '/tree/' + comm);
+
+    commit_url = add_c + '/tree/' + comm;
+    issues_url = add_c + '/issues';
+
+    return dict(git_url = commit_url, issues_url = issues_url);
 
 @bp.route('/')
 @bp.route('/index', methods=['GET', 'POST'])

@@ -169,7 +169,6 @@ $(document).ready(function() {
     socket.emit('my_ping');
   }, 1000);
 
-
   socket.on('my_pong', function() {
     var latency = (new Date).getTime() - start_time;
     ping_pong_times.push(latency);
