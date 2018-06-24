@@ -1,6 +1,11 @@
 import os
 import eventlet
+import numpy as np;
+import imageio
+from datetime import datetime
+
 cameras = [];
+
 
 class GuppySocketProtocol(object):
     '''
@@ -83,12 +88,11 @@ class GuppySocketProtocol(object):
                     im_crop = n_img[self.yMin:self.yMax,self.xMin:self.xMax];
                     Nat = int(im_crop.sum());
                     print(Nat)
-                self.socketio.emit('log_response',
+                self.socketio.emit('camera_response',
                     {'time':timestamp, 'data': n_img.tolist(), 'count': self.unit_of_work,
                     'id': self.id, 'Nat': Nat})
 
                 previous_img_files = img_files;
-
 
             eventlet.sleep(0.1)
 

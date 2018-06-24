@@ -3,28 +3,19 @@ from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
 from app.cameracontrol.models import GuppySocketProtocol, cameras
 import h5py
-import numpy as np
-
-import imageio
 
 from flask import render_template, flash, redirect, url_for, session
-import time
-
 from flask_socketio import emit, disconnect
 
-# for subplots
-import numpy as np
-from datetime import datetime
-
-@bp.route('/details/<ard_nr>', methods=['GET', 'POST'])
-def details(ard_nr):
+@bp.route('/camera_details/<ard_nr>', methods=['GET', 'POST'])
+def camera_details(ard_nr):
     '''
     The main function for rendering the principal site.
     '''
     global cameras;
     if not cameras:
         flash('No cameras installed', 'error')
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
 
     n_ards = len(cameras);
 
@@ -41,7 +32,7 @@ def details(ard_nr):
     name = arduino.name;
     folder = arduino.folder;
     conn_open = arduino.is_open()
-    return render_template('details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
+    return render_template('camera_details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
 
 @bp.route('/add_camera', methods=['GET', 'POST'])

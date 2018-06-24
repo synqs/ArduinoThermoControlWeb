@@ -59,7 +59,7 @@ def index():
     cam_props = [];
     for ii, cam in enumerate(cameras):
         # create also the name for the readout field of the temperature
-        temp_field_str = 'read' + str(cam.id);
+        temp_field_str = 'read_camera' + str(cam.id);
         dict = {'name': cam.name, 'id': cam.id, 'folder': cam.folder,
             'active': cam.is_open(), 'label': temp_field_str, 'xmin':cam.xMin,
             'xmax':cam.xMax, 'ymin':cam.yMin, 'ymax':cam.yMax};
