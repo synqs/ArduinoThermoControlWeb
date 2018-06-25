@@ -32,7 +32,7 @@
       <td>{{ props.ymin }}</td>
       <td>{{ props.ymax }}</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('main.index')}}">Log</a>
+        <a class='btn btn-default' href="{{url_for('cameracontrol.camera_details', ard_nr = props.id)}}">Log</a>
       <td>
     </tr>
  </tbody>

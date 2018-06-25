@@ -26,7 +26,8 @@ def camera_details(ard_nr):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
         dict = {'name': arduino.name, 'id': arduino.id, 'folder': arduino.folder,
-        'active': arduino.is_open(), 'label': temp_field_str};
+        'active': arduino.is_open(), 'label': temp_field_str, 'xmin':arduino.xMin,
+        'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
         props.append(dict)
 
     name = arduino.name;
@@ -106,13 +107,13 @@ def update():
             flash('Updated the folder to {}'.format(n_folder))
         else:
             flash('Folder does not exist', 'error');
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('cameracontrol.change_arduino', ard_nr = id))
     else:
         props = {'name': camera.name, 'id': int(ard_nr), 'folder': camera.folder,
             'active': camera.is_open(), 'xmin':arduino.xMin,
             'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
 
-        return render_template('change_arduino.html', form=uform, roi_form= roi_form, props=props);
+        return render_template('change_camera.html', form=uform, roi_form= roi_form, props=props);
 
 @bp.route('/roi', methods=['POST'])
 def roi():
@@ -138,13 +139,13 @@ def roi():
         camera.yMin = roi_form.yMin.data;
         camera.yMax = roi_form.yMax.data;
         flash('Updated the camera ROI');
-        return redirect(url_for('change_arduino', ard_nr = id))
+        return redirect(url_for('cameracontrol.change_camera', ard_nr = id))
     else:
         props = {'name': camera.name, 'id': int(ard_nr), 'folder': camera.folder,
             'active': camera.is_open(), 'xmin':arduino.xMin,
             'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
 
-        return render_template('change_arduino.html', form=uform, roi_form= roi_form, props=props);
+        return render_template('change_camera.html', form=uform, roi_form= roi_form, props=props);
 
 @bp.route('/file/<filestring>')
 def file(filestring):
