@@ -1,8 +1,7 @@
 from app import app, socketio
 
 from app.serialmonitor import bp
-from app.serialmonitor.forms import ConnectForm
-
+from app.serialmonitor.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
 from app.serialmonitor.models import SerialArduinoMonitor, serialmonitors
 
 from flask import render_template, flash, redirect, url_for, session
@@ -39,3 +38,25 @@ def add_serialmonitor():
     n_ards = len(serialmonitors)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
     device_type = 'serial monitor');
+
+@bp.route('/change_serialmonitor/<ard_nr>')
+def change_serialmonitor(ard_nr):
+    '''
+    Change the parameters of a specific arduino
+    '''
+    global serialmonitors;
+    if not serialmonitors:
+        flash('No serialmonitors installed', 'error')
+        return redirect(url_for('serialmonitor.add_serialmonitor'))
+
+    n_ards = len(serialmonitors);
+    arduino = serialmonitors[int(ard_nr)];
+    props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
+            'active': arduino.connection_open(), 'wait': arduino.sleeptime};
+
+    uform = UpdateForm(id=ard_nr)
+    wform = SerialWaitForm(id=ard_nr)
+    dform = DisconnectForm(id=ard_nr)
+
+    return render_template('change_serialmonitor.html',
+        form=uform, dform = dform, wform = wform, props=props);
