@@ -91,6 +91,21 @@ $(document).ready(function() {
       type: 'heatmap'
     };
 
+    var layout = {
+      shapes: [{
+          type: 'rect',
+          x0: msg.xmin,
+          y0: msg.ymin,
+          x1: msg.xmax,
+          y1: msg.ymax,
+          opacity: 1,
+          line: {
+            color: 'rgb(55, 128, 191)',
+            width: 3
+          }
+        }]
+      };
+
     Plotly.newPlot('plot', [updated_plot], layout);
 
     var time = msg.time;

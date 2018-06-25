@@ -68,7 +68,7 @@
       {% endif %}
       <td id ='{{ ard.label}}'>No value yet.</td>
       <td>
-        Not implemented
+        <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.change_serialmonitor', ard_nr = ard.id)}}">Settings</a>
       <td>
     </tr>
     {% endfor %}

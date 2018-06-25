@@ -8,12 +8,9 @@
   <tr>
     <th scope="col">#</th>
     <th scope="col">Name</th>
-    <th scope="col">Folder</th>
+    <th scope="col">Port</th>
+    <th scope="col">Wait time</th>
     <th scope="col">Status</th>
-    <th scope="col">xMin</th>
-    <th scope="col">xMax</th>
-    <th scope="col">yMin</th>
-    <th scope="col">yMax</th>
     <th scope="col">Other actions </th>
   </tr>
   </thead>
@@ -21,18 +18,14 @@
     <tr>
       <td>{{ props.id }}</td>
       <td>{{ props.name }}</td>
-      <td>{{ props.folder }}</td>
+      <td>{{ props.port }}</td>
+      <td>{{ props.wait }}</td>
       {% if props.active %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
-      <td>{{ props.xmin }}</td>
-      <td>{{ props.xmax }}</td>
-      <td>{{ props.ymin }}</td>
-      <td>{{ props.ymax }}</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('cameracontrol.camera_details', ard_nr = props.id)}}">Log</a>
       <td>
     </tr>
  </tbody>
@@ -44,8 +37,9 @@
 </div>
 
 <h2>Update control parameters </h2>
-<div class="row">
-  <div class="col"> {{ wtf.quick_form(roi_form, action="/roi") }}</div>
+  <div class="row">
+      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait") }}</div>
+  </div>
 </div>
 {% endblock %}
 

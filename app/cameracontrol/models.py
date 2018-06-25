@@ -87,10 +87,10 @@ class GuppySocketProtocol(object):
 
                     im_crop = n_img[self.yMin:self.yMax,self.xMin:self.xMax];
                     Nat = int(im_crop.sum());
-                    print(Nat)
                 self.socketio.emit('camera_response',
                     {'time':timestamp, 'data': n_img.tolist(), 'count': self.unit_of_work,
-                    'id': self.id, 'Nat': Nat})
+                    'id': self.id, 'Nat': Nat, 'xmin': self.xMin, 'xmax': self.xMax,
+                    'ymin':self.yMin, 'ymax':self.yMax})
 
                 previous_img_files = img_files;
 
