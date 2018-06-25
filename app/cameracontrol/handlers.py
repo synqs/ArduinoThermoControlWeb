@@ -3,6 +3,7 @@ from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
 from app.cameracontrol.models import GuppySocketProtocol, cameras
 import h5py
+import os
 
 from flask import render_template, flash, redirect, url_for, session
 from flask_socketio import emit, disconnect
