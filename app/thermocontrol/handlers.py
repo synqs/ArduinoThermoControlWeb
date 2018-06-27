@@ -148,6 +148,21 @@ def update():
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, props=props);
 
+@bp.route('/remove/<ard_nr>')
+def remove(ard_nr):
+    '''
+    Update the serial port.
+    '''
+    global tempcontrols
+    if not tempcontrols:
+        flash('Nothing to remove yet.', 'error')
+        return redirect(url_for('add_tempcontrol'))
+
+    id = int(ard_nr);
+    del tempcontrols[id];
+    flash('Removed the thermocontrol # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'))
+
 @bp.route('/serialwait', methods=['POST'])
 def serialwait():
     '''
