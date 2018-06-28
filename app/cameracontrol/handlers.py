@@ -1,12 +1,41 @@
-from app import app, socketio
+from app import app, socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
-from app.cameracontrol.models import GuppySocketProtocol, cameras
+from app.cameracontrol.models import GuppySocketProtocol, cameras, Camera
 import h5py
 import os
 
 from flask import render_template, flash, redirect, url_for, session
 from flask_socketio import emit, disconnect
+
+@bp.route('/add_camera', methods=['GET', 'POST'])
+def add_camera():
+    '''
+    Add a camera to the set up
+    '''
+    global cameras;
+    cform = ConnectForm();
+
+    if cform.validate_on_submit():
+        n_folder =  cform.folder.data;
+        name = cform.name.data;
+        camera = GuppySocketProtocol(socketio, n_folder, name);
+        camera.id = len(cameras);
+
+        cam = Camera(name=name, folder=n_folder)
+        try:
+            camera.start();
+            cameras.append(camera)
+            db.session.add(cam)
+            db.session.commit()
+            return redirect(url_for('main.index'))
+        except Exception as e:
+             flash('{}'.format(e), 'error')
+             return redirect(url_for('cameracontrol.add_camera'))
+
+    folder = app.config['CAMERA_FOLDER']
+    n_ards = len(cameras)
+    return render_template('add_camera.html', folder = folder, cform = cform, n_ards=n_ards);
 
 @bp.route('/camera_details/<ard_nr>', methods=['GET', 'POST'])
 def camera_details(ard_nr):
@@ -36,31 +65,6 @@ def camera_details(ard_nr):
     conn_open = arduino.is_open()
     return render_template('camera_details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
-
-@bp.route('/add_camera', methods=['GET', 'POST'])
-def add_camera():
-    '''
-    Add a camera to the set up
-    '''
-    global cameras;
-    cform = ConnectForm();
-
-    if cform.validate_on_submit():
-        n_folder =  cform.folder.data;
-        name = cform.name.data;
-        camera = GuppySocketProtocol(socketio, n_folder, name);
-        camera.id = len(cameras)
-        try:
-            camera.start();
-            cameras.append(camera)
-            return redirect(url_for('main.index'))
-        except Exception as e:
-             flash('{}'.format(e), 'error')
-             return redirect(url_for('cameracontrol.add_camera'))
-
-    folder = app.config['CAMERA_FOLDER']
-    n_ards = len(cameras)
-    return render_template('add_camera.html', folder = folder, cform = cform, n_ards=n_ards);
 
 @bp.route('/change_camera/<ard_nr>')
 def change_camera(ard_nr):

@@ -27,5 +27,5 @@ class ConnectForm(FlaskForm):
     '''
     id = HiddenField('A hidden field');
     folder = StringField('Folder name:', validators=[DataRequired()], description = 'Folder to watch')
-    name = StringField('Name of the Camera:', description = 'Name', default = 'Oven')
+    name = StringField('Name of the Camera:',validators=[DataRequired()], description = 'Name', default = 'Oven')
     submit = SubmitField('Connect')

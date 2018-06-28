@@ -103,7 +103,7 @@
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
-      <td id ='{{ ard.label}}'>No value yet.</td>
+      <td id ='{{ ard.label() }}'>No value yet.</td>
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>

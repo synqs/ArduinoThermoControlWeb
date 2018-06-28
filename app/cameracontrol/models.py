@@ -21,6 +21,14 @@ class Camera(db.Model):
     def __repr__(self):
         return '<Camera {}>'.format(self.name)
 
+    def is_open(self):
+        '''
+        test if the worker is running
+        '''
+        return self.switch
+    def label(self):
+        return 'read_camera' + str(self.id);
+
 class GuppySocketProtocol(object):
     '''
     A class which combines the serial connection and the socket into a single
