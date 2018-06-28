@@ -53,7 +53,7 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
  [x] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
 
  [] Allow to change the different axis by hand in the plotly stuff.
- 
+
  [] Move the information about communications and users into a local database. I think that would make it much more robust.
 
  [] Tidy up the connections and also the code in the back-end.
@@ -63,3 +63,10 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
  [] Error logger to communicate with slack or via email.
 
  [] make this readme the about page.
+
+
+# Database migration
+
+To start the migration run flask db init
+
+To  update run flask db migrate and then flask db upgrade

@@ -2,6 +2,8 @@ from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
 from config import Config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import eventlet
 eventlet.monkey_patch()
 
@@ -13,6 +15,10 @@ bootstrap = Bootstrap(app)
 socketio = SocketIO(app, async_mode='eventlet')
 
 app.config.from_object(Config)
+
+# set up the database
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # import all the components of the app
 

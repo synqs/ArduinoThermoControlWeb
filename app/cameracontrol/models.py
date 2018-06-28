@@ -3,9 +3,23 @@ import eventlet
 import numpy as np;
 import imageio
 from datetime import datetime
-
+from app import db
 cameras = [];
 
+class Camera(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    switch = db.Column(db.Boolean)
+    unit_of_work = db.Column(db.Integer)
+    name = db.Column(db.String(64))
+    ard_str = db.Column(db.String(120))
+    folder = db.Column(db.String(240))
+    xMin = db.Column(db.Integer)
+    xMax = db.Column(db.Integer)
+    yMin = db.Column(db.Integer)
+    yMax = db.Column(db.Integer)
+
+    def __repr__(self):
+        return '<Camera {}>'.format(self.name)
 
 class GuppySocketProtocol(object):
     '''
@@ -13,10 +27,10 @@ class GuppySocketProtocol(object):
     class, such that we can handle these things more properly.
     '''
 
+    id = 0;
     switch = False
     unit_of_work = 0
     name = '';
-    id = 0;
     ard_str = '';
     folder = '.';
     xMin = 207; xMax = 597;yMin = 200; yMax = 500;
