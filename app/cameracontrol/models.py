@@ -11,11 +11,9 @@ def do_work(cam_id):
     """
     do work and emit message
     """
-    print('start it')
     previous_img_files = set()
     cam = Camera.query.get(int(cam_id));
     while cam.switch:
-        print('looking')
         img_files = set(os.path.join(cam.folder, f) for f in os.listdir(cam.folder) if f.endswith('.BMP'))
         new_img_files = img_files.difference(previous_img_files)
         if new_img_files:
@@ -36,6 +34,7 @@ def do_work(cam_id):
 
 class Camera(db.Model):
     id = db.Column(db.Integer, primary_key=True);
+    thread_id = db.Column(db.Integer, unique=True);
     switch = db.Column(db.Boolean)
     unit_of_work = db.Column(db.Integer)
     name = db.Column(db.String(64))
@@ -53,7 +52,15 @@ class Camera(db.Model):
         '''
         test if the worker is running
         '''
-        return self.switch
+        for thread in workers:
+            if thread.ident == self.thread_id:
+                self.switch = thread.is_alive();
+                db.session.commit();
+                return self.switch;
+
+        self.switch = False;
+        db.session.commit();
+        return self.switch;
 
     def label(self):
         return 'read_camera' + str(self.id);
@@ -65,11 +72,10 @@ class Camera(db.Model):
         print('Starting the listener.')
         if not self.switch:
             self.switch = True
-            db.session.commit()
+            db.session.commit();
             thread = socketio.start_background_task(target=do_work, cam_id = self.id);
-            print(thread.name);
-            print(vars(thread));
-            print(thread.ident);
+            self.thread_id = thread.ident;
+            db.session.commit()
             workers.append(thread);
         else:
             print('Already running')
