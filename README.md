@@ -27,7 +27,7 @@ Further, we will most likely not install saving of the data on the server as thi
 - clone the repository through 'git clone ...' in the new folder
 - create a new virtualenv through 'conda create -n YOURNAME python=3.6'
 - activate the virtualenv through 'source activate YOURNAME'
-- install the dependencies through 'pip install -r requirements.txt'
+- install the dependencies through 'pip install -r requirements.txt' or if you are at the kip: 'pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt'
 - start it through 'start.sh'
 - open it in a brower on 'localhost:5000'
 
@@ -53,7 +53,7 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
  [x] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
 
  [] Allow to change the different axis by hand in the plotly stuff.
- 
+
  [] Move the information about communications and users into a local database. I think that would make it much more robust.
 
  [] Tidy up the connections and also the code in the back-end.
