@@ -1,7 +1,7 @@
 from app import app, socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
-from app.cameracontrol.models import GuppySocketProtocol, cameras, Camera
+from app.cameracontrol.models import GuppySocketProtocol, workers, cameras, Camera
 import h5py
 import os
 
@@ -13,19 +13,13 @@ def add_camera():
     '''
     Add a camera to the set up
     '''
-    global cameras;
     cform = ConnectForm();
 
     if cform.validate_on_submit():
         n_folder =  cform.folder.data;
         name = cform.name.data;
-        camera = GuppySocketProtocol(socketio, n_folder, name);
-        camera.id = len(cameras);
-
         cam = Camera(name=name, folder=n_folder)
         try:
-            camera.start();
-            cameras.append(camera)
             db.session.add(cam)
             db.session.commit()
             return redirect(url_for('main.index'))
@@ -34,8 +28,20 @@ def add_camera():
              return redirect(url_for('cameracontrol.add_camera'))
 
     folder = app.config['CAMERA_FOLDER']
-    n_ards = len(cameras)
+    n_ards = 0
     return render_template('add_camera.html', folder = folder, cform = cform, n_ards=n_ards);
+
+@bp.route('/remove/<ard_nr>')
+def remove(ard_nr):
+    '''
+    Update the serial port.
+    '''
+    cam = Camera.query.get(int(ard_nr))
+    db.session.delete(cam)
+    db.session.commit()
+
+    flash('Removed the camera # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'))
 
 @bp.route('/camera_details/<ard_nr>', methods=['GET', 'POST'])
 def camera_details(ard_nr):
@@ -65,6 +71,16 @@ def camera_details(ard_nr):
     conn_open = arduino.is_open()
     return render_template('camera_details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
+
+@bp.route('/start_camera/<ard_nr>')
+def start_camera(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    c = Camera.query.get(int(ard_nr));
+    c.start();
+    flash('Trying to start the camera')
+    return redirect(url_for('main.index'))
 
 @bp.route('/change_camera/<ard_nr>')
 def change_camera(ard_nr):

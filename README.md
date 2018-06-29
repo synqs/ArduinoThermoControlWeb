@@ -70,3 +70,7 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 To start the migration run flask db init
 
 To  update run flask db migrate and then flask db upgrade
+
+# Start the redis server
+
+redis-server /usr/local/etc/redis.conf

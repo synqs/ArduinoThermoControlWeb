@@ -13,6 +13,7 @@ from flask_socketio import emit, disconnect
 
 # for subplots
 import numpy as np
+import threading
 
 @app.context_processor
 def git_url():
@@ -37,6 +38,7 @@ def index():
     '''
     global tempcontrols
 
+    print(threading.enumerate())
     n_tcs = len(tempcontrols);
     tc_props = [];
     for ii, arduino in enumerate(tempcontrols):

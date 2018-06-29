@@ -3,11 +3,39 @@ import eventlet
 import numpy as np;
 import imageio
 from datetime import datetime
-from app import db
+from app import db, socketio
+
 cameras = [];
+workers = [];
+def do_work(cam_id):
+    """
+    do work and emit message
+    """
+    print('start it')
+    previous_img_files = set()
+    cam = Camera.query.get(int(cam_id));
+    while cam.switch:
+        print('looking')
+        img_files = set(os.path.join(cam.folder, f) for f in os.listdir(cam.folder) if f.endswith('.BMP'))
+        new_img_files = img_files.difference(previous_img_files)
+        if new_img_files:
+            timestamp = datetime.now().replace(microsecond=0).isoformat();
+            for img_file in new_img_files:
+                n_img = imageio.imread(img_file);
+
+                im_crop = n_img[cam.yMin:cam.yMax,cam.xMin:cam.xMax];
+                Nat = int(im_crop.sum());
+            socketio.emit('camera_response',
+                {'time':timestamp, 'data': n_img.tolist(), 'count': cam.unit_of_work,
+                'id': cam.id, 'Nat': Nat, 'xmin': cam.xMin, 'xmax': cam.xMax,
+                'ymin':cam.yMin, 'ymax':cam.yMax})
+
+            previous_img_files = img_files;
+
+        eventlet.sleep(5)
 
 class Camera(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True);
     switch = db.Column(db.Boolean)
     unit_of_work = db.Column(db.Integer)
     name = db.Column(db.String(64))
@@ -26,8 +54,25 @@ class Camera(db.Model):
         test if the worker is running
         '''
         return self.switch
+
     def label(self):
         return 'read_camera' + str(self.id);
+
+    def start(self):
+        """
+        start to listen to the serial port of the Arduino
+        """
+        print('Starting the listener.')
+        if not self.switch:
+            self.switch = True
+            db.session.commit()
+            thread = socketio.start_background_task(target=do_work, cam_id = self.id);
+            print(thread.name);
+            print(vars(thread));
+            print(thread.ident);
+            workers.append(thread);
+        else:
+            print('Already running')
 
 class GuppySocketProtocol(object):
     '''

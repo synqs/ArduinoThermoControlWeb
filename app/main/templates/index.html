@@ -98,7 +98,7 @@
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
       <td>{{ ard.folder }}</td>
-      {% if ard.active %}
+      {% if ard.is_open() %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
@@ -106,7 +106,12 @@
       <td id ='{{ ard.label() }}'>No value yet.</td>
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.is_open() %}
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('cameracontrol.start_camera', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
+        <a class='btn btn-default' href="{{url_for('cameracontrol.remove', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
       <td>
     </tr>
     {% endfor %}
