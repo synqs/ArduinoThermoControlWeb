@@ -24,9 +24,8 @@ def do_work(cam_id):
                 im_crop = n_img[cam.yMin:cam.yMax,cam.xMin:cam.xMax];
                 Nat = int(im_crop.sum());
             socketio.emit('camera_response',
-                {'time':timestamp, 'data': n_img.tolist(), 'count': cam.unit_of_work,
-                'id': cam.id, 'Nat': Nat, 'xmin': cam.xMin, 'xmax': cam.xMax,
-                'ymin':cam.yMin, 'ymax':cam.yMax})
+                {'time':timestamp, 'data': n_img.tolist(), 'id': cam.id, 'Nat': Nat,
+                'xmin': cam.xMin, 'xmax': cam.xMax, 'ymin':cam.yMin, 'ymax':cam.yMax})
 
             previous_img_files = img_files;
 
@@ -36,7 +35,6 @@ class Camera(db.Model):
     id = db.Column(db.Integer, primary_key=True);
     thread_id = db.Column(db.Integer, unique=True);
     switch = db.Column(db.Boolean)
-    unit_of_work = db.Column(db.Integer)
     name = db.Column(db.String(64))
     ard_str = db.Column(db.String(120))
     folder = db.Column(db.String(240))

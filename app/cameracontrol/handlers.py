@@ -1,7 +1,7 @@
 from app import app, socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
-from app.cameracontrol.models import GuppySocketProtocol, workers, Camera
+from app.cameracontrol.models import workers, Camera
 import h5py
 import os
 

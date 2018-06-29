@@ -1,8 +1,25 @@
 import serial
 import eventlet
 from datetime import datetime
-
+from app import db
 tempcontrols = [];
+workers = [];
+serials = [];
+
+class TempControl(db.Model):
+    id = db.Column(db.Integer, primary_key=True);
+    thread_id = db.Column(db.Integer, unique=True);
+    switch = db.Column(db.Boolean)
+    name = db.Column(db.String(64))
+    ard_str = db.Column(db.String(120))
+
+    gain = db.Column(db.Float);
+    integral = db.Column(db.Float);
+    diff = db.Column(db.Float);
+    sleeptime = db.Column(db.Float);
+
+    def __repr__(self):
+        return '<TempControl {}>'.format(self.name)
 
 class SerialArduinoTempControl(object):
     '''
@@ -37,7 +54,6 @@ class SerialArduinoTempControl(object):
         self.switch = False
         self.socketio = socketio
         self.name = name;
-
 
     def is_open(self):
         '''

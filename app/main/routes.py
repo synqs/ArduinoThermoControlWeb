@@ -1,6 +1,6 @@
 from app import app, socketio, db
 from app.main import bp
-from app.thermocontrol.models import tempcontrols
+from app.thermocontrol.models import tempcontrols, TempControl
 from app.serialmonitor.models import serialmonitors
 from app.cameracontrol.models import Camera
 
@@ -38,7 +38,7 @@ def index():
     '''
     global tempcontrols
 
-    print(threading.enumerate())
+    tcontrols = TempControl.query.all();
     n_tcs = len(tempcontrols);
     tc_props = [];
     for ii, arduino in enumerate(tempcontrols):
