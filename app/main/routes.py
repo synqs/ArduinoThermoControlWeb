@@ -2,7 +2,7 @@ from app import app, socketio, db
 from app.main import bp
 from app.thermocontrol.models import tempcontrols
 from app.serialmonitor.models import serialmonitors
-from app.cameracontrol.models import cameras, Camera
+from app.cameracontrol.models import Camera
 
 import h5py
 import git

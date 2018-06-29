@@ -72,7 +72,8 @@ $(document).ready(function() {
   });
 
   $("#trig_button" ).click(function() {
-    socket.emit('trig_img');
+    var this_id =  '{{ ard_nr}}';
+    socket.emit('trig_img', {'cam_id': this_id });
   });
 
   socket.on('camera_response', function(msg) {

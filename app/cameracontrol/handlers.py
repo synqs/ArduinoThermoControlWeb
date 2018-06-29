@@ -1,7 +1,7 @@
 from app import app, socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
-from app.cameracontrol.models import GuppySocketProtocol, workers, cameras, Camera
+from app.cameracontrol.models import GuppySocketProtocol, workers, Camera
 import h5py
 import os
 
@@ -36,41 +36,12 @@ def remove(ard_nr):
     '''
     Update the serial port.
     '''
-    cam = Camera.query.get(int(ard_nr))
+    cam = Camera.query.get(int(ard_nr));
     db.session.delete(cam)
     db.session.commit()
 
     flash('Removed the camera # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
-
-@bp.route('/camera_details/<ard_nr>', methods=['GET', 'POST'])
-def camera_details(ard_nr):
-    '''
-    The main function for rendering the principal site.
-    '''
-    global cameras;
-    if not cameras:
-        flash('No cameras installed', 'error')
-        return redirect(url_for('main.index'))
-
-    n_ards = len(cameras);
-
-    arduino = cameras[int(ard_nr)];
-    n_ards = len(cameras);
-    props = [];
-    for ii, arduino in enumerate(cameras):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'folder': arduino.folder,
-        'active': arduino.is_open(), 'label': temp_field_str, 'xmin':arduino.xMin,
-        'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
-        props.append(dict)
-
-    name = arduino.name;
-    folder = arduino.folder;
-    conn_open = arduino.is_open()
-    return render_template('camera_details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
-        name = name, conn_open = conn_open);
 
 @bp.route('/start_camera/<ard_nr>')
 def start_camera(ard_nr):
@@ -82,53 +53,67 @@ def start_camera(ard_nr):
     flash('Trying to start the camera')
     return redirect(url_for('main.index'))
 
-@bp.route('/change_camera/<ard_nr>')
+@bp.route('/change_camera/<int:ard_nr>')
 def change_camera(ard_nr):
     '''
     Change the parameters of a specific arduino
     '''
-    global cameras;
-    if not cameras:
-        flash('No cameras installed', 'error')
-        return redirect(url_for('cameracontrol.add_camera'))
+    camera = Camera.query.get(ard_nr);
 
-    n_ards = len(cameras);
-    arduino = cameras[int(ard_nr)];
-    props = {'name': arduino.name, 'id': int(ard_nr), 'folder': arduino.folder,
-            'active': arduino.is_open(), 'xmin':arduino.xMin,
-            'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
+    props = {'name': camera.name, 'id': int(ard_nr), 'folder': camera.folder,
+            'active': camera.is_open(), 'xmin':camera.xMin,
+            'xmax':camera.xMax, 'ymin':camera.yMin, 'ymax':camera.yMax};
 
     uform = UpdateForm(id=ard_nr)
     roi_form = RoiForm(id=ard_nr)
     return render_template('change_camera.html',
         form=uform, roi_form = roi_form, props=props);
 
+@bp.route('/camera_details/<int:ard_nr>', methods=['GET', 'POST'])
+def camera_details(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+
+    cam = Camera.query.get(ard_nr);
+    name = cam.name;
+    folder = cam.folder;
+    conn_open = cam.is_open();
+    cameras = Camera.query.all();
+    n_ards = len(cameras);
+    props = [];
+    for ii, arduino in enumerate(cameras):
+        # create also the name for the readout field of the temperature
+        temp_field_str = 'read' + str(arduino.id);
+        dict = {'name': arduino.name, 'id': arduino.id, 'folder': arduino.folder,
+        'active': arduino.is_open(), 'label': temp_field_str, 'xmin':arduino.xMin,
+        'xmax':arduino.xMax, 'ymin':arduino.yMin, 'ymax':arduino.yMax};
+        props.append(dict)
+
+    return render_template('camera_details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
+        name = name, conn_open = conn_open);
+
 @bp.route('/update', methods=['POST'])
 def update():
     '''
     Update the watched folder.
     '''
-    global cameras
-    if not cameras:
-        flash('No camera yet.', 'error')
-        return redirect(url_for('add_camera'))
-
     uform = UpdateForm();
     roi_form = RoiForm();
 
     id = int(uform.id.data);
-    camera = cameras[id];
+
+    camera = Camera.query.get(id);
 
     if uform.validate_on_submit():
-
-        camera = cameras[int(id)];
         n_folder =  uform.folder.data;
         if os.path.isdir(n_folder):
             camera.folder = n_folder;
+            db.session.commit();
             flash('Updated the folder to {}'.format(n_folder))
         else:
             flash('Folder does not exist', 'error');
-        return redirect(url_for('cameracontrol.change_arduino', ard_nr = id))
+        return redirect(url_for('cameracontrol.change_camera', ard_nr = id))
     else:
         props = {'name': camera.name, 'id': int(ard_nr), 'folder': camera.folder,
             'active': camera.is_open(), 'xmin':arduino.xMin,
@@ -141,24 +126,19 @@ def roi():
     '''
     Update the roi.
     '''
-    global cameras
-    if not cameras:
-        flash('No camera yet.', 'error')
-        return redirect(url_for('add_camera'))
-
     uform = UpdateForm();
     roi_form = RoiForm();
 
     id = int(roi_form.id.data);
-    camera = cameras[id];
+    camera = Camera.query.get(id);
 
     if roi_form.validate_on_submit():
 
-        camera = cameras[int(id)];
         camera.xMin = roi_form.xMin.data;
         camera.xMax = roi_form.xMax.data;
         camera.yMin = roi_form.yMin.data;
         camera.yMax = roi_form.yMax.data;
+        db.session.commit();
         flash('Updated the camera ROI');
         return redirect(url_for('cameracontrol.change_camera', ard_nr = id))
     else:
@@ -239,15 +219,11 @@ def ping_pong():
     emit('my_pong')
 
 @socketio.on('trig_img')
-def trig_mag():
-    global cameras;
-    if cameras:
-        arduino = cameras[0];
-        arduino.trig_measurement();
-        ard_str = 'Triggered a test img.';
-    else:
-        ard_str = 'Nothing to connect to';
-
+def trig_mag(message):
+    cam_id = int(message['cam_id']);
+    camera = Camera.query.get(cam_id);
+    camera.trig_measurement();
+    ard_str = 'Triggered an image';
     session['receive_count'] = session.get('receive_count', 0) + 1;
     emit('my_response',
         {'data': ard_str, 'count': session['receive_count']})

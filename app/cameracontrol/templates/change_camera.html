@@ -32,7 +32,12 @@
       <td>{{ props.ymin }}</td>
       <td>{{ props.ymax }}</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('cameracontrol.camera_details', ard_nr = props.id)}}">Log</a>
+        {% if props.active %}
+        <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = props.id)}}">Log</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('cameracontrol.start_camera', ard_nr = props.id)}}">Start</a>
+        {% endif %}
+        <a class='btn btn-default' href="{{url_for('cameracontrol.remove', ard_nr = props.id)}}"><span class ="glyphicon glyphicon-remove"></span>
       <td>
     </tr>
  </tbody>

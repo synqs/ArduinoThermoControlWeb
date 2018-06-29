@@ -5,8 +5,8 @@ import imageio
 from datetime import datetime
 from app import db, socketio
 
-cameras = [];
 workers = [];
+
 def do_work(cam_id):
     """
     do work and emit message
@@ -30,7 +30,7 @@ def do_work(cam_id):
 
             previous_img_files = img_files;
 
-        eventlet.sleep(5)
+        eventlet.sleep(1)
 
 class Camera(db.Model):
     id = db.Column(db.Integer, primary_key=True);
@@ -79,6 +79,31 @@ class Camera(db.Model):
             workers.append(thread);
         else:
             print('Already running')
+    
+    def trig_measurement(self):
+        '''
+        Creating a test pattern in the save_folder.
+        '''
+        # only read out on ask
+        Nx = 752;
+        Ny = 578;
+        sigma = 20;
+        xlin = np.linspace(0,Nx, Nx) - Nx/2;
+        ylin = np.linspace(0,Ny, Ny) - Ny/2;
+        [X, Y] = np.meshgrid(xlin,ylin);
+        z = 255*np.exp(-(X**2 +Y**2)/sigma**2);
+
+        z_int = z.astype('uint8')
+        index = np.random.randint(100);
+        name = self.folder + '/test' + str(index) + '.BMP';
+        print(name)
+        imageio.imwrite(name, z_int);
+
+    def pull_data(self):
+        '''
+        Pulling the actual data from the guppy folder.
+        '''
+        return timestamp, self.ard_str
 
 class GuppySocketProtocol(object):
     '''
