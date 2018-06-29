@@ -39,12 +39,12 @@ def index():
     global tempcontrols
 
     tcontrols = TempControl.query.all();
-    n_tcs = len(tempcontrols);
+    n_tcs = len(tcontrols);
     tc_props = [];
-    for ii, arduino in enumerate(tempcontrols):
+    for ii, arduino in enumerate(tcontrols):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
+        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
         'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
         'label': temp_field_str};
         tc_props.append(dict)

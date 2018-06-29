@@ -1,8 +1,8 @@
 from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import SerialArduinoTempControl, tempcontrols
-from app import app, socketio
+from app.thermocontrol.models import SerialArduinoTempControl, tempcontrols, TempControl
+from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
 
@@ -49,6 +49,10 @@ def add_tempcontrol():
         n_port =  cform.serial_port.data;
         name = cform.name.data;
         ssProto = SerialArduinoTempControl(socketio, name);
+        tc = TempControl(name=name);
+        db.session.add(tc);
+        db.session.commit();
+
         ssProto.id = len(tempcontrols)
         try:
             ssProto.open_serial(n_port, 9600, timeout = 1)
@@ -69,6 +73,15 @@ def add_tempcontrol():
     n_ards = len(tempcontrols)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
     device_type = 'temp control');
+
+@bp.route('/remove/<int:ard_nr>')
+def remove(ard_nr):
+    tc = TempControl.query.get(ard_nr);
+    db.session.delete(tc)
+    db.session.commit()
+
+    flash('Removed the temperature control # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'))
 
 @bp.route('/change_arduino/<ard_nr>')
 def change_arduino(ard_nr):
@@ -147,21 +160,6 @@ def update():
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, props=props);
-
-@bp.route('/remove/<ard_nr>')
-def remove(ard_nr):
-    '''
-    Update the serial port.
-    '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('Nothing to remove yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
-
-    id = int(ard_nr);
-    del tempcontrols[id];
-    flash('Removed the thermocontrol # {}.'.format(ard_nr));
-    return redirect(url_for('main.index'))
 
 @bp.route('/serialwait', methods=['POST'])
 def serialwait():

@@ -13,6 +13,8 @@ class TempControl(db.Model):
     name = db.Column(db.String(64))
     ard_str = db.Column(db.String(120))
 
+    serial_port = db.Column(db.String(64))
+    setpoint = db.Column(db.Float);
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
@@ -21,6 +23,27 @@ class TempControl(db.Model):
     def __repr__(self):
         return '<TempControl {}>'.format(self.name)
 
+    def connection_open(self):
+        '''
+        Is the protocol running ?
+        '''
+        return self.is_alive() and self.is_open()
+
+    def is_open(self):
+        '''
+        test if the serial connection is open
+        '''
+        return false
+
+    def is_alive(self):
+        """
+        return the running status
+        """
+        return self.switch
+
+    def temp_field_str(self):
+        return 'read' + str(self.id);
+        
 class SerialArduinoTempControl(object):
     '''
     A class which combines the serial connection and the socket into a single
