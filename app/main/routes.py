@@ -36,18 +36,9 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    global tempcontrols
 
     tcontrols = TempControl.query.all();
     n_tcs = len(tcontrols);
-    tc_props = [];
-    for ii, arduino in enumerate(tcontrols):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
-        'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-        'label': temp_field_str};
-        tc_props.append(dict)
 
     global serialmonitors
 
@@ -63,7 +54,7 @@ def index():
     cams = Camera.query.all();
     n_cameras = len(cams);
 
-    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tc_props,
+    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
     n_sm = n_sm, serialmonitors = sm_props, n_cameras = n_cameras, cameras = cams);
 
 @bp.route('/file/<filestring>')

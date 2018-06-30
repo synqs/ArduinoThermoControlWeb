@@ -6,7 +6,6 @@ from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
 
-
 @bp.route('/details/<ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
     '''
@@ -42,32 +41,25 @@ def add_tempcontrol():
     '''
     Add an arduino to the set up
     '''
-    global tempcontrols;
     cform = ConnectForm();
 
     if cform.validate_on_submit():
         n_port =  cform.serial_port.data;
         name = cform.name.data;
-        ssProto = SerialArduinoTempControl(socketio, name);
-        tc = TempControl(name=name);
+        tc = TempControl(name=name, serial_port = n_port, sleeptime=3);
         db.session.add(tc);
         db.session.commit();
+        flash('We added a new arduino {}'.format(name))
+        return redirect(url_for('main.index'))
 
-        ssProto.id = len(tempcontrols)
-        try:
-            ssProto.open_serial(n_port, 9600, timeout = 1)
-            ssProto.start()
-            if ssProto.is_open():
-                app.config['SERIAL_PORT'] = n_port;
-                tempcontrols.append(ssProto)
-                flash('We added a new arduino {}'.format(app.config['SERIAL_PORT']))
-                return redirect(url_for('main.index'))
-            else:
-                 flash('Adding the Arduino went wrong', 'error')
-                 return redirect(url_for('thermocontrol.add_tempcontrol'))
-        except Exception as e:
-             flash('{}'.format(e), 'error')
-             return redirect(url_for('thermocontrol.add_tempcontrol'))
+        #     #tc.open_serial()
+        #     #tc.start()
+        # if tc.is_open():
+        #     flash('We added a new arduino {}'.format(name))
+        #     return redirect(url_for('main.index'))
+        # else:
+        #     flash('Adding the Arduino went wrong', 'error')
+        #     return redirect(url_for('thermocontrol.add_tempcontrol'))
 
     port = app.config['SERIAL_PORT']
     n_ards = len(tempcontrols)
@@ -83,19 +75,32 @@ def remove(ard_nr):
     flash('Removed the temperature control # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
 
-@bp.route('/change_arduino/<ard_nr>')
+@bp.route('/start/<int:ard_nr>')
+def start(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    tc = TempControl.query.get(ard_nr);
+    sopen = tc.open_serial();
+    if sopen:
+        tc.start();
+        flash('Trying to start the tempcontrol')
+    else:
+        flash('Could not open the serial port', 'error')
+    return redirect(url_for('main.index'))
+
+@bp.route('/change_arduino/<int:ard_nr>')
 def change_arduino(ard_nr):
     '''
     Change the parameters of a specific arduino
     '''
-    global tempcontrols;
-    if not tempcontrols:
-        flash('No tempcontrols installed', 'error')
-        return redirect(url_for('thermocontrol.add_tempcontrol'))
+    arduino = TempControl.query.get(ard_nr);
 
-    n_ards = len(tempcontrols);
-    arduino = tempcontrols[int(ard_nr)];
-    props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
+    if not arduino:
+        flash('No tempcontrols installed', 'error')
+        return redirect(url_for('thermocontrol.add_tempcontrol'));
+
+    props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial_port,
             'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
             'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
             'wait': arduino.sleeptime};
@@ -114,15 +119,11 @@ def change_arduino(ard_nr):
         form=uform, dform = dform, sform = sform,
         gform = gform, iform = iform,diff_form = diff_form, wform = wform, props=props);
 
-@bp.route('/update', methods=['POST'])
-def update():
+@bp.route('/update_tc', methods=['POST'])
+def update_tc():
     '''
     Update the serial port.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -133,17 +134,14 @@ def update():
     diff_form = UpdateDifferentialForm()
 
     id = int(uform.id.data);
-    arduino = tempcontrols[id];
 
     if uform.validate_on_submit():
-
-        arduino = tempcontrols[int(id)];
+        arduino = TempControl.query.get(id);
         n_port =  uform.serial_port.data;
         try:
             if arduino.connection_open():
                 arduino.stop()
-            arduino.open_serial(n_port, 9600, timeout = 1)
-            arduino.start()
+            arduino.update_serial(n_port);
             if arduino.is_open():
                 flash('We updated the serial to {}'.format(n_port))
             else:

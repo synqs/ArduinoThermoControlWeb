@@ -1,10 +1,59 @@
 import serial
 import eventlet
 from datetime import datetime
-from app import db
+from app import db, socketio
+
 tempcontrols = [];
 workers = [];
 serials = [];
+
+def do_work(id):
+    """
+    do work and emit message
+    """
+
+    tc = TempControl.query.get(int(id));
+    if not tc.sleeptime:
+        sleeptime = 3;
+    else:
+        sleeptime = tc.sleeptime;
+
+    unit_of_work = 0;
+    while tc.switch:
+        print('Listening');
+        unit_of_work += 1
+        # must call emit from the socketio
+        # must specify the namespace
+
+        if tc.is_open():
+            try:
+                timestamp, ard_str = tc.pull_data()
+                print(ard_str);
+                vals = ard_str.split(',');
+                if len(vals)>=2:
+                    socketio.emit('temp_value',
+                        {'data': vals[1], 'id': id})
+
+                socketio.emit('log_response',
+                {'time':timestamp, 'data': vals, 'count': unit_of_work,
+                    'id': id})
+            except Exception as e:
+                print('{}'.format(e))
+                socketio.emit('my_response',
+                {'data': '{}'.format(e), 'count': unit_of_work})
+                tc.switch = False
+                db.session.commit()
+        else:
+            tc.switch = False
+            db.session.commit()
+            # TODO: Make this a link
+            error_str = 'Port closed. please configure one properly under config.'
+            socketio.emit('log_response',
+            {'data': error_str, 'count': unit_of_work})
+
+            # important to use eventlet's sleep method
+
+        eventlet.sleep(sleeptime)
 
 class TempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True);
@@ -23,6 +72,38 @@ class TempControl(db.Model):
     def __repr__(self):
         return '<TempControl {}>'.format(self.name)
 
+    def open_serial(self):
+        """
+        open the serial port
+        """
+        for s in serials:
+            if s.port == self.serial_port:
+                if not s.is_open:
+                    s= serial.Serial(self.serial_port, 9600, timeout = 1);
+                return s.is_open
+        s= serial.Serial(self.serial_port, 9600, timeout = 1);
+        serials.append(s);
+        return s.is_open
+
+    def update_serial(self, serial_port):
+        """
+        open the serial port
+        """
+        self.serial_port = serial_port;
+        db.session.commit();
+
+        exists = False
+        for s in serials:
+            if s.port == serial_port:
+                s = serial.Serial(serial_port, 9600, timeout = 1);
+                exists = True;
+
+        if not exists:
+            s = serial.Serial(serial_port, 9600, timeout = 1);
+            serials.append(s);
+
+        return s.is_open
+
     def connection_open(self):
         '''
         Is the protocol running ?
@@ -33,17 +114,63 @@ class TempControl(db.Model):
         '''
         test if the serial connection is open
         '''
-        return false
+        for s in serials:
+            if s.port == self.serial_port:
+                return s.is_open;
+        print('No serial device registered');
+        return False
 
     def is_alive(self):
         """
         return the running status
         """
-        return self.switch
+        for thread in workers:
+            if thread.ident == self.thread_id:
+                self.switch = thread.is_alive();
+                db.session.commit();
+                return self.switch;
+
+        self.switch = False;
+        db.session.commit();
+        return self.switch;
 
     def temp_field_str(self):
         return 'read' + str(self.id);
-        
+
+    def start(self):
+        """
+        start to listen to the serial port of the Arduino
+        """
+        print('Starting the listener.')
+        print(self.is_alive())
+        if not self.is_alive():
+            self.switch = True
+            db.session.commit();
+            thread = socketio.start_background_task(target=do_work, id = self.id);
+            self.thread_id = thread.ident;
+            db.session.commit()
+            workers.append(thread);
+        else:
+            print('Already running')
+
+    def pull_data(self):
+        '''
+        Pulling the actual data from the arduino.
+        '''
+        ser = [];
+        for s in serials:
+            if s.port == self.serial_port:
+                ser = s;
+
+        # only read out on ask
+        o_str = 'w'
+        b = o_str.encode()
+        ser.write(b);
+        stream = ser.read(ser.in_waiting);
+        self.ard_str = stream.decode(encoding='windows-1252');
+        timestamp = datetime.now().replace(microsecond=0).isoformat();
+        return timestamp, self.ard_str
+
 class SerialArduinoTempControl(object):
     '''
     A class which combines the serial connection and the socket into a single
