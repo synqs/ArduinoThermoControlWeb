@@ -6,34 +6,28 @@ from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
 
-@bp.route('/details/<ard_nr>', methods=['GET', 'POST'])
+@bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
     '''
     The main function for rendering the principal site.
     '''
-    global tempcontrols;
-    if not tempcontrols:
-        flash('No tempcontrols installed', 'error')
-        return redirect(url_for('main.index'))
-
-    n_ards = len(tempcontrols);
-
-    arduino = tempcontrols[int(ard_nr)];
+    arduino = TempControl.query.get(ard_nr);
     name = arduino.name;
-    port = arduino.serial.port;
+    port = arduino.serial_port;
     conn_open = arduino.connection_open()
 
+    tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols);
     props = [];
     for ii, arduino in enumerate(tempcontrols):
         # create also the name for the readout field of the temperature
         temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
+        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
         'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
         'label': temp_field_str};
         props.append(dict)
 
-    return render_template('details.html',n_ards = n_ards, props = props, ard_nr = ard_nr,
+    return render_template('details.html', props = props, ard_nr = ard_nr,
         name = name, conn_open = conn_open);
 
 @bp.route('/add_tempcontrol', methods=['GET', 'POST'])

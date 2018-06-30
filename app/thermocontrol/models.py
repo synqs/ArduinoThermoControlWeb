@@ -20,7 +20,6 @@ def do_work(id):
 
     unit_of_work = 0;
     while tc.switch:
-        print('Listening');
         unit_of_work += 1
         # must call emit from the socketio
         # must specify the namespace
@@ -28,7 +27,6 @@ def do_work(id):
         if tc.is_open():
             try:
                 timestamp, ard_str = tc.pull_data()
-                print(ard_str);
                 vals = ard_str.split(',');
                 if len(vals)>=2:
                     socketio.emit('temp_value',
