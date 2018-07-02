@@ -153,6 +153,7 @@ class TempControl(db.Model):
 
         # configure the serial
 
+
         # starting the listener
         if not self.is_alive():
             self.switch = True
@@ -164,6 +165,9 @@ class TempControl(db.Model):
         else:
             print('Already running')
 
+    def set_gain(self):
+        pass
+        
     def stop(self):
         """
         stop the connection

@@ -1,7 +1,7 @@
 from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import SerialArduinoTempControl, TempControl
+from app.thermocontrol.models import TempControl
 from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
@@ -104,11 +104,6 @@ def change_arduino(ard_nr):
         flash('No tempcontrols installed', 'error')
         return redirect(url_for('thermocontrol.add_tempcontrol'));
 
-    props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial_port,
-            'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-            'wait': arduino.sleeptime};
-
     uform = UpdateForm(id=ard_nr)
 
     sform = UpdateSetpointForm(id=ard_nr)
@@ -121,7 +116,7 @@ def change_arduino(ard_nr):
 
     return render_template('change_arduino.html',
         form=uform, dform = dform, sform = sform,
-        gform = gform, iform = iform,diff_form = diff_form, wform = wform, props=props);
+        gform = gform, iform = iform,diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/update_tc', methods=['POST'])
 def update_tc():
