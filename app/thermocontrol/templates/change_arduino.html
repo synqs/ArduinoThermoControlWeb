@@ -22,8 +22,8 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.port }}</td>
-      <td>{{ ard.wait }}</td>
+      <td>{{ ard.serial_port }}</td>
+      <td>{{ ard.sleeptime }}</td>
       {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
@@ -31,8 +31,8 @@
       {% endif %}
       <td scope="col">{{ ard.setpoint }}</td>
       <td scope="col">{{ ard.gain }}</td>
-      <td scope="col">{{ ard.tauI }}</td>
-      <td scope="col">{{ ard.tauD }}</td>
+      <td scope="col">{{ ard.integral }}</td>
+      <td scope="col">{{ ard.diff }}</td>
       <td>
       {% if ard.connection_open() %}
         <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>

@@ -24,18 +24,21 @@ def test_serial():
                 os.write(master, out)
             if mode == b's':
                 set = os.read(master, 20);
-                setpoint = int(set.decode('windows-1252'));
+                setpoint = float(set.decode('windows-1252'));
                 print('s{}'.format(setpoint));
             if mode == b'p':
                 set = os.read(master, 20);
                 gain = float(set.decode('windows-1252'));
                 print('p{}'.format(gain));
-
             if mode == b'i':
                 set = os.read(master, 20);
                 tauI = float(set.decode('windows-1252'));
                 print('i{}'.format(tauI));
-                
+            if mode == b'd':
+                set = os.read(master, 20);
+                tauD = float(set.decode('windows-1252'));
+                print('d{}'.format(tauI));
+
         time.sleep(0.1)
 if __name__=='__main__':
     test_serial()

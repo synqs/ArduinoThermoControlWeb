@@ -2,6 +2,7 @@ import serial
 import eventlet
 from datetime import datetime
 from app import db, socketio
+import time
 
 workers = [];
 serials = [];
@@ -152,7 +153,17 @@ class TempControl(db.Model):
             s = self.open_serial();
 
         # configure the serial
-
+        if self.setpoint:
+            self.set_setpoint();
+        time.sleep(0.2);
+        if self.gain:
+            self.set_gain();
+        time.sleep(0.2);
+        if self.integral:
+            self.set_integral();
+        time.sleep(0.2);
+        if self.diff:
+            self.set_differential();
 
         # starting the listener
         if not self.is_alive():
@@ -165,9 +176,46 @@ class TempControl(db.Model):
         else:
             print('Already running')
 
+    def set_setpoint(self):
+        if self.is_open():
+            o_str = 's{}'.format(self.setpoint);
+            b = o_str.encode()
+            serial = self.get_serial();
+            serial.write(b);
+            return True
+        else:
+            return False
+
     def set_gain(self):
-        pass
-        
+        if self.is_open():
+            o_str = 'p{}'.format(self.gain);
+            b = o_str.encode()
+            serial = self.get_serial();
+            serial.write(b);
+            return True
+        else:
+            return False
+
+    def set_integral(self):
+        if self.is_open():
+            o_str = 'i{}'.format(self.integral);
+            b = o_str.encode()
+            serial = self.get_serial();
+            serial.write(b);
+            return True
+        else:
+            return False
+
+    def set_differential(self):
+        if self.is_open():
+            o_str = 'd{}'.format(self.diff);
+            b = o_str.encode()
+            serial = self.get_serial();
+            serial.write(b);
+            return True
+        else:
+            return False
+
     def stop(self):
         """
         stop the connection

@@ -75,12 +75,8 @@ def start(ard_nr):
     The main function for rendering the principal site.
     '''
     tc = TempControl.query.get(ard_nr);
-    sopen = tc.open_serial();
-    if sopen:
-        tc.start();
-        flash('Trying to start the tempcontrol')
-    else:
-        flash('Could not open the serial port', 'error')
+    sopen = tc.start();
+    flash('Trying to start the tempcontrol')
     return redirect(url_for('main.index'))
 
 @bp.route('/stop/<int:ard_nr>')
@@ -190,14 +186,10 @@ def serialwait():
              flash('{}'.format(e), 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
-            'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-            'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+            diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/setpoint', methods=['POST'])
 def arduino():
@@ -216,27 +208,18 @@ def arduino():
     arduino = TempControl.query.get(id);
 
     if sform.validate_on_submit():
-        n_setpoint =  sform.setpoint.data;
-        if arduino.is_open():
-            o_str = 's{}'.format(n_setpoint)
-            b = o_str.encode()
-            serial = arduino.get_serial();
-            serial.write(b)
-            arduino.setpoint = n_setpoint;
-            db.session.commit()
-            flash('We set the setpoint to {}'.format(n_setpoint))
+        arduino.setpoint = sform.setpoint.data;
+        db.session.commit();
+        success = arduino.set_setpoint();
+        if success:
+            flash('We set the setpoint to {}'.format(sform.setpoint.data))
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
-                'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-                'wait': arduino.sleeptime};
-
         return render_template('change_arduino.html', form=uform, dform = dform,
-            cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+            sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/gain', methods=['POST'])
 def gain():
@@ -257,25 +240,18 @@ def gain():
 
     if gform.validate_on_submit():
         n_gain =  gform.gain.data;
-        if arduino.is_open():
-            o_str = 'p{}'.format(n_gain)
-            b = o_str.encode()
-            serial = arduino.get_serial();
-            serial.write(b)
-            arduino.gain =  n_gain;
-            db.session.commit();
+        arduino.gain = n_gain;
+        db.session.commit();
+        success = arduino.set_gain();
+        if success:
             flash('We set the gain to {}'.format(n_gain))
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
-                'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-                'wait': arduino.sleeptime};
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+            diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/integral', methods=['POST'])
 def integral():
@@ -295,26 +271,19 @@ def integral():
 
     if iform.validate_on_submit():
         n_tau =  iform.tau.data;
-        if arduino.is_open():
-            o_str = 'i{}'.format(n_tau)
-            b = o_str.encode()
-            serial = arduino.get_serial();
-            serial.write(b)
-            arduino.gain =  n_tau;
-            db.session.commit();
+        arduino.integral =  n_tau;
+        db.session.commit();
+        success = arduino.set_integral();
+        if success:
             flash('We set the integration time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
-                'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-                'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
-            cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+        sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard = arduinoprops);
 
 @bp.route('/diff', methods=['POST'])
 def diff():
@@ -335,26 +304,18 @@ def diff():
 
     if diff_form.validate_on_submit():
         n_tau =  diff_form.tau.data;
-        if arduino.is_open():
-            o_str = 'd{}'.format(n_tau)
-            b = o_str.encode()
-            serial = arduino.get_serial();
-            serial.write(b)
-            arduino.diff =  n_tau;
-            db.session.commit();
+        arduino.diff =  n_tau;
+        db.session.commit();
+        success = arduino.set_differential();
+        if success:
             flash('We set the differentiation time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': id, 'port': arduino.serial.port,
-                'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-                'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-                'wait': arduino.sleeptime};
-
         return render_template('change_arduino.html', form=uform, dform = dform,
             sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+            diff_form = diff_form, wform = wform, ard=arduino);
 
 # communication with the websocket
 @socketio.on('connect')
