@@ -3,7 +3,6 @@ import eventlet
 from datetime import datetime
 from app import db, socketio
 
-tempcontrols = [];
 workers = [];
 serials = [];
 
@@ -42,6 +41,7 @@ def do_work(id):
                 tc.switch = False
                 db.session.commit()
         else:
+            print('Serial closed')
             tc.switch = False
             db.session.commit()
             # TODO: Make this a link
@@ -52,6 +52,9 @@ def do_work(id):
             # important to use eventlet's sleep method
 
         eventlet.sleep(sleeptime)
+        tc = TempControl.query.get(int(id));
+    else:
+        print('Closing down the worker in a controlled way.')
 
 class TempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True);
@@ -70,17 +73,22 @@ class TempControl(db.Model):
     def __repr__(self):
         return '<TempControl {}>'.format(self.name)
 
+    def get_serial(self):
+        for s in serials:
+            if s.port == self.serial_port:
+                return s
+        return None
+
     def open_serial(self):
         """
         open the serial port
         """
-        for s in serials:
-            if s.port == self.serial_port:
-                if not s.is_open:
-                    s= serial.Serial(self.serial_port, 9600, timeout = 1);
-                return s.is_open
-        s= serial.Serial(self.serial_port, 9600, timeout = 1);
-        serials.append(s);
+        s = self.get_serial();
+        if s:
+            s.open();
+        else:
+            s= serial.Serial(self.serial_port, 9600, timeout = 1);
+            serials.append(s);
         return s.is_open
 
     def update_serial(self, serial_port):
@@ -139,8 +147,13 @@ class TempControl(db.Model):
         """
         start to listen to the serial port of the Arduino
         """
-        print('Starting the listener.')
-        print(self.is_alive())
+        # opening the serial
+        if not self.is_open():
+            s = self.open_serial();
+
+        # configure the serial
+
+        # starting the listener
         if not self.is_alive():
             self.switch = True
             db.session.commit();
@@ -151,6 +164,21 @@ class TempControl(db.Model):
         else:
             print('Already running')
 
+    def stop(self):
+        """
+        stop the connection
+        """
+        for s in serials:
+            if s.port == self.serial_port:
+                if s.is_open:
+                    s.close();
+        self.switch = False;
+        db.session.commit();
+        for ii, t in enumerate(workers):
+            if t.ident == self.thread_id:
+                del workers[ii];
+        return s.is_open
+
     def pull_data(self):
         '''
         Pulling the actual data from the arduino.
@@ -160,138 +188,6 @@ class TempControl(db.Model):
             if s.port == self.serial_port:
                 ser = s;
 
-        # only read out on ask
-        o_str = 'w'
-        b = o_str.encode()
-        ser.write(b);
-        stream = ser.read(ser.in_waiting);
-        self.ard_str = stream.decode(encoding='windows-1252');
-        timestamp = datetime.now().replace(microsecond=0).isoformat();
-        return timestamp, self.ard_str
-
-class SerialArduinoTempControl(object):
-    '''
-    A class which combines the serial connection and the socket into a single
-    class, such that we can handle these things more properly.
-    '''
-    serial = None
-    switch = False
-    unit_of_work = 0
-    name = '';
-    id = 0;
-    setpoint = '';
-    diff = None;
-    integral = None;
-    gain = None;
-    ard_str = '';
-    sleeptime = 3;
-
-    def __init__(self, socketio):
-        """
-        assign socketio object to emit
-        """
-        self.serial = serial.Serial()
-        self.switch = False
-        self.socketio = socketio;
-
-    def __init__(self, socketio, name):
-        """
-        assign socketio object to emit
-        """
-        self.serial = serial.Serial()
-        self.switch = False
-        self.socketio = socketio
-        self.name = name;
-
-    def is_open(self):
-        '''
-        test if the serial connection is open
-        '''
-        return self.serial.is_open
-
-    def is_alive(self):
-        """
-        return the running status
-        """
-        return self.switch
-
-    def connection_open(self):
-        '''
-        Is the protocol running ?
-        '''
-        return self.is_alive() and self.is_open()
-
-    def stop(self):
-        """
-        stop the loop and later also the serial port
-        """
-        self.switch = False
-        self.unit_of_work = 0
-        if self.is_open():
-            self.serial.close()
-
-    def start(self):
-        """
-        stop the loop and later also the serial port
-        """
-        if not self.switch:
-            if not self.is_open():
-                print('the serial port should be open right now')
-            else:
-                self.switch = True
-                thread = self.socketio.start_background_task(target=self.do_work)
-        else:
-            print('Already running')
-
-    def open_serial(self, port, baud_rate, timeout = 1):
-        """
-        open the serial port
-        """
-        self.serial = serial.Serial(port, 9600, timeout = 1)
-
-    def do_work(self):
-        """
-        do work and emit message
-        """
-
-        while self.switch:
-            self.unit_of_work += 1
-
-            # must call emit from the socketio
-            # must specify the namespace
-
-            if self.is_open():
-                try:
-                    timestamp, ard_str = self.pull_data()
-
-                    vals = ard_str.split(',');
-                    if len(vals)>=2:
-                        self.socketio.emit('temp_value',
-                            {'data': vals[1], 'id': self.id})
-
-                    self.socketio.emit('log_response',
-                    {'time':timestamp, 'data': vals, 'count': self.unit_of_work,
-                        'id': self.id})
-                except Exception as e:
-                    print('{}'.format(e))
-                    self.socketio.emit('my_response',
-                    {'data': '{}'.format(e), 'count': self.unit_of_work})
-                    self.switch = False
-            else:
-                self.switch = False
-                # TODO: Make this a link
-                error_str = 'Port closed. please configure one properly under config.'
-                self.socketio.emit('log_response',
-                {'data': error_str, 'count': self.unit_of_work})
-
-                # important to use eventlet's sleep method
-            eventlet.sleep(self.sleeptime)
-
-    def pull_data(self):
-        '''
-        Pulling the actual data from the arduino.
-        '''
-        ser = self.serial;
         # only read out on ask
         o_str = 'w'
         b = o_str.encode()

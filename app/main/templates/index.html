@@ -37,6 +37,7 @@
         <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
         {% if ard.connection_open() %}
           <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
         {% else %}
         <a class='btn btn-default' href="{{url_for('thermocontrol.start', ard_nr = ard.id)}}">Start</a>
         {% endif %}

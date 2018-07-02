@@ -1,6 +1,6 @@
 from app import app, socketio, db
 from app.main import bp
-from app.thermocontrol.models import tempcontrols, TempControl
+from app.thermocontrol.models import TempControl
 from app.serialmonitor.models import serialmonitors
 from app.cameracontrol.models import Camera
 

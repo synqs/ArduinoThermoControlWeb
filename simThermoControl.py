@@ -4,6 +4,9 @@ import numpy as np
 
 def test_serial():
     setpoint  = 750;
+    gain =1
+    tauI = 100
+    tauD = 1
     master, slave = pty.openpty()
     s_name = os.ttyname(slave)
     print(s_name)
@@ -11,9 +14,6 @@ def test_serial():
         meas = np.random.randint(700, 800)
         err = setpoint - meas;
         control = np.random.randint(10)
-        gain =1
-        tauI = 100
-        tauD = 1
         mode = os.read(master, 1);
         if mode:
             print('mode {}'.format(mode))
@@ -26,11 +26,16 @@ def test_serial():
                 set = os.read(master, 20);
                 setpoint = int(set.decode('windows-1252'));
                 print('s{}'.format(setpoint));
-
-            if mode == b's':
+            if mode == b'p':
                 set = os.read(master, 20);
-                setpoint = int(set.decode('windows-1252'));
-                print('s{}'.format(setpoint));
+                gain = float(set.decode('windows-1252'));
+                print('p{}'.format(gain));
+
+            if mode == b'i':
+                set = os.read(master, 20);
+                tauI = float(set.decode('windows-1252'));
+                print('i{}'.format(tauI));
+                
         time.sleep(0.1)
 if __name__=='__main__':
     test_serial()

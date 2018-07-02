@@ -1,7 +1,7 @@
 from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import SerialArduinoTempControl, tempcontrols, TempControl
+from app.thermocontrol.models import SerialArduinoTempControl, TempControl
 from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
@@ -83,6 +83,16 @@ def start(ard_nr):
         flash('Could not open the serial port', 'error')
     return redirect(url_for('main.index'))
 
+@bp.route('/stop/<int:ard_nr>')
+def stop(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    tc = TempControl.query.get(ard_nr);
+    tc.stop()
+    flash('Stopped the thermocontrol')
+    return redirect(url_for('main.index'))
+
 @bp.route('/change_arduino/<int:ard_nr>')
 def change_arduino(ard_nr):
     '''
@@ -134,7 +144,7 @@ def update_tc():
         n_port =  uform.serial_port.data;
         try:
             if arduino.connection_open():
-                arduino.stop()
+                arduino.stop();
             arduino.update_serial(n_port);
             if arduino.is_open():
                 flash('We updated the serial to {}'.format(n_port))
@@ -199,11 +209,6 @@ def arduino():
     '''
     Configure now settings for the arduino.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
-
     sform = UpdateSetpointForm();
     uform = UpdateForm();
     wform = SerialWaitForm()
@@ -213,15 +218,17 @@ def arduino():
     diff_form = UpdateDifferentialForm()
 
     id = int(sform.id.data);
-    arduino = tempcontrols[id];
+    arduino = TempControl.query.get(id);
 
     if sform.validate_on_submit():
         n_setpoint =  sform.setpoint.data;
         if arduino.is_open():
             o_str = 's{}'.format(n_setpoint)
             b = o_str.encode()
-            arduino.serial.write(b)
+            serial = arduino.get_serial();
+            serial.write(b)
             arduino.setpoint = n_setpoint;
+            db.session.commit()
             flash('We set the setpoint to {}'.format(n_setpoint))
         else:
             flash('Serial port not open.', 'error')
@@ -241,10 +248,6 @@ def gain():
     '''
     Configure the new gain for the arduino.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -255,15 +258,17 @@ def gain():
     diff_form = UpdateDifferentialForm()
 
     id = int(gform.id.data);
-    arduino = tempcontrols[id];
+    arduino = TempControl.query.get(id);
 
     if gform.validate_on_submit():
         n_gain =  gform.gain.data;
         if arduino.is_open():
             o_str = 'p{}'.format(n_gain)
             b = o_str.encode()
-            arduino.serial.write(b)
+            serial = arduino.get_serial();
+            serial.write(b)
             arduino.gain =  n_gain;
+            db.session.commit();
             flash('We set the gain to {}'.format(n_gain))
         else:
             flash('Serial port not open.', 'error')
@@ -282,11 +287,6 @@ def integral():
     '''
     Configure the new gain for the arduino.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
-
     sform = UpdateSetpointForm();
     uform = UpdateForm();
     wform = SerialWaitForm()
@@ -296,15 +296,17 @@ def integral():
     diff_form = UpdateDifferentialForm()
 
     id = int(iform.id.data);
-    arduino = tempcontrols[id];
+    arduino = TempControl.query.get(id);
 
     if iform.validate_on_submit():
         n_tau =  iform.tau.data;
         if arduino.is_open():
             o_str = 'i{}'.format(n_tau)
             b = o_str.encode()
-            arduino.serial.write(b)
-            arduino.integral =  n_tau;
+            serial = arduino.get_serial();
+            serial.write(b)
+            arduino.gain =  n_tau;
+            db.session.commit();
             flash('We set the integration time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
@@ -324,10 +326,6 @@ def diff():
     '''
     Configure the new gain for the arduino.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -338,15 +336,17 @@ def diff():
     diff_form = UpdateDifferentialForm()
 
     id = int(diff_form.id.data);
-    arduino = tempcontrols[id];
+    arduino = TempControl.query.get(id);
 
     if diff_form.validate_on_submit():
         n_tau =  diff_form.tau.data;
         if arduino.is_open():
             o_str = 'd{}'.format(n_tau)
             b = o_str.encode()
-            arduino.serial.write(b)
+            serial = arduino.get_serial();
+            serial.write(b)
             arduino.diff =  n_tau;
+            db.session.commit();
             flash('We set the differentiation time  to {} seconds'.format(n_tau))
         else:
             flash('Serial port not open.', 'error')
@@ -369,25 +369,6 @@ def run_connect():
     Arduino already has a serial connection
     '''
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('stop')
-def run_disconnect():
-    print('Should disconnect')
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-
-    global tempcontrols;
-    # we should even kill the arduino properly.
-    if tempcontrols:
-        ssProto = tempcontrols[0];
-        ser = ssProto.serial;
-        ser.close();
-        ssProto.stop();
-        emit('my_response',
-            {'data': 'Disconnected!', 'count': session['receive_count']})
-    else:
-        emit('my_response',
-            {'data': 'Nothing to disconnect', 'count': session['receive_count']})
 
 @socketio.on('my_ping')
 def ping_pong():
