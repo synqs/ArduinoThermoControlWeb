@@ -105,25 +105,6 @@ def run_connect():
     '''
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
 
-@socketio.on('stop')
-def run_disconnect():
-    print('Should disconnect')
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-
-    global tempcontrols;
-    # we should even kill the arduino properly.
-    if tempcontrols:
-        ssProto = tempcontrols[0];
-        ser = ssProto.serial;
-        ser.close();
-        ssProto.stop();
-        emit('my_response',
-            {'data': 'Disconnected!', 'count': session['receive_count']})
-    else:
-        emit('my_response',
-            {'data': 'Nothing to disconnect', 'count': session['receive_count']})
-
 @socketio.on('my_ping')
 def ping_pong():
     emit('my_pong')

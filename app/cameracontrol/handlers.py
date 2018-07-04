@@ -31,8 +31,8 @@ def add_camera():
     n_ards = 0
     return render_template('add_camera.html', folder = folder, cform = cform, n_ards=n_ards);
 
-@bp.route('/remove/<ard_nr>')
-def remove(ard_nr):
+@bp.route('/remove_camera/<ard_nr>')
+def remove_camera(ard_nr):
     '''
     Update the serial port.
     '''

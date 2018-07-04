@@ -56,6 +56,7 @@ def add_tempcontrol():
         #     return redirect(url_for('thermocontrol.add_tempcontrol'))
 
     port = app.config['SERIAL_PORT']
+    tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
     device_type = 'temp control');
