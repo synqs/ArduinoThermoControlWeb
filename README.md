@@ -27,7 +27,7 @@ Further, we will most likely not install saving of the data on the server as thi
 - clone the repository through 'git clone ...' in the new folder
 - create a new virtualenv through 'conda create -n YOURNAME python=3.6'
 - activate the virtualenv through 'source activate YOURNAME'
-- install the dependencies through 'pip install -r requirements.txt'
+- install the dependencies through 'pip install -r requirements.txt' or if you are at the kip: 'pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt'
 - start it through 'start.sh'
 - open it in a brower on 'localhost:5000'
 
