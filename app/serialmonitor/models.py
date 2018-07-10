@@ -13,7 +13,7 @@ def do_work(id):
     do work and emit message
     """
 
-    tc = TempControl.query.get(int(id));
+    tc = ArduinoSerial.query.get(int(id));
     if not tc.sleeptime:
         sleeptime = 3;
     else:
@@ -29,13 +29,12 @@ def do_work(id):
             try:
                 timestamp, ard_str = tc.pull_data()
                 vals = ard_str.split(',');
-                if len(vals)>=2:
-                    socketio.emit('temp_value',
-                        {'data': vals[1], 'id': id})
+                socketio.emit('serial_value',
+                    {'data': ard_str, 'id': tc.id})
 
-                socketio.emit('log_response',
-                {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                    'id': id})
+                socketio.emit('serial_log',
+                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
+                    'id': tc.id})
             except Exception as e:
                 print('{}'.format(e))
                 socketio.emit('my_response',
@@ -54,7 +53,7 @@ def do_work(id):
             # important to use eventlet's sleep method
 
         eventlet.sleep(sleeptime)
-        tc = TempControl.query.get(int(id));
+        tc = ArduinoSerial.query.get(int(id));
     else:
         print('Closing down the worker in a controlled way.')
 
@@ -139,7 +138,7 @@ class ArduinoSerial(db.Model):
         return self.switch;
 
     def temp_field_str(self):
-        return 'read' + str(self.id);
+        return 'read_sm' + str(self.id);
 
     def start(self):
         """
@@ -148,19 +147,6 @@ class ArduinoSerial(db.Model):
         # opening the serial
         if not self.is_open():
             s = self.open_serial();
-
-        # configure the serial
-        if self.setpoint:
-            self.set_setpoint();
-        time.sleep(0.2);
-        if self.gain:
-            self.set_gain();
-        time.sleep(0.2);
-        if self.integral:
-            self.set_integral();
-        time.sleep(0.2);
-        if self.diff:
-            self.set_differential();
 
         # starting the listener
         if not self.is_alive():
