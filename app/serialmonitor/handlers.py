@@ -2,7 +2,7 @@ from app import app, socketio, db
 
 from app.serialmonitor import bp
 from app.serialmonitor.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
-from app.serialmonitor.models import serialmonitors, ArduinoSerial
+from app.serialmonitor.models import ArduinoSerial
 
 from flask import render_template, flash, redirect, url_for, session
 
@@ -107,3 +107,26 @@ def update_sm():
 
         return render_template('change_serialmonitor.html',
             form=uform, dform = dform, wform = wform, props=props);
+
+@bp.route('/wait_sm', methods=['POST'])
+def wait_sm():
+    '''
+    Update the serial waiting time.
+    '''
+    uform = UpdateForm();
+    wform = SerialWaitForm()
+    dform = DisconnectForm()
+
+    id = int(wform.id.data);
+    arduino = ArduinoSerial.query.get(id);
+
+    if wform.validate_on_submit():
+
+        n_wait =  wform.serial_time.data;
+        arduino.sleeptime = n_wait;
+        db.session.commit();
+        flash('We update every {} s'.format(n_wait))
+        return redirect(url_for('serialmonitor.change_serialmonitor', ard_nr = id))
+    else:
+        return render_template('change_serialmonitor.html',
+            form=uform, dform = dform, wform = wform, ard=arduino);

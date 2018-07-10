@@ -1,7 +1,7 @@
 from app import app, socketio, db
 from app.main import bp
 from app.thermocontrol.models import TempControl
-from app.serialmonitor.models import serialmonitors, ArduinoSerial
+from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
 import h5py
