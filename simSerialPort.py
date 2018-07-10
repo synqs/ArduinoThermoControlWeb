@@ -26,6 +26,11 @@ def test_serial():
                 set = os.read(master, 20);
                 setpoint = int(set.decode('windows-1252'));
                 print('s{}'.format(setpoint));
+
+            if mode == b's':
+                set = os.read(master, 20);
+                setpoint = int(set.decode('windows-1252'));
+                print('s{}'.format(setpoint));
         time.sleep(0.1)
 if __name__=='__main__':
     test_serial()

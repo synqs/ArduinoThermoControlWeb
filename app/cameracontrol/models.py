@@ -3,61 +3,65 @@ import eventlet
 import numpy as np;
 import imageio
 from datetime import datetime
+from app import db, socketio
 
-cameras = [];
+workers = [];
 
+def do_work(cam_id):
+    """
+    do work and emit message
+    """
+    previous_img_files = set()
+    cam = Camera.query.get(int(cam_id));
+    while cam.switch:
+        img_files = set(os.path.join(cam.folder, f) for f in os.listdir(cam.folder) if f.endswith('.BMP'))
+        new_img_files = img_files.difference(previous_img_files)
+        if new_img_files:
+            timestamp = datetime.now().replace(microsecond=0).isoformat();
+            for img_file in new_img_files:
+                n_img = imageio.imread(img_file);
 
-class GuppySocketProtocol(object):
-    '''
-    A class which combines the serial connection and the socket into a single
-    class, such that we can handle these things more properly.
-    '''
+                im_crop = n_img[cam.yMin:cam.yMax,cam.xMin:cam.xMax];
+                Nat = int(im_crop.sum());
+            socketio.emit('camera_response',
+                {'time':timestamp, 'data': n_img.tolist(), 'id': cam.id, 'Nat': Nat,
+                'xmin': cam.xMin, 'xmax': cam.xMax, 'ymin':cam.yMin, 'ymax':cam.yMax})
 
-    switch = False
-    unit_of_work = 0
-    name = '';
-    id = 0;
-    ard_str = '';
-    folder = '.';
-    xMin = 207; xMax = 597;yMin = 200; yMax = 500;
+            previous_img_files = img_files;
 
-    def __init__(self, socketio, folder):
-        """
-        assign socketio object to emit
-        add the folder to watch
-        """
-        if os.path.isdir(folder):
-            self.folder = folder;
-        else:
-            print('Folder does not exist yet.')
-            # TODO: Send back an error.
-        self.socketio = socketio
+        eventlet.sleep(1)
 
-    def __init__(self, socketio, folder, name):
-        """
-        as above, but also assign a name.
-        """
-        if os.path.isdir(folder):
-            self.folder = folder;
-        else:
-            print('Folder does not exist yet.')
-            # TODO: Send back an error.
-        self.socketio = socketio;
-        self.name = name;
+class Camera(db.Model):
+    id = db.Column(db.Integer, primary_key=True);
+    thread_id = db.Column(db.Integer, unique=True);
+    switch = db.Column(db.Boolean)
+    name = db.Column(db.String(64))
+    ard_str = db.Column(db.String(120))
+    folder = db.Column(db.String(240))
+    xMin = db.Column(db.Integer)
+    xMax = db.Column(db.Integer)
+    yMin = db.Column(db.Integer)
+    yMax = db.Column(db.Integer)
+
+    def __repr__(self):
+        return '<Camera {}>'.format(self.name)
 
     def is_open(self):
         '''
         test if the worker is running
         '''
-        return self.switch
+        for thread in workers:
+            if thread.ident == self.thread_id:
+                self.switch = thread.is_alive();
+                db.session.commit();
+                return self.switch;
 
-    def stop(self):
-        """
-        stop the loop and later also the serial port
-        """
-        self.unit_of_work = 0
-        if self.is_open():
-            self.serial.close()
+        self.switch = False;
+        db.session.commit();
+        return self.switch;
+
+    def label(self):
+        return 'read_camera' + str(self.id);
 
     def start(self):
         """
@@ -66,35 +70,13 @@ class GuppySocketProtocol(object):
         print('Starting the listener.')
         if not self.switch:
             self.switch = True
-            thread = self.socketio.start_background_task(target=self.do_work)
+            db.session.commit();
+            thread = socketio.start_background_task(target=do_work, cam_id = self.id);
+            self.thread_id = thread.ident;
+            db.session.commit()
+            workers.append(thread);
         else:
             print('Already running')
-
-    def do_work(self):
-        """
-        do work and emit message
-        """
-
-        previous_img_files = set()
-        while self.switch:
-            img_files = set(os.path.join(self.folder, f) for f in os.listdir(self.folder) if f.endswith('.BMP'))
-            new_img_files = img_files.difference(previous_img_files)
-            if new_img_files:
-                self.unit_of_work += 1
-                timestamp = datetime.now().replace(microsecond=0).isoformat();
-                for img_file in new_img_files:
-                    n_img = imageio.imread(img_file);
-
-                    im_crop = n_img[self.yMin:self.yMax,self.xMin:self.xMax];
-                    Nat = int(im_crop.sum());
-                self.socketio.emit('camera_response',
-                    {'time':timestamp, 'data': n_img.tolist(), 'count': self.unit_of_work,
-                    'id': self.id, 'Nat': Nat, 'xmin': self.xMin, 'xmax': self.xMax,
-                    'ymin':self.yMin, 'ymax':self.yMax})
-
-                previous_img_files = img_files;
-
-            eventlet.sleep(0.1)
 
     def trig_measurement(self):
         '''

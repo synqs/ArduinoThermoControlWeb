@@ -25,17 +25,22 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.port }}</td>
-      {% if ard.active %}
+      <td>{{ ard.serial_port }}</td>
+      {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
       <td>{{ ard.setpoint }}</td>
-      <td id ='{{ ard.label}}'>Not implemented.</td>
+      <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
-        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a><td>
+        {% if ard.connection_open() %}
+          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('thermocontrol.start', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
         <td>
     </tr>
     {% endfor %}
@@ -97,15 +102,19 @@
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
       <td>{{ ard.folder }}</td>
-      {% if ard.active %}
+      {% if ard.is_open() %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
-      <td id ='{{ ard.label}}'>No value yet.</td>
+      <td id ='{{ ard.label() }}'>No value yet.</td>
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.is_open() %}
         <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('cameracontrol.start_camera', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
       <td>
     </tr>
     {% endfor %}

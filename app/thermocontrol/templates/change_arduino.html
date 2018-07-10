@@ -20,28 +20,35 @@
   </thead>
   <tbody>
     <tr>
-      <td>{{ props.id }}</td>
-      <td>{{ props.name }}</td>
-      <td>{{ props.port }}</td>
-      <td>{{ props.wait }}</td>
-      {% if props.active %}
+      <td>{{ ard.id }}</td>
+      <td>{{ ard.name }}</td>
+      <td>{{ ard.serial_port }}</td>
+      <td>{{ ard.sleeptime }}</td>
+      {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
-      <td scope="col">{{ props.setpoint }}</td>
-      <td scope="col">{{ props.gain }}</td>
-      <td scope="col">{{ props.tauI }}</td>
-      <td scope="col">{{ props.tauD }}</td>
+      <td scope="col">{{ ard.setpoint }}</td>
+      <td scope="col">{{ ard.gain }}</td>
+      <td scope="col">{{ ard.integral }}</td>
+      <td scope="col">{{ ard.diff }}</td>
       <td>
-        <a class='btn btn-default' href="{{url_for('thermocontrol.details', ard_nr = props.id)}}">Log</a><td>
+      {% if ard.connection_open() %}
+        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+        <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
+      {% else %}
+      <a class='btn btn-default' href="{{url_for('thermocontrol.start', ard_nr = ard.id)}}">Start</a>
+      {% endif %}
+      <a class='btn btn-default' href="{{url_for('thermocontrol.remove', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
+      <td>
     </tr>
  </tbody>
 </table>
 
 <h2>Update connection settings</h2>
 <div class="row">
-  <div class="col"> {{ wtf.quick_form(form, action="/update") }}</div>
+  <div class="col"> {{ wtf.quick_form(form, action="/update_tc") }}</div>
 </div>
 
 <h2>Update control parameters </h2>

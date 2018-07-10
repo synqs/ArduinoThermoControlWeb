@@ -1,8 +1,8 @@
-from app import app, socketio
+from app import app, socketio, db
 from app.main import bp
-from app.thermocontrol.models import tempcontrols
+from app.thermocontrol.models import TempControl
 from app.serialmonitor.models import serialmonitors
-from app.cameracontrol.models import cameras
+from app.cameracontrol.models import Camera
 
 import h5py
 import git
@@ -13,6 +13,7 @@ from flask_socketio import emit, disconnect
 
 # for subplots
 import numpy as np
+import threading
 
 @app.context_processor
 def git_url():
@@ -35,17 +36,9 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-    global tempcontrols
 
-    n_tcs = len(tempcontrols);
-    tc_props = [];
-    for ii, arduino in enumerate(tempcontrols):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
-        'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-        'label': temp_field_str};
-        tc_props.append(dict)
+    tcontrols = TempControl.query.all();
+    n_tcs = len(tcontrols);
 
     global serialmonitors
 
@@ -57,20 +50,12 @@ def index():
         dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
         'active': arduino.connection_open(), 'label': temp_field_str};
         sm_props.append(dict)
-    global arduinos
 
-    n_cameras = len(cameras);
-    cam_props = [];
-    for ii, cam in enumerate(cameras):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read_camera' + str(cam.id);
-        dict = {'name': cam.name, 'id': cam.id, 'folder': cam.folder,
-            'active': cam.is_open(), 'label': temp_field_str, 'xmin':cam.xMin,
-            'xmax':cam.xMax, 'ymin':cam.yMin, 'ymax':cam.yMax};
-        cam_props.append(dict)
+    cams = Camera.query.all();
+    n_cameras = len(cams);
 
-    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tc_props,
-    n_sm = n_sm, serialmonitors = sm_props, n_cameras = n_cameras, cameras = cam_props);
+    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
+    n_sm = n_sm, serialmonitors = sm_props, n_cameras = n_cameras, cameras = cams);
 
 @bp.route('/file/<filestring>')
 def file(filestring):
@@ -119,25 +104,6 @@ def run_connect():
     Arduino already has a serial connection
     '''
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('stop')
-def run_disconnect():
-    print('Should disconnect')
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-
-    global tempcontrols;
-    # we should even kill the arduino properly.
-    if tempcontrols:
-        ssProto = tempcontrols[0];
-        ser = ssProto.serial;
-        ser.close();
-        ssProto.stop();
-        emit('my_response',
-            {'data': 'Disconnected!', 'count': session['receive_count']})
-    else:
-        emit('my_response',
-            {'data': 'Nothing to disconnect', 'count': session['receive_count']})
 
 @socketio.on('my_ping')
 def ping_pong():
