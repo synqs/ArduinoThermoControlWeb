@@ -146,14 +146,10 @@ def update_tc():
              flash('{}'.format(e), 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': int(ard_nr), 'port': arduino.serial.port,
-            'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-            'gain': arduino.gain, 'tauI': arduino.integral, 'tauD': arduino.diff,
-            'wait': arduino.sleeptime};
 
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, props=props);
+            diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/serialwait', methods=['POST'])
 def serialwait():
@@ -275,7 +271,7 @@ def integral():
 
         return render_template('change_arduino.html', form=uform, dform = dform,
         sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, ard = arduinoprops);
+            diff_form = diff_form, wform = wform, ard = arduino);
 
 @bp.route('/diff', methods=['POST'])
 def diff():

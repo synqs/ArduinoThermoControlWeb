@@ -65,21 +65,25 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.port }}</td>
-      {% if ard.active %}
+      <td>{{ ard.serial_port }}</td>
+      {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
       <td class="bg-warning">Closed</td>
       {% endif %}
-      <td id ='{{ ard.label}}'>No value yet.</td>
+      <td id ='{{ ard.temp_field_str() }}'>No value yet.</td>
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.change_serialmonitor', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.connection_open() %}
+          <a class='btn btn-default' href="{{url_for('serialmonitor.stop_serialmonitor', ard_nr = ard.id)}}">Stop</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('serialmonitor.start_serialmonitor', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
       <td>
     </tr>
     {% endfor %}
  </tbody>
 </table>
-
 {% endif %}
 
 

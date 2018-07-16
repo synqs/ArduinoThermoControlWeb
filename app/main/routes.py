@@ -1,7 +1,7 @@
 from app import app, socketio, db
 from app.main import bp
 from app.thermocontrol.models import TempControl
-from app.serialmonitor.models import serialmonitors
+from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
 import h5py
@@ -40,22 +40,14 @@ def index():
     tcontrols = TempControl.query.all();
     n_tcs = len(tcontrols);
 
-    global serialmonitors
-
-    n_sm = len(serialmonitors);
-    sm_props = [];
-    for ii, arduino in enumerate(serialmonitors):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read_sm' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial.port,
-        'active': arduino.connection_open(), 'label': temp_field_str};
-        sm_props.append(dict)
+    smonitors = ArduinoSerial.query.all();
+    n_sm = len(smonitors);
 
     cams = Camera.query.all();
     n_cameras = len(cams);
 
     return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
-    n_sm = n_sm, serialmonitors = sm_props, n_cameras = n_cameras, cameras = cams);
+    n_sm = n_sm, serialmonitors = smonitors, n_cameras = n_cameras, cameras = cams);
 
 @bp.route('/file/<filestring>')
 def file(filestring):
