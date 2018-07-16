@@ -54,7 +54,6 @@ def do_work(id):
 
         eventlet.sleep(sleeptime)
         tc = TempControl.query.get(int(id));
-        print(tc)
         sleeptime = tc.sleeptime;
     else:
         print('Closing down the worker in a controlled way.')
