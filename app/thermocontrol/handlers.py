@@ -156,10 +156,6 @@ def serialwait():
     '''
     Update the serial waiting time.
     '''
-    global tempcontrols
-    if not tempcontrols:
-        flash('No arduino yet.', 'error')
-        return redirect(url_for('add_tempcontrol'))
 
     sform = UpdateSetpointForm();
     uform = UpdateForm();
@@ -170,20 +166,15 @@ def serialwait():
     diff_form = UpdateDifferentialForm()
 
     id = int(wform.id.data);
-    arduino = tempcontrols[id];
+    arduino = TempControl.query.get(id);
 
     if wform.validate_on_submit():
-
-        arduino = tempcontrols[int(id)];
         n_wait =  wform.serial_time.data;
-        try:
-            arduino.sleeptime = n_wait;
-            flash('We updated every {} s'.format(n_wait))
-        except Exception as e:
-             flash('{}'.format(e), 'error')
+        arduino.sleeptime = n_wait;
+        db.session.commit();
+        flash('We update every {} s'.format(n_wait))
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
     else:
-
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);

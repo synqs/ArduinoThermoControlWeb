@@ -54,6 +54,7 @@ def do_work(id):
 
         eventlet.sleep(sleeptime)
         tc = TempControl.query.get(int(id));
+        sleeptime = tc.sleeptime;
     else:
         print('Closing down the worker in a controlled way.')
 
@@ -72,7 +73,8 @@ class TempControl(db.Model):
     sleeptime = db.Column(db.Float);
 
     def __repr__(self):
-        return '<TempControl {}>'.format(self.name)
+        ret_str = '<TempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
+        return ret_str
 
     def get_serial(self):
         for s in serials:
