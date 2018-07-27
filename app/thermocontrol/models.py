@@ -126,7 +126,6 @@ class TempControl(db.Model):
         for s in serials:
             if s.port == self.serial_port:
                 return s.is_open;
-        print('No serial device registered');
         return False
 
     def is_alive(self):
