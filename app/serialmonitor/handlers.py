@@ -6,6 +6,8 @@ from app.serialmonitor.models import ArduinoSerial
 
 from flask import render_template, flash, redirect, url_for, session
 
+from serial.serialutil import SerialException
+
 @bp.route('/details_serialmonitor/<int:ard_nr>', methods=['GET', 'POST'])
 def details_serialmonitor(ard_nr):
     '''
@@ -59,8 +61,12 @@ def start_serialmonitor(ard_nr):
     The main function for rendering the principal site.
     '''
     sm = ArduinoSerial.query.get(ard_nr);
-    sopen = sm.start();
-    flash('Trying to start the serial monitor')
+    try:
+        sopen = sm.start();
+        flash('Trying to start the serial monitor');
+    except SerialException as e:
+        flash('SerialException: Could not open serial connection', 'error')
+
     return redirect(url_for('main.index'))
 
 @bp.route('/stop_serialmonitor/<int:ard_nr>')
