@@ -75,6 +75,10 @@
       <td>
         <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.change_serialmonitor', ard_nr = ard.id)}}">Settings</a>
         {% if ard.connection_open() %}
+<<<<<<< HEAD
+=======
+          <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.details_serialmonitor', ard_nr = ard.id)}}">Log</a>
+>>>>>>> master
           <a class='btn btn-default' href="{{url_for('serialmonitor.stop_serialmonitor', ard_nr = ard.id)}}">Stop</a>
         {% else %}
         <a class='btn btn-default' href="{{url_for('serialmonitor.start_serialmonitor', ard_nr = ard.id)}}">Start</a>

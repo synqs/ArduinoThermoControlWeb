@@ -118,7 +118,10 @@ class ArduinoSerial(db.Model):
         for s in serials:
             if s.port == self.serial_port:
                 return s.is_open;
+<<<<<<< HEAD
         print('No serial device registered');
+=======
+>>>>>>> master
         return False
 
     def is_alive(self):

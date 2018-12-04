@@ -6,6 +6,22 @@ from app.serialmonitor.models import ArduinoSerial
 
 from flask import render_template, flash, redirect, url_for, session
 
+@bp.route('/details_serialmonitor/<int:ard_nr>', methods=['GET', 'POST'])
+def details_serialmonitor(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    arduino = ArduinoSerial.query.get(ard_nr);
+    name = arduino.name;
+    port = arduino.serial_port;
+    conn_open = arduino.connection_open()
+
+    tempcontrols = ArduinoSerial.query.all();
+    n_ards = len(tempcontrols);
+
+    return render_template('details_serialmonitor.html', ard = arduino, ard_nr = ard_nr,
+        name = name, conn_open = conn_open);
+
 @bp.route('/add_serialmonitor', methods=['GET', 'POST'])
 def add_serialmonitor():
     '''
