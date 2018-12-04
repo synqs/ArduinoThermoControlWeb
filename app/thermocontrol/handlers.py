@@ -6,6 +6,8 @@ from app import app, socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
 
+from serial.serialutil import SerialException
+
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
     '''
@@ -70,14 +72,17 @@ def remove(ard_nr):
     flash('Removed the temperature control # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
 
-@bp.route('/start/<int:ard_nr>')
-def start(ard_nr):
+@bp.route('/start_tc/<int:ard_nr>')
+def start_tc(ard_nr):
     '''
     The main function for rendering the principal site.
     '''
     tc = TempControl.query.get(ard_nr);
-    sopen = tc.start();
-    flash('Trying to start the tempcontrol')
+    try:
+        sopen = tc.start();
+        flash('Trying to start the tempcontrol')
+    except SerialException as e:
+        flash('SerialException: Could not open serial connection', 'error')
     return redirect(url_for('main.index'))
 
 @bp.route('/stop/<int:ard_nr>')
