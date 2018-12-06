@@ -254,5 +254,6 @@ class TempControl(db.Model):
         ser.write(b);
         stream = ser.read(ser.in_waiting);
         self.ard_str = stream.decode(encoding='windows-1252');
+        db.session.commit();
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
