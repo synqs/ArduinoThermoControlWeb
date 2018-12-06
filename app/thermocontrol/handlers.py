@@ -4,6 +4,8 @@ from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIn
 from app.thermocontrol.models import TempControl
 from app import app, socketio, db
 
+import h5py
+
 from flask import render_template, flash, redirect, url_for, session
 
 from serial.serialutil import SerialException
@@ -309,6 +311,38 @@ def diff():
         return render_template('change_arduino.html', form=uform, dform = dform,
             sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/save_tc/<filestring>')
+def file(filestring):
+    '''function to save the values of the hdf5 file. It should have the following structure
+    <ard_nr>+<filename>
+    '''
+    # first let us devide into the right parts
+    parts = filestring.split('+');
+    if not len(parts) == 2:
+        flash('The filestring should be of the form <ard_nr>+<filename>')
+        return redirect(url_for('main.index'))
+
+    filename = parts[1]
+    id = int(parts[0])
+
+    arduino = TempControl.query.get(id);
+
+    if not arduino:
+        flash('Aruduino not installed', 'error')
+        return redirect(url_for('main.index'));
+
+    temp = arduino.get_current_temp_value();
+    param_name = 'tc' + parts[0];
+    with h5py.File(filename, "a") as f:
+        if 'globals' in f.keys():
+            params = f['globals']
+            params.attrs[param_name] = float(temp)
+            flash('Added the temperature {} to the file {}'.format(temp, filename))
+        else:
+            flash('The file {} did not have the global group yet.'.format(filename), 'error')
+
+    return render_template('file.html', file = filename)
 
 # communication with the websocket
 @socketio.on('connect')

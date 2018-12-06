@@ -145,6 +145,13 @@ class TempControl(db.Model):
     def temp_field_str(self):
         return 'read' + str(self.id);
 
+    def get_current_temp_value(self):
+        vals = self.ard_str.split(',');
+        if len(vals)>=2:
+            return vals[1]
+        else:
+            return 0
+
     def start(self):
         """
         start to listen to the serial port of the Arduino
