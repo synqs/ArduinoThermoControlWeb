@@ -26,13 +26,14 @@ def do_work(id):
         if tc.is_open():
             try:
                 timestamp, ard_str = tc.pull_data()
-                vals = ard_str.split(',');
-                socketio.emit('serial_value',
-                    {'data': ard_str, 'id': tc.id})
+                if timestamp:
+                    vals = ard_str.split(',');
+                    socketio.emit('serial_value',
+                        {'data': ard_str, 'id': tc.id})
 
-                socketio.emit('serial_log',
-                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                    'id': tc.id})
+                    socketio.emit('serial_log',
+                        {'time':timestamp, 'data': vals, 'count': unit_of_work,
+                        'id': tc.id})
             except Exception as e:
                 print('{}'.format(e))
                 socketio.emit('my_response',
@@ -181,10 +182,11 @@ class ArduinoSerial(db.Model):
                 ser = s;
 
         # only read out on ask
-        o_str = 'w'
-        b = o_str.encode()
-        ser.write(b);
         stream = ser.read(ser.in_waiting);
-        self.ard_str = stream.decode(encoding='windows-1252');
-        timestamp = datetime.now().replace(microsecond=0).isoformat();
-        return timestamp, self.ard_str
+        if stream:
+            self.ard_str = stream.decode(encoding='windows-1252');
+            timestamp = datetime.now().replace(microsecond=0).isoformat();
+            db.session.commit();
+            return timestamp, self.ard_str
+        else:
+            return 0, 0
