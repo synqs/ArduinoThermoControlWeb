@@ -62,7 +62,7 @@ class ArduinoSerial(db.Model):
     name = db.Column(db.String(64))
     ard_str = db.Column(db.String(120))
 
-    serial_port = db.Column(db.String(64))
+    serial_port = db.Column(db.String(64));
     sleeptime = db.Column(db.Float);
 
     def __repr__(self):

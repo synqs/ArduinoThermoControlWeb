@@ -24,11 +24,26 @@ Further, we will most likely not install saving of the data on the server as thi
 # Installation
 
 - create a new directory
-- clone the repository through 'git clone ...' in the new folder
-- create a new virtualenv through 'conda create -n YOURNAME python=3.6'
-- activate the virtualenv through 'source activate YOURNAME'
-- install the dependencies through 'pip install -r requirements.txt' or if you are at the kip: 'pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt'
-- start it through 'start.sh'
+- clone the repository through in the new folder through
+ > git clone ...
+- create a new virtualenv through
+ > conda create -n YOURNAME python=3.6
+- activate the virtualenv through
+> source activate YOURNAME
+- install the dependencies through
+> pip install -r requirements.txt
+
+ or if you are at the kip:
+
+ > pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt
+- set up the database through
+> flask db init
+- update it to correct setting
+> flask db migrate
+
+> flask db upgrade
+- start flask through
+> start.sh
 - open it in a brower on 'localhost:5000'
 
 # Usage
@@ -44,7 +59,9 @@ Further, we will most likely not install saving of the data on the server as thi
 
 ## Saving to hdf5
 
-We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  is assumed that the file is already created. Most likely from some program from the  [labscriptsuite](www.labscript.org) or our _NaLi_ control system. An example for calling it from matlab is found in _matlabPythonComm.m_ .
+We can save the last data to an hdf5 It  is assumed that the file is already created. Most likely from some program from the  [labscriptsuite](www.labscript.org) or our _NaLi_ control system. An example for calling it from matlab is found in _matlabPythonComm.m_ .
+
+To save a temp control current file you can call file by calling the _'save_tc/TCNR+FNAME'_. TCNR is the number of the controller that you want to read out. FNAME is the file name.
 
 # TODO
 
@@ -67,10 +84,7 @@ We can save the last data to an hdf5 file by calling the _'file/FNAME.h5'_. It  
 
 # Database migration
 
-To start the migration run flask db init
+To  update run
+> flask db migrate
 
-To  update run flask db migrate and then flask db upgrade
-
-# Start the redis server
-
-redis-server /usr/local/etc/redis.conf
+> flask db upgrade
