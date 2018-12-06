@@ -126,7 +126,6 @@ class TempControl(db.Model):
         for s in serials:
             if s.port == self.serial_port:
                 return s.is_open;
-        print('No serial device registered');
         return False
 
     def is_alive(self):
@@ -145,6 +144,13 @@ class TempControl(db.Model):
 
     def temp_field_str(self):
         return 'read' + str(self.id);
+
+    def get_current_temp_value(self):
+        vals = self.ard_str.split(',');
+        if len(vals)>=2:
+            return vals[1]
+        else:
+            return 0
 
     def start(self):
         """
@@ -248,5 +254,6 @@ class TempControl(db.Model):
         ser.write(b);
         stream = ser.read(ser.in_waiting);
         self.ard_str = stream.decode(encoding='windows-1252');
+        db.session.commit();
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
