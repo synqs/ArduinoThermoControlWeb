@@ -23,6 +23,11 @@ Further, we will most likely not install saving of the data on the server as thi
 
 # Installation
 
+- download github for desktop
+- set up the proxy for github
+- get mini-conda
+- open the anaconda prompt
+- set the proxy for anaconda
 - create a new directory
 - clone the repository through in the new folder through
  > git clone ...
@@ -37,12 +42,12 @@ Further, we will most likely not install saving of the data on the server as thi
 
  > pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt
 - set up the database through
-> flask db init
-- update it to correct setting
 > flask db migrate
 
 > flask db upgrade
+
 - start flask through
+
 > start.sh
 - open it in a brower on 'localhost:5000'
 
