@@ -190,3 +190,14 @@ class ArduinoSerial(db.Model):
             return timestamp, self.ard_str
         else:
             return 0, 0
+
+    def get_current_data(self):
+        '''
+        Read out the current string
+        '''
+
+        vals = self.ard_str.split(',');
+        if len(vals)>=1:
+            return vals
+        else:
+            return 0
