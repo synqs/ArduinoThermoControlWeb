@@ -114,10 +114,11 @@ def update_sm():
 
     if uform.validate_on_submit():
         n_port =  uform.serial_port.data;
+        n_br =  uform.baud_rate.data;
         try:
             if arduino.connection_open():
                 arduino.stop();
-            arduino.update_serial(n_port);
+            arduino.update_serial(n_port, n_br);
             if arduino.is_open():
                 flash('We updated the serial to {}'.format(n_port))
             else:
@@ -126,11 +127,8 @@ def update_sm():
              flash('{}'.format(e), 'error')
         return redirect(url_for('serialmonitor.change_serialmonitor', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
-            'active': arduino.connection_open(), 'wait': arduino.sleeptime};
-
         return render_template('change_serialmonitor.html',
-            form=uform, dform = dform, wform = wform, props=props);
+            form=uform, dform = dform, wform = wform, ard = arduino);
 
 @bp.route('/wait_sm', methods=['POST'])
 def wait_sm():

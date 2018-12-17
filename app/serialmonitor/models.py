@@ -84,25 +84,26 @@ class ArduinoSerial(db.Model):
         if s:
             s.open();
         else:
-            s= serial.Serial(self.serial_port, 9600, timeout = 1);
+            s= serial.Serial(self.serial_port, self.baud_rate, timeout = 1);
             serials.append(s);
         return s.is_open
 
-    def update_serial(self, serial_port):
+    def update_serial(self, serial_port, baud_rate = 9600):
         """
         open the serial port
         """
         self.serial_port = serial_port;
+        self.baud_rate = baud_rate;
         db.session.commit();
 
         exists = False
         for s in serials:
             if s.port == serial_port:
-                s = serial.Serial(serial_port, 9600, timeout = 1);
+                s = serial.Serial(serial_port, baud_rate, timeout = 1);
                 exists = True;
 
         if not exists:
-            s = serial.Serial(serial_port, 9600, timeout = 1);
+            s = serial.Serial(serial_port, baud_rate, timeout = 1);
             serials.append(s);
 
         return s.is_open
