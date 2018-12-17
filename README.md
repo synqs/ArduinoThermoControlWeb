@@ -68,6 +68,16 @@ We can save the last data to an hdf5 It  is assumed that the file is already cre
 
 To save a temp control current file you can call file by calling the _'save_tc/TCNR+FNAME'_. TCNR is the number of the controller that you want to read out. FNAME is the file name.
 
+## Dev updates to the database
+
+If you are changing the properties of the models.py files, it is likely, that you are messing the the tables of the sqlite file in the background of the script. To keep it simple we are using [flask-migrate](https://flask-migrate.readthedocs.io/en/latest/) to keep track. You then have to create the update command through:
+
+> flask db migrate
+
+It creates a new python file in the migrations folder. You then update the sqlite database through a:
+
+> flask db upgrade
+
 # TODO
 
  [x] Allow for changing the parameters of the feedback loop through some serial communication.

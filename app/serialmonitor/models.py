@@ -59,10 +59,11 @@ def do_work(id):
 class ArduinoSerial(db.Model):
     id = db.Column(db.Integer, primary_key=True);
     thread_id = db.Column(db.Integer, unique=True);
-    switch = db.Column(db.Boolean)
-    name = db.Column(db.String(64))
-    ard_str = db.Column(db.String(120))
+    switch = db.Column(db.Boolean);
+    name = db.Column(db.String(64));
+    ard_str = db.Column(db.String(120));
 
+    baud_rate = db.Column(db.Integer);
     serial_port = db.Column(db.String(64));
     sleeptime = db.Column(db.Float);
 
