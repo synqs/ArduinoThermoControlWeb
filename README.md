@@ -40,9 +40,8 @@ Further, we will most likely not install saving of the data on the server as thi
 
  or if you are at the kip:
 
- > pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install -r requirements.txt
+ > pip --proxy http://proxy.kip.uni-heidelberg.de:8080 install --ignore-installed -r requirements.txt
 - set up the database through
-> flask db migrate
 
 > flask db upgrade
 
