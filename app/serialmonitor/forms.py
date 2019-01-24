@@ -18,8 +18,8 @@ class UpdateForm(FlaskForm):
     '''
     id = HiddenField('A hidden field');
     serial_port = StringField('Update to port:', validators=[DataRequired()])
-    submit = SubmitField('Update port')
-
+    baud_rate = IntegerField('Baudrate:', validators=[ NumberRange(4800,1000000)])
+    submit = SubmitField('Update connection')
 
 class SerialWaitForm(FlaskForm):
     '''
@@ -28,7 +28,6 @@ class SerialWaitForm(FlaskForm):
     id = HiddenField('A hidden field');
     serial_time = IntegerField('Time between measurements (s):', [DataRequired(), NumberRange(2,300)])
     submit = SubmitField('Update waiting time.')
-
 
 class DisconnectForm(FlaskForm):
     '''
