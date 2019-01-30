@@ -257,3 +257,46 @@ class TempControl(db.Model):
         db.session.commit();
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
+
+class WebTempControl(db.Model):
+    id = db.Column(db.Integer, primary_key=True);
+    thread_id = db.Column(db.Integer, unique=True);
+    switch = db.Column(db.Boolean)
+    name = db.Column(db.String(64))
+    ard_str = db.Column(db.String(120))
+
+    ip_adress = db.Column(db.String(64))
+    setpoint = db.Column(db.Float);
+    gain = db.Column(db.Float);
+    integral = db.Column(db.Float);
+    diff = db.Column(db.Float);
+    sleeptime = db.Column(db.Float);
+
+    def __repr__(self):
+        ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
+        return ret_str
+
+    def get_serial(self):
+        for s in serials:
+            if s.port == self.serial_port:
+                return s
+        return None
+
+    def update_serial(self, serial_port):
+        """
+        open the serial port
+        """
+        self.serial_port = serial_port;
+        db.session.commit();
+
+        exists = False
+        for s in serials:
+            if s.port == serial_port:
+                s = serial.Serial(serial_port, 9600, timeout = 1);
+                exists = True;
+
+        if not exists:
+            s = serial.Serial(serial_port, 9600, timeout = 1);
+            serials.append(s);
+
+        return s.is_open

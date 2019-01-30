@@ -43,6 +43,7 @@ def index():
     cams = Camera.query.all();
     n_cameras = len(cams);
 
+    webtcontrols = [];
     return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
     n_sm = n_sm, serialmonitors = smonitors, n_cameras = n_cameras, cameras = cams);
 
