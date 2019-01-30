@@ -1,6 +1,6 @@
-# ArduinoThermoControlWeb
+# DeviceControlServer
 
-A flask server that should simplify the logging of our temp control. The website assumes that the Arduinos are connected via a serial device. For the moment we have to following abilities:
+A flask server that should simplify the logging of our experimental components. Most of the time the components are Arduinos. The website assumes that the Arduinos are connected via a serial device. For the moment we have to following abilities:
 
 - Add a few arduinos.
 - Give setpoint and live temperature in overview.
@@ -83,9 +83,9 @@ It creates a new python file in the migrations folder. You then update the sqlit
 
  [x] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
 
- [] Allow to change the different axis by hand in the plotly stuff.
+ [x] Move the information about communications and users into a local database. I think that would make it much more robust.
 
- [] Move the information about communications and users into a local database. I think that would make it much more robust.
+ [] Allow to change the different axis by hand in the plotly stuff.
 
  [] Tidy up the connections and also the code in the back-end.
 
@@ -94,11 +94,3 @@ It creates a new python file in the migrations folder. You then update the sqlit
  [] Error logger to communicate with slack or via email.
 
  [] make this readme the about page.
-
-
-# Database migration
-
-To  update run
-> flask db migrate
-
-> flask db upgrade
