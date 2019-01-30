@@ -8,6 +8,8 @@ from flask import render_template, flash, redirect, url_for, session
 
 from serial.serialutil import SerialException
 
+import h5py
+
 @bp.route('/details_serialmonitor/<int:ard_nr>', methods=['GET', 'POST'])
 def details_serialmonitor(ard_nr):
     '''
@@ -112,10 +114,11 @@ def update_sm():
 
     if uform.validate_on_submit():
         n_port =  uform.serial_port.data;
+        n_br =  uform.baud_rate.data;
         try:
             if arduino.connection_open():
                 arduino.stop();
-            arduino.update_serial(n_port);
+            arduino.update_serial(n_port, n_br);
             if arduino.is_open():
                 flash('We updated the serial to {}'.format(n_port))
             else:
@@ -124,11 +127,8 @@ def update_sm():
              flash('{}'.format(e), 'error')
         return redirect(url_for('serialmonitor.change_serialmonitor', ard_nr = id))
     else:
-        props = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
-            'active': arduino.connection_open(), 'wait': arduino.sleeptime};
-
         return render_template('change_serialmonitor.html',
-            form=uform, dform = dform, wform = wform, props=props);
+            form=uform, dform = dform, wform = wform, ard = arduino);
 
 @bp.route('/wait_sm', methods=['POST'])
 def wait_sm():
@@ -152,3 +152,38 @@ def wait_sm():
     else:
         return render_template('change_serialmonitor.html',
             form=uform, dform = dform, wform = wform, ard=arduino);
+
+@bp.route('/save_sm/<filestring>')
+def file(filestring):
+    '''function to save the values of the hdf5 file. It should have the following structure
+    <ard_nr>+<filename>
+    '''
+    # first let us devide into the right parts
+    parts = filestring.split('+');
+    if not len(parts) == 2:
+        flash('The filestring should be of the form <ard_nr>+<filename>')
+        return redirect(url_for('main.index'))
+
+    filename = parts[1]
+    id = int(parts[0])
+
+    arduino = ArduinoSerial.query.get(id);
+
+    if not arduino:
+        flash('Aruduino not installed', 'error')
+        return redirect(url_for('main.index'));
+
+    vals = arduino.get_current_data();
+    param_name = 'sm' + parts[0];
+    with h5py.File(filename, "a") as f:
+        if 'globals' in f.keys():
+            params = f['globals']
+            for el, val in enumerate(vals):
+                param_name = 'sm' + parts[0] + '_' +str(el);
+                print(param_name)
+                params.attrs[param_name] = float(val)
+                flash('Added the serial value {} to the file {}'.format(val, filename))
+        else:
+            flash('The file {} did not have the global group yet.'.format(filename), 'error')
+
+    return render_template('file.html', file = filename)

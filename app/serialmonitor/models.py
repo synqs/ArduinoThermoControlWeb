@@ -26,13 +26,14 @@ def do_work(id):
         if tc.is_open():
             try:
                 timestamp, ard_str = tc.pull_data()
-                vals = ard_str.split(',');
-                socketio.emit('serial_value',
-                    {'data': ard_str, 'id': tc.id})
+                if timestamp:
+                    vals = ard_str.split(',');
+                    socketio.emit('serial_value',
+                        {'data': ard_str, 'id': tc.id})
 
-                socketio.emit('serial_log',
-                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                    'id': tc.id})
+                    socketio.emit('serial_log',
+                        {'time':timestamp, 'data': vals, 'count': unit_of_work,
+                        'id': tc.id})
             except Exception as e:
                 print('{}'.format(e))
                 socketio.emit('my_response',
@@ -58,11 +59,12 @@ def do_work(id):
 class ArduinoSerial(db.Model):
     id = db.Column(db.Integer, primary_key=True);
     thread_id = db.Column(db.Integer, unique=True);
-    switch = db.Column(db.Boolean)
-    name = db.Column(db.String(64))
-    ard_str = db.Column(db.String(120))
+    switch = db.Column(db.Boolean);
+    name = db.Column(db.String(64));
+    ard_str = db.Column(db.String(120));
 
-    serial_port = db.Column(db.String(64))
+    baud_rate = db.Column(db.Integer);
+    serial_port = db.Column(db.String(64));
     sleeptime = db.Column(db.Float);
 
     def __repr__(self):
@@ -82,25 +84,26 @@ class ArduinoSerial(db.Model):
         if s:
             s.open();
         else:
-            s= serial.Serial(self.serial_port, 9600, timeout = 1);
+            s= serial.Serial(self.serial_port, self.baud_rate, timeout = 1);
             serials.append(s);
         return s.is_open
 
-    def update_serial(self, serial_port):
+    def update_serial(self, serial_port, baud_rate = 9600):
         """
         open the serial port
         """
         self.serial_port = serial_port;
+        self.baud_rate = baud_rate;
         db.session.commit();
 
         exists = False
         for s in serials:
             if s.port == serial_port:
-                s = serial.Serial(serial_port, 9600, timeout = 1);
+                s = serial.Serial(serial_port, baud_rate, timeout = 1);
                 exists = True;
 
         if not exists:
-            s = serial.Serial(serial_port, 9600, timeout = 1);
+            s = serial.Serial(serial_port, baud_rate, timeout = 1);
             serials.append(s);
 
         return s.is_open
@@ -181,10 +184,22 @@ class ArduinoSerial(db.Model):
                 ser = s;
 
         # only read out on ask
-        o_str = 'w'
-        b = o_str.encode()
-        ser.write(b);
         stream = ser.read(ser.in_waiting);
-        self.ard_str = stream.decode(encoding='windows-1252');
-        timestamp = datetime.now().replace(microsecond=0).isoformat();
-        return timestamp, self.ard_str
+        if stream:
+            self.ard_str = stream.decode(encoding='windows-1252');
+            timestamp = datetime.now().replace(microsecond=0).isoformat();
+            db.session.commit();
+            return timestamp, self.ard_str
+        else:
+            return 0, 0
+
+    def get_current_data(self):
+        '''
+        Read out the current string
+        '''
+
+        vals = self.ard_str.split(',');
+        if len(vals)>=1:
+            return vals
+        else:
+            return 0

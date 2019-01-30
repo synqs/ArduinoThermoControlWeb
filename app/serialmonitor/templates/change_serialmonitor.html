@@ -9,6 +9,7 @@
     <th scope="col">#</th>
     <th scope="col">Name</th>
     <th scope="col">Port</th>
+    <th scope="col">Baud rate</th>
     <th scope="col">Wait time</th>
     <th scope="col">Status</th>
     <th scope="col">Other actions </th>
@@ -19,6 +20,7 @@
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
       <td>{{ ard.serial_port }}</td>
+      <td>{{ ard.baud_rate }}</td>
       <td>{{ ard.sleeptime }}</td>
       {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
