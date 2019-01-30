@@ -83,9 +83,9 @@ It creates a new python file in the migrations folder. You then update the sqlit
 
  [x] Allow for a cleaner communication between the arduino and flask. Basically, the arduino should only answer to a question be flask.
 
- [] Allow to change the different axis by hand in the plotly stuff.
+ [x] Move the information about communications and users into a local database. I think that would make it much more robust.
 
- [] Move the information about communications and users into a local database. I think that would make it much more robust.
+ [] Allow to change the different axis by hand in the plotly stuff.
 
  [] Tidy up the connections and also the code in the back-end.
 
