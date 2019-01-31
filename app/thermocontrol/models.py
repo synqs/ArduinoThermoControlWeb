@@ -111,8 +111,11 @@ def do_web_work(id):
     else:
         print('Closing down the worker in a controlled way.')
 
-class TempControl(db.Model):
+class DeviceClass(db.Model):
+    __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
+
+class TempControl(DeviceClass):
     thread_id = db.Column(db.Integer, unique=True);
     switch = db.Column(db.Boolean)
     name = db.Column(db.String(64))
@@ -311,8 +314,7 @@ class TempControl(db.Model):
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
 
-class WebTempControl(db.Model):
-    id = db.Column(db.Integer, primary_key=True);
+class WebTempControl(DeviceClass):
     thread_id = db.Column(db.Integer, unique=True);
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
