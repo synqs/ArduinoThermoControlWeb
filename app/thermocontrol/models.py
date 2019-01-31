@@ -5,6 +5,8 @@ from app import db, socketio
 import time
 import requests
 
+from requests.exceptions import ConnectionError
+
 workers = [];
 serials = [];
 
@@ -63,7 +65,6 @@ def do_web_work(id):
     """
     do work and emit message
     """
-
     tc = WebTempControl.query.get(int(id));
     if not tc.sleeptime:
         sleeptime = 3;
@@ -94,7 +95,7 @@ def do_web_work(id):
                 tc.switch = False
                 db.session.commit()
         else:
-            print('Serial closed')
+            print('Connection closed')
             tc.switch = False
             db.session.commit()
             # TODO: Make this a link
@@ -105,7 +106,7 @@ def do_web_work(id):
             # important to use eventlet's sleep method
 
         eventlet.sleep(sleeptime)
-        tc = TempControl.query.get(int(id));
+        tc = WebTempControl.query.get(int(id));
         sleeptime = tc.sleeptime;
     else:
         print('Closing down the worker in a controlled way.')
@@ -330,6 +331,9 @@ class WebTempControl(db.Model):
         ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
         return ret_str
 
+    def http_str(self):
+        return 'http://' + self.ip_adress + ':' + self.port;
+
     def temp_field_str(self):
         return 'read' + str(self.id);
 
@@ -343,20 +347,57 @@ class WebTempControl(db.Model):
         '''
         test if the serial connection is open
         '''
-        return False
+        try:
+            r = requests.get(self.http_str(), timeout = 0.2);
+            return True
+        except ConnectionError:
+            return False
 
     def is_alive(self):
         """
         return the running status
         """
-        return False;
+        for thread in workers:
+            if thread.ident == self.thread_id:
+                self.switch = thread.is_alive();
+                db.session.commit();
+                return self.switch;
+
+        self.switch = False;
+        db.session.commit();
+        return self.switch;
+
+    def pull_data(self):
+        '''
+        Pulling the actual data from the arduino.
+        '''
+        try:
+            r = requests.get(self.http_str(), timeout = 0.2);
+        except ConnectionError:
+            print('No connection');
+            return 0, 0
+        html_text = r.text;
+        lines = html_text.split('<br />');
+        self.ard_str = lines[1];
+        db.session.commit();
+        timestamp = datetime.now().replace(microsecond=0).isoformat();
+        return timestamp, self.ard_str
 
     def start(self):
         """
         start to listen to the serial port of the Arduino
         """
-        # opening the serial
-        http_str = 'http://' + self.ip_adress + ':' + self.port;
-        print(http_str)
-        r = requests.get(http_str, timeout = 0.2);
-        print(r.text)
+        # test if everything is open
+        if not self.is_open():
+            print('No connection');
+            return
+        # starting the listener
+        if not self.is_alive():
+            self.switch = True
+            db.session.commit();
+            thread = socketio.start_background_task(target=do_web_work, id = self.id);
+            self.thread_id = thread.ident;
+            db.session.commit()
+            workers.append(thread);
+        else:
+            print('Already running')
