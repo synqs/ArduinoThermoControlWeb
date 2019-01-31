@@ -3,12 +3,13 @@ An extremely simple server that might be used for testing the arduino webserver 
 '''
 
 from flask import Flask, request
+import numpy as np
 app = Flask(__name__)
 
 @app.route('/')
 def home():
     setpoint = 0;
-    meas = 0;
+    meas = np.random.randint(700, 800)
     err = 0;
     control = 0;
     gain = 0;

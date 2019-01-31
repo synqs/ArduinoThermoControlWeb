@@ -401,3 +401,15 @@ class WebTempControl(db.Model):
             workers.append(thread);
         else:
             print('Already running')
+
+    def stop(self):
+        """
+        stop the connection
+        """
+        self.switch = False;
+        db.session.commit();
+        for ii, t in enumerate(workers):
+            if t.ident == self.thread_id:
+                del workers[ii];
+        self.thread_id = 0;
+        db.session.commit();

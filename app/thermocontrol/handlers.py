@@ -2,13 +2,14 @@ from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm, WebConnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 from app.thermocontrol.models import TempControl, WebTempControl
+from app.thermocontrol.utils import start_helper, get_tc_forms, get_wtc_forms, get_wtc_forms_wo_id
+
+
 from app import app, socketio, db
 
 import h5py
 
 from flask import render_template, flash, redirect, url_for, session
-
-from serial.serialutil import SerialException
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
@@ -16,6 +17,30 @@ def details(ard_nr):
     The main function for rendering the principal site.
     '''
     arduino = TempControl.query.get(ard_nr);
+    name = arduino.name;
+    port = arduino.serial_port;
+    conn_open = arduino.connection_open()
+
+    tempcontrols = TempControl.query.all();
+    n_ards = len(tempcontrols);
+    props = [];
+    for ii, arduino in enumerate(tempcontrols):
+        # create also the name for the readout field of the temperature
+        temp_field_str = 'read' + str(arduino.id);
+        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
+        'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
+        'label': temp_field_str};
+        props.append(dict)
+
+    return render_template('details.html', props = props, ard_nr = ard_nr,
+        name = name, conn_open = conn_open);
+
+@bp.route('/details_wtc/<int:ard_nr>', methods=['GET', 'POST'])
+def details_wtc(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    arduino = WebTempControl.query.get(ard_nr);
     name = arduino.name;
     port = arduino.serial_port;
     conn_open = arduino.connection_open()
@@ -49,15 +74,6 @@ def add_tempcontrol():
         db.session.commit();
         flash('We added a new arduino {}'.format(name))
         return redirect(url_for('main.index'))
-
-        #     #tc.open_serial()
-        #     #tc.start()
-        # if tc.is_open():
-        #     flash('We added a new arduino {}'.format(name))
-        #     return redirect(url_for('main.index'))
-        # else:
-        #     flash('Adding the Arduino went wrong', 'error')
-        #     return redirect(url_for('thermocontrol.add_tempcontrol'))
 
     port = app.config['SERIAL_PORT']
     tempcontrols = TempControl.query.all();
@@ -106,12 +122,7 @@ def start_tc(ard_nr):
     The main function for rendering the principal site.
     '''
     tc = TempControl.query.get(ard_nr);
-    try:
-        sopen = tc.start();
-        flash('Trying to start the tempcontrol')
-    except SerialException as e:
-        flash('SerialException: Could not open serial connection', 'error')
-    return redirect(url_for('main.index'))
+    return start_helper(tc);
 
 @bp.route('/start_wtc/<int:ard_nr>')
 def start_wtc(ard_nr):
@@ -119,12 +130,7 @@ def start_wtc(ard_nr):
     The main function for rendering the principal site.
     '''
     tc = WebTempControl.query.get(ard_nr);
-    try:
-        sopen = tc.start();
-        flash('Trying to start the tempcontrol')
-    except SerialException as e:
-        flash('SerialException: Could not open connection', 'error')
-    return redirect(url_for('main.index'))
+    return start_helper(tc);
 
 @bp.route('/stop/<int:ard_nr>')
 def stop(ard_nr):
@@ -136,44 +142,57 @@ def stop(ard_nr):
     flash('Stopped the thermocontrol')
     return redirect(url_for('main.index'))
 
+@bp.route('/stop_wtc>/<int:ard_nr>')
+def stop_wtc(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    tc = WebTempControl.query.get(ard_nr);
+    tc.stop()
+    flash('Stopped the thermocontrol')
+    return redirect(url_for('main.index'))
+
 @bp.route('/change_arduino/<int:ard_nr>')
 def change_arduino(ard_nr):
     '''
     Change the parameters of a specific arduino
     '''
     arduino = TempControl.query.get(ard_nr);
+    device_type = 'serial_tc';
 
     if not arduino:
         flash('No tempcontrols installed', 'error')
         return redirect(url_for('thermocontrol.add_tempcontrol'));
 
-    uform = UpdateForm(id=ard_nr)
-
-    sform = UpdateSetpointForm(id=ard_nr)
-    gform = UpdateGainForm(id=ard_nr)
-    iform = UpdateIntegralForm(id=ard_nr)
-    diff_form = UpdateDifferentialForm(id=ard_nr)
-
-    wform = SerialWaitForm(id=ard_nr)
-    dform = DisconnectForm(id=ard_nr)
+    uform, sform, gform, iform, diff_form, wform, dform = get_tc_forms(ard_nr);
 
     return render_template('change_arduino.html',
-        form=uform, dform = dform, sform = sform,
-        gform = gform, iform = iform,diff_form = diff_form, wform = wform, ard=arduino);
+        form=uform, dform = dform, sform = sform, gform = gform, iform = iform,
+        diff_form = diff_form, wform = wform, ard=arduino, device_type=device_type);
+
+@bp.route('/change_wtc/<int:ard_nr>')
+def change_wtc(ard_nr):
+    '''
+    Change the parameters of a specific arduino
+    '''
+    arduino = WebTempControl.query.get(ard_nr);
+    device_type = 'web_tc';
+
+    if not arduino:
+        flash('No tempcontrols installed', 'error')
+        return redirect(url_for('thermocontrol.add_webtempcontrol'));
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms(ard_nr);
+
+    return render_template('change_arduino.html',
+        form=uform, dform = dform, sform = sform, gform = gform, iform = iform,
+        diff_form = diff_form, wform = wform, ard=arduino, device_type=device_type);
 
 @bp.route('/update_tc', methods=['POST'])
 def update_tc():
     '''
     Update the serial port.
     '''
-
-    sform = UpdateSetpointForm();
-    uform = UpdateForm();
-    wform = SerialWaitForm()
-    dform = DisconnectForm()
-    gform = UpdateGainForm()
-    iform = UpdateIntegralForm()
-    diff_form = UpdateDifferentialForm()
+    uform, sform, gform, iform, diff_form, wform, dform = get_tc_forms(ard_nr);
 
     id = int(uform.id.data);
     arduino = TempControl.query.get(id);
@@ -194,8 +213,32 @@ def update_tc():
     else:
 
         return render_template('change_arduino.html', form=uform, dform = dform,
-            cform = cform,  sform = sform, gform = gform, iform = iform,
+            sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/update_wtc', methods=['POST'])
+def update_wtc():
+    '''
+    Update the serial port.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+
+    id = int(uform.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if uform.validate_on_submit():
+        ip_adress =  uform.ip_adress.data;
+        port =  uform.port.data;
+        print(arduino.is_alive())
+        print(arduino.is_open())
+        if arduino.connection_open():
+            print('stop it.')
+            arduino.stop();
+        print('Update it.')
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            sform = sform, gform = gform, iform = iform, diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/serialwait', methods=['POST'])
 def serialwait():
