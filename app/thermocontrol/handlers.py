@@ -41,23 +41,13 @@ def details_wtc(ard_nr):
     The main function for rendering the principal site.
     '''
     arduino = WebTempControl.query.get(ard_nr);
-    name = arduino.name;
-    port = arduino.serial_port;
-    conn_open = arduino.connection_open()
+    device_type = 'web_tc';
 
-    tempcontrols = TempControl.query.all();
-    n_ards = len(tempcontrols);
-    props = [];
-    for ii, arduino in enumerate(tempcontrols):
-        # create also the name for the readout field of the temperature
-        temp_field_str = 'read' + str(arduino.id);
-        dict = {'name': arduino.name, 'id': arduino.id, 'port': arduino.serial_port,
-        'active': arduino.connection_open(), 'setpoint': arduino.setpoint,
-        'label': temp_field_str};
-        props.append(dict)
+    if not arduino:
+        flash('No tempcontrols installed', 'error')
+        return redirect(url_for('thermocontrol.add_webtempcontrol'));
 
-    return render_template('details.html', props = props, ard_nr = ard_nr,
-        name = name, conn_open = conn_open);
+    return render_template('details.html', ard=arduino, device_type=device_type);
 
 @bp.route('/add_tempcontrol', methods=['GET', 'POST'])
 def add_tempcontrol():
