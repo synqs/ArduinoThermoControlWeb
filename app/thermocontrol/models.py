@@ -114,19 +114,19 @@ def do_web_work(id):
 class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
+    thread_id = db.Column(db.Integer, unique=True);
+    switch = db.Column(db.Boolean);
+    name = db.Column(db.String(64));
+    ard_str = db.Column(db.String(120));
+    sleeptime = db.Column(db.Float);
 
 class TempControl(DeviceClass):
-    thread_id = db.Column(db.Integer, unique=True);
-    switch = db.Column(db.Boolean)
-    name = db.Column(db.String(64))
-    ard_str = db.Column(db.String(120))
 
     serial_port = db.Column(db.String(64))
     setpoint = db.Column(db.Float);
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
-    sleeptime = db.Column(db.Float);
 
     def __repr__(self):
         ret_str = '<TempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
@@ -315,11 +315,6 @@ class TempControl(DeviceClass):
         return timestamp, self.ard_str
 
 class WebTempControl(DeviceClass):
-    thread_id = db.Column(db.Integer, unique=True);
-    switch = db.Column(db.Boolean);
-    name = db.Column(db.String(64));
-    ard_str = db.Column(db.String(120));
-
     ip_adress = db.Column(db.String(64));
     port = db.Column(db.String(64));
 
@@ -327,7 +322,6 @@ class WebTempControl(DeviceClass):
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
-    sleeptime = db.Column(db.Float);
 
     def __repr__(self):
         ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
