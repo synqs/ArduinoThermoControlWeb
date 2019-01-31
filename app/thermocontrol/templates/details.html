@@ -1,39 +1,5 @@
-{% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
-{% block app_content %}
-
-<table class="table table-hover" id ="arduino overview">
-  <thead>
-  <tr>
-    <th scope="col">#</th>
-    <th scope="col">Name</th>
-    <th scope="col">Port</th>
-    <th scope="col">Status</th>
-    <th scope="col">Setpoint</th>
-    <th scope="col">Current Value</th>
-    <th scope="col">Other actions </th>
-  </tr>
-  </thead>
-  <tbody>
-    {% for ard in props %}
-    <tr>
-      <td>{{ ard.id }}</td>
-      <td>{{ ard.name }}</td>
-      <td>{{ ard.port }}</td>
-      {% if ard.active %}
-      <td class="bg-success">Open</td>
-      {% else %}
-      <td class="bg-warning">Closed</td>
-      {% endif %}
-      <td>{{ ard.setpoint }}</td>
-      <td id ='{{ ard.label}}'>Not implemented.</td>
-      <td>
-        <a class='btn btn-default' href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
-        <a class='btn btn-default' href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a><td>
-    </tr>
-    {% endfor %}
- </tbody>
-</table>
+{% extends "single_tc.html" %}
+{% block controls %}
 <h1> Details for # {{ard_nr}} - {{ name }}</h1>
 <div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
 <button class="btn btn-default" id="exp_button"> Export to csv</button>
