@@ -2,6 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
 <a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
+<a class="btn btn-default" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
 <a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
 {% if not props %}
 <a class="btn btn-default" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
@@ -47,6 +48,50 @@
  </tbody>
 </table>
 {% endif %}
+
+{% if n_wtcs %}
+<h1> WebTemp controls </h1>
+<table class="table table-hover" id ="wtempcontrols">
+  <thead>
+  <tr>
+    <th scope="col">#</th>
+    <th scope="col">Name</th>
+    <th scope="col">Port</th>
+    <th scope="col">Status</th>
+    <th scope="col">Setpoint</th>
+    <th scope="col">Current Value</th>
+    <th scope="col">Other actions </th>
+  </tr>
+  </thead>
+  <tbody>
+    {% for ard in wtempcontrols %}
+    <tr>
+      <td>{{ ard.id }}</td>
+      <td>{{ ard.name }}</td>
+      <td>{{ ard.serial_port }}</td>
+      {% if ard.connection_open() %}
+      <td class="bg-success">Open</td>
+      {% else %}
+      <td class="bg-warning">Closed</td>
+      {% endif %}
+      <td>{{ ard.setpoint }}</td>
+      <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
+      <td>
+        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.connection_open() %}
+          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
+        <td>
+    </tr>
+    {% endfor %}
+ </tbody>
+</table>
+{% endif %}
+
+
 {% if n_sm %}
 <h1> Serial monitors</h1>
 <table class="table table-hover" id ="tempcontrols">

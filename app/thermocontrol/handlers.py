@@ -1,7 +1,7 @@
 from app.thermocontrol import bp
-from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
+from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm, WebConnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import TempControl
+from app.thermocontrol.models import TempControl, WebTempControl
 from app import app, socketio, db
 
 import h5py
@@ -64,6 +64,32 @@ def add_tempcontrol():
     n_ards = len(tempcontrols)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
     device_type = 'temp control');
+
+@bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
+def add_webtempcontrol():
+    '''
+    Add an arduino with ethernet interface to the set up
+    '''
+    cform = WebConnectForm();
+
+    if cform.validate_on_submit():
+        ip_adress = cform.ip_adress.data;
+        port = cform.port.data;
+        name = cform.name.data;
+        if not port:
+            port = 80;
+        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port, sleeptime=3);
+
+        db.session.add(tc);
+        db.session.commit();
+        flash('We added a new arduino {}'.format(name))
+        return redirect(url_for('main.index'))
+
+    tempcontrols = WebTempControl.query.all();
+    n_ards = len(tempcontrols)
+    return render_template('add_webarduino.html', cform = cform, n_ards=n_ards,
+    device_type = 'web temp control');
+
 
 @bp.route('/remove/<int:ard_nr>')
 def remove(ard_nr):

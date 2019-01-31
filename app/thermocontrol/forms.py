@@ -59,6 +59,16 @@ class ConnectForm(FlaskForm):
     name = StringField('Name of the Arduino:', description = 'Name', default = 'Arduino')
     submit = SubmitField('Connect')
 
+class WebConnectForm(FlaskForm):
+    '''
+    The form for connecting to the Arduino
+    '''
+    id = HiddenField('A hidden field');
+    ip_adress = StringField('Connect to IP:', validators=[DataRequired()], description = 'IP Adress')
+    port = IntegerField('Port:', description = 'Port')
+    name = StringField('Name of the Arduino:', description = 'Name', default = 'Arduino')
+    submit = SubmitField('Connect')
+
 class DisconnectForm(FlaskForm):
     '''
     The form for disconnecting from the Arduino

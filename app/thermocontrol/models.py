@@ -261,11 +261,13 @@ class TempControl(db.Model):
 class WebTempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True);
     thread_id = db.Column(db.Integer, unique=True);
-    switch = db.Column(db.Boolean)
-    name = db.Column(db.String(64))
-    ard_str = db.Column(db.String(120))
+    switch = db.Column(db.Boolean);
+    name = db.Column(db.String(64));
+    ard_str = db.Column(db.String(120));
 
-    ip_adress = db.Column(db.String(64))
+    ip_adress = db.Column(db.String(64));
+    port = db.Column(db.String(64));
+
     setpoint = db.Column(db.Float);
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
@@ -276,27 +278,23 @@ class WebTempControl(db.Model):
         ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
         return ret_str
 
-    def get_serial(self):
-        for s in serials:
-            if s.port == self.serial_port:
-                return s
-        return None
+    def temp_field_str(self):
+        return 'read' + str(self.id);
 
-    def update_serial(self, serial_port):
+    def connection_open(self):
+        '''
+        Is the protocol running ?
+        '''
+        return self.is_alive() and self.is_open()
+
+    def is_open(self):
+        '''
+        test if the serial connection is open
+        '''
+        return False
+
+    def is_alive(self):
         """
-        open the serial port
+        return the running status
         """
-        self.serial_port = serial_port;
-        db.session.commit();
-
-        exists = False
-        for s in serials:
-            if s.port == serial_port:
-                s = serial.Serial(serial_port, 9600, timeout = 1);
-                exists = True;
-
-        if not exists:
-            s = serial.Serial(serial_port, 9600, timeout = 1);
-            serials.append(s);
-
-        return s.is_open
+        return False;

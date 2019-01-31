@@ -1,6 +1,6 @@
 from app import app, socketio, db
 from app.main import bp
-from app.thermocontrol.models import TempControl
+from app.thermocontrol.models import TempControl, WebTempControl
 from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
@@ -37,15 +37,17 @@ def index():
     tcontrols = TempControl.query.all();
     n_tcs = len(tcontrols);
 
+    wtcontrols = WebTempControl.query.all();
+    n_wtcs = len(wtcontrols);
+
     smonitors = ArduinoSerial.query.all();
     n_sm = len(smonitors);
 
     cams = Camera.query.all();
     n_cameras = len(cams);
 
-    webtcontrols = [];
     return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
-    n_sm = n_sm, serialmonitors = smonitors, n_cameras = n_cameras, cameras = cams);
+    n_wtcs = n_wtcs, wtempcontrols = wtcontrols, n_sm = n_sm, serialmonitors = smonitors, n_cameras = n_cameras, cameras = cams);
 
 # communication with the websocket
 @socketio.on('connect')
