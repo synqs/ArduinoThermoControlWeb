@@ -56,6 +56,7 @@
   <tr>
     <th scope="col">#</th>
     <th scope="col">Name</th>
+    <th scope="col">IP Adress</th>
     <th scope="col">Port</th>
     <th scope="col">Status</th>
     <th scope="col">Setpoint</th>
@@ -68,7 +69,8 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.serial_port }}</td>
+      <td>{{ ard.ip_adress }}</td>
+      <td>{{ ard.port }}</td>
       {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
@@ -82,7 +84,7 @@
           <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
           <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
         {% else %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
         {% endif %}
         <td>
     </tr>

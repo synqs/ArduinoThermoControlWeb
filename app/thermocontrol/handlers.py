@@ -113,6 +113,19 @@ def start_tc(ard_nr):
         flash('SerialException: Could not open serial connection', 'error')
     return redirect(url_for('main.index'))
 
+@bp.route('/start_wtc/<int:ard_nr>')
+def start_wtc(ard_nr):
+    '''
+    The main function for rendering the principal site.
+    '''
+    tc = WebTempControl.query.get(ard_nr);
+    try:
+        sopen = tc.start();
+        flash('Trying to start the tempcontrol')
+    except SerialException as e:
+        flash('SerialException: Could not open connection', 'error')
+    return redirect(url_for('main.index'))
+
 @bp.route('/stop/<int:ard_nr>')
 def stop(ard_nr):
     '''
