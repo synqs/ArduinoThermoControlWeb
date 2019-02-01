@@ -387,6 +387,20 @@ class WebTempControl(DeviceClass):
         if not self.is_open():
             print('No connection');
             return
+
+        # configure the arduino
+        if self.setpoint:
+            self.set_setpoint();
+        time.sleep(0.2);
+        if self.gain:
+            self.set_gain();
+        time.sleep(0.2);
+        if self.integral:
+            self.set_integral();
+        time.sleep(0.2);
+        if self.diff:
+            self.set_differential();
+
         # starting the listener
         if not self.is_alive():
             self.switch = True
@@ -409,3 +423,35 @@ class WebTempControl(DeviceClass):
                 del workers[ii];
         self.thread_id = 0;
         db.session.commit();
+
+    def set_setpoint(self):
+        try:
+            param = {'s': self.setpoint};
+            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            return True
+        except ConnectionError:
+            return False
+
+    def set_gain(self):
+        try:
+            param = {'g': self.gain};
+            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            return True
+        except ConnectionError:
+            return False
+
+    def set_integral(self):
+        try:
+            param = {'i': self.integral};
+            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            return True
+        except ConnectionError:
+            return False
+
+    def set_differential(self):
+        try:
+            param = {'d': self.diff};
+            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            return True
+        except ConnectionError:
+            return False

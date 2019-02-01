@@ -13,19 +13,44 @@
 
 <h2>Update control parameters </h2>
 <div class="row">
-    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint") }}</div>
+  {% if device_type == 'serial_tc' %}
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_tc") }}</div>
+  {% endif %}
+  {% if device_type == 'web_tc' %}
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_wtc") }}</div>
+  {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(gform, action="/gain") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(iform, action="/integral") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integal_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integral_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/wait_wtc") }}</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

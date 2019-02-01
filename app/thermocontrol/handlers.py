@@ -209,7 +209,7 @@ def update_tc():
 @bp.route('/update_wtc', methods=['POST'])
 def update_wtc():
     '''
-    Update the serial port.
+    Update the ip adress.
     '''
     uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
 
@@ -225,12 +225,15 @@ def update_wtc():
             print('stop it.')
             arduino.stop();
         print('Update it.')
+        arduino.ip_adress = ip_adress;
+        arduino.port = port;
+        db.session.commit();
         return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
     else:
         return render_template('change_arduino.html', form=uform, dform = dform,
             sform = sform, gform = gform, iform = iform, diff_form = diff_form, wform = wform, ard=arduino);
 
-@bp.route('/serialwait', methods=['POST'])
+@bp.route('/serialwait_tc', methods=['POST'])
 def serialwait():
     '''
     Update the serial waiting time.
@@ -258,7 +261,27 @@ def serialwait():
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
 
-@bp.route('/setpoint', methods=['POST'])
+@bp.route('/wait_wtc', methods=['POST'])
+def wait_wtc():
+    '''
+    Update the serial waiting time.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+    id = int(wform.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if wform.validate_on_submit():
+        n_wait =  wform.serial_time.data;
+        arduino.sleeptime = n_wait;
+        db.session.commit();
+        flash('We update every {} s'.format(n_wait))
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            cform = cform,  sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/setpoint_tc', methods=['POST'])
 def arduino():
     '''
     Configure now settings for the arduino.
@@ -288,7 +311,31 @@ def arduino():
             sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
 
-@bp.route('/gain', methods=['POST'])
+@bp.route('/setpoint_wtc', methods=['POST'])
+def setpoint_wtc():
+    '''
+    Configure now settings for the arduino.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+
+    id = int(sform.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if sform.validate_on_submit():
+        arduino.setpoint = sform.setpoint.data;
+        db.session.commit();
+        success = arduino.set_setpoint();
+        if success:
+            flash('We set the setpoint to {}'.format(sform.setpoint.data))
+        else:
+            flash('Setpoint not updated.', 'error')
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/gain_tc', methods=['POST'])
 def gain():
     '''
     Configure the new gain for the arduino.
@@ -320,7 +367,31 @@ def gain():
             cform = cform,  sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
 
-@bp.route('/integral', methods=['POST'])
+@bp.route('/gain_wtc', methods=['POST'])
+def gain_wtc():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+    id = int(gform.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if gform.validate_on_submit():
+        n_gain =  gform.gain.data;
+        arduino.gain = n_gain;
+        db.session.commit();
+        success = arduino.set_gain();
+        if success:
+            flash('We set the gain to {}'.format(n_gain))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            cform = cform,  sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/integral_tc', methods=['POST'])
 def integral():
     '''
     Configure the new gain for the arduino.
@@ -352,7 +423,31 @@ def integral():
         sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard = arduino);
 
-@bp.route('/diff', methods=['POST'])
+@bp.route('/integral_wtc', methods=['POST'])
+def integral_wtc():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+    id = int(iform.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if iform.validate_on_submit():
+        n_tau =  iform.tau.data;
+        arduino.integral =  n_tau;
+        db.session.commit();
+        success = arduino.set_integral();
+        if success:
+            flash('We set the integration time  to {} seconds'.format(n_tau))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+        sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard = arduino);
+
+@bp.route('/diff_tc', methods=['POST'])
 def diff():
     '''
     Configure the new gain for the arduino.
@@ -379,6 +474,30 @@ def diff():
         else:
             flash('Serial port not open.', 'error')
         return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
+    else:
+        return render_template('change_arduino.html', form=uform, dform = dform,
+            sform = sform, gform = gform, iform = iform,
+            diff_form = diff_form, wform = wform, ard=arduino);
+
+@bp.route('/diff_wtc', methods=['POST'])
+def diff_wtc():
+    '''
+    Configure the new gain for the arduino.
+    '''
+    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
+    id = int(diff_form.id.data);
+    arduino = WebTempControl.query.get(id);
+
+    if diff_form.validate_on_submit():
+        n_tau =  diff_form.tau.data;
+        arduino.diff =  n_tau;
+        db.session.commit();
+        success = arduino.set_differential();
+        if success:
+            flash('We set the differentiation time  to {} seconds'.format(n_tau))
+        else:
+            flash('Serial port not open.', 'error')
+        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
     else:
         return render_template('change_arduino.html', form=uform, dform = dform,
             sform = sform, gform = gform, iform = iform,
@@ -415,16 +534,3 @@ def file(filestring):
             flash('The file {} did not have the global group yet.'.format(filename), 'error')
 
     return render_template('file.html', file = filename)
-
-# communication with the websocket
-@socketio.on('connect')
-def run_connect():
-    '''
-    we are connecting the client to the server. This will only work if the
-    Arduino already has a serial connection
-    '''
-    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('my_ping')
-def ping_pong():
-    emit('my_pong')
