@@ -385,7 +385,6 @@ class WebTempControl(DeviceClass):
             print('No connection');
             return 0, 0
         html_text = r.text;
-        print(html_text)
         lines = html_text.split('<br />');
         self.ard_str = lines[1];
         db.session.commit();
