@@ -80,7 +80,10 @@ def do_web_work(id):
         if tc.is_open():
             try:
                 timestamp, ard_str = tc.pull_data()
-                vals = ard_str.split(',');
+                if timestamp:
+                    vals = ard_str.split(',');
+                else:
+                    vals =[];
                 if len(vals)>=2:
                     socketio.emit('wtemp_value',
                         {'data': vals[1], 'id': id})
@@ -322,7 +325,7 @@ class WebTempControl(DeviceClass):
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
-
+    timeout = 5;
     def __repr__(self):
         ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
         return ret_str
@@ -349,7 +352,7 @@ class WebTempControl(DeviceClass):
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = 0.2, proxies=proxies);
+            r = requests.get(self.http_str(), timeout =self.timeout, proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -377,11 +380,12 @@ class WebTempControl(DeviceClass):
             'http': None,
             'https': None,
             }
-            r = requests.get(self.http_str(), timeout = 0.2, proxies=proxies);
+            r = requests.get(self.http_str(), timeout =self.timeout, proxies=proxies);
         except ConnectionError:
             print('No connection');
             return 0, 0
         html_text = r.text;
+        print(html_text)
         lines = html_text.split('<br />');
         self.ard_str = lines[1];
         db.session.commit();
@@ -444,7 +448,7 @@ class WebTempControl(DeviceClass):
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
+            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -456,7 +460,7 @@ class WebTempControl(DeviceClass):
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
+            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -468,7 +472,7 @@ class WebTempControl(DeviceClass):
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
+            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -480,7 +484,7 @@ class WebTempControl(DeviceClass):
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
+            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
