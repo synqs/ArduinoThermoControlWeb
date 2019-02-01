@@ -343,8 +343,13 @@ class WebTempControl(DeviceClass):
         '''
         test if the serial connection is open
         '''
+
         try:
-            r = requests.get(self.http_str(), timeout = 0.2);
+            proxies = {
+                'http': None,
+                'https': None,
+                }
+            r = requests.get(self.http_str(), timeout = 0.2, proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -368,7 +373,11 @@ class WebTempControl(DeviceClass):
         Pulling the actual data from the arduino.
         '''
         try:
-            r = requests.get(self.http_str(), timeout = 0.2);
+            proxies = {
+            'http': None,
+            'https': None,
+            }
+            r = requests.get(self.http_str(), timeout = 0.2, proxies=proxies);
         except ConnectionError:
             print('No connection');
             return 0, 0
@@ -384,11 +393,14 @@ class WebTempControl(DeviceClass):
         start to listen to the serial port of the Arduino
         """
         # test if everything is open
+        print('Start')
         if not self.is_open():
             print('No connection');
             return
 
         # configure the arduino
+
+        print('setpoint')
         if self.setpoint:
             self.set_setpoint();
         time.sleep(0.2);
@@ -426,8 +438,13 @@ class WebTempControl(DeviceClass):
 
     def set_setpoint(self):
         try:
+
             param = {'s': self.setpoint};
-            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            proxies = {
+                'http': None,
+                'https': None,
+                }
+            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -435,7 +452,11 @@ class WebTempControl(DeviceClass):
     def set_gain(self):
         try:
             param = {'g': self.gain};
-            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            proxies = {
+                'http': None,
+                'https': None,
+                }
+            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -443,7 +464,11 @@ class WebTempControl(DeviceClass):
     def set_integral(self):
         try:
             param = {'i': self.integral};
-            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            proxies = {
+                'http': None,
+                'https': None,
+                }
+            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
@@ -451,7 +476,11 @@ class WebTempControl(DeviceClass):
     def set_differential(self):
         try:
             param = {'d': self.diff};
-            r = requests.get(self.http_str(), timeout = 0.2, params=param);
+            proxies = {
+                'http': None,
+                'https': None,
+                }
+            r = requests.get(self.http_str(), timeout = 0.2, params=param,proxies=proxies);
             return True
         except ConnectionError:
             return False
