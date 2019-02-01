@@ -331,7 +331,7 @@ class WebTempControl(DeviceClass):
         return 'http://' + self.ip_adress + ':' + self.port;
 
     def temp_field_str(self):
-        return 'read' + str(self.id);
+        return 'read_wtc' + str(self.id);
 
     def connection_open(self):
         '''

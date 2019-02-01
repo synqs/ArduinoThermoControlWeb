@@ -201,10 +201,10 @@ $(document).ready(function() {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
   });
 
-  socket.on('temp_value', function(msg) {
+  socket.on('wtemp_value', function(msg) {
     var temp = msg.data;
     var id = msg.id;
-    var el_name = '#read' + msg.id;
+    var el_name = '#read_wtc' + msg.id;
     $(el_name).html(temp);
   });
 
