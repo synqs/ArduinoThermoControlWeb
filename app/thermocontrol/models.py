@@ -82,10 +82,10 @@ def do_web_work(id):
                 timestamp, ard_str = tc.pull_data()
                 vals = ard_str.split(',');
                 if len(vals)>=2:
-                    socketio.emit('temp_value',
+                    socketio.emit('wtemp_value',
                         {'data': vals[1], 'id': id})
 
-                socketio.emit('log_response',
+                socketio.emit('wlog_response',
                 {'time':timestamp, 'data': vals, 'count': unit_of_work,
                     'id': id})
             except Exception as e:
