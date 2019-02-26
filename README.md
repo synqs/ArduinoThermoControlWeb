@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/synqs/DeviceControlServer.svg?branch=master)](https://travis-ci.org/synqs/DeviceControlServer)
+
 # DeviceControlServer
 
 A flask server that should simplify the logging of our experimental components. Most of the time the components are Arduinos. The website assumes that the Arduinos are connected via a serial device. For the moment we have to following abilities:
