@@ -25,6 +25,17 @@ def get_tc_forms(ard_nr):
 
     return uform, sform, gform, iform, diff_form, wform, dform;
 
+def get_tc_forms_wo_id():
+
+    uform = UpdateForm();
+    sform = UpdateSetpointForm();
+    gform = UpdateGainForm();
+    iform = UpdateIntegralForm();
+    diff_form = UpdateDifferentialForm();
+    wform = SerialWaitForm();
+    dform = DisconnectForm();
+
+    return uform, sform, gform, iform, diff_form, wform, dform;
 
 def get_wtc_forms(ard_nr):
 

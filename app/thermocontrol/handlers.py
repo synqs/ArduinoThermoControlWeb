@@ -2,8 +2,8 @@ from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm, WebConnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 from app.thermocontrol.models import TempControl, WebTempControl
-from app.thermocontrol.utils import start_helper, get_tc_forms, get_wtc_forms, get_wtc_forms_wo_id
-
+from app.thermocontrol.utils import start_helper, get_wtc_forms, get_wtc_forms_wo_id
+from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
 from app import app, socketio, db
 
@@ -182,7 +182,7 @@ def update_tc():
     '''
     Update the serial port.
     '''
-    uform, sform, gform, iform, diff_form, wform, dform = get_tc_forms(ard_nr);
+    uform, sform, gform, iform, diff_form, wform, dform = get_tc_forms_wo_id();
 
     id = int(uform.id.data);
     arduino = TempControl.query.get(id);
