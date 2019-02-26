@@ -1,4 +1,4 @@
-from app import app, socketio, db
+from app import socketio, db
 from app.main import bp
 from app.thermocontrol.models import TempControl
 from app.serialmonitor.models import ArduinoSerial
@@ -12,7 +12,7 @@ from flask_socketio import emit, disconnect
 # for subplots
 import threading
 
-@app.context_processor
+@bp.context_processor
 def git_url():
     '''
     The main function for rendering the principal site.

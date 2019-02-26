@@ -2,7 +2,7 @@ from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 from app.thermocontrol.models import TempControl
-from app import app, socketio, db
+from app import socketio, db
 
 import h5py
 
