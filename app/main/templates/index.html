@@ -208,6 +208,13 @@ $(document).ready(function() {
     $(el_name).html(temp);
   });
 
+  socket.on('temp_value', function(msg) {
+    var temp = msg.data;
+    var id = msg.id;
+    var el_name = '#read_tc' + msg.id;
+    $(el_name).html(temp);
+  });
+
   socket.on('serial_value', function(msg) {
     var temp = msg.data;
     var id = msg.id;

@@ -202,7 +202,7 @@ class TempControl(DeviceClass):
         return self.switch;
 
     def temp_field_str(self):
-        return 'read' + str(self.id);
+        return 'read_tc' + str(self.id);
 
     def get_current_temp_value(self):
         vals = self.ard_str.split(',');
