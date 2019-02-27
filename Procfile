@@ -1,1 +1,1 @@
-web: flask db upgrade; gunicorn devicecontrolserver:app
+web: flask db upgrade; flask translate compile; gunicorn microblog:app
