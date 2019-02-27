@@ -10,10 +10,7 @@ import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 
-eventlet.monkey_patch()
-
-# where should I move this normally ?
-async_mode = None
+eventlet.monkey_patch();
 
 bootstrap = Bootstrap();
 db = SQLAlchemy();
@@ -23,7 +20,6 @@ socketio = SocketIO();
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
-
     bootstrap.init_app(app);
 
     # set up the database

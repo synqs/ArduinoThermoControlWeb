@@ -1,23 +1,20 @@
 import serial
 import eventlet
 from datetime import datetime
-from app import db, socketio, create_app
+from app import db, socketio
 import time
 import requests
-
 from requests.exceptions import ConnectionError
-
+from flask import current_app
 import os
 
 workers = [];
 serials = [];
 
-def do_work(id):
+def do_work(id, app):
     """
     do work and emit message
     """
-    settings_module = os.getenv('FLASK_SETTINGS_MODULE')
-    app = create_app(settings_module)
     with app.app_context():
         tc = TempControl.query.get(int(id));
         if not tc.sleeptime:
@@ -240,7 +237,7 @@ class TempControl(DeviceClass):
         if not self.is_alive():
             self.switch = True
             db.session.commit();
-            thread = socketio.start_background_task(target=do_work, id = self.id);
+            thread = socketio.start_background_task(target=do_work, id = self.id, app = current_app._get_current_object());
             self.thread_id = thread.ident;
             db.session.commit()
             workers.append(thread);
