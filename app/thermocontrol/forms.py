@@ -10,6 +10,15 @@ class UpdateForm(FlaskForm):
     serial_port = StringField('Update to port:', validators=[DataRequired()])
     submit = SubmitField('Update port')
 
+class WebUpdateForm(FlaskForm):
+    '''
+    The form for connecting to the WebArduino
+    '''
+    id = HiddenField('A hidden field');
+    ip_adress = StringField('Update to IP:', validators=[DataRequired()])
+    port = IntegerField('Update to port:')
+    submit = SubmitField('Update connection')
+
 class SerialWaitForm(FlaskForm):
     '''
     The form for connecting to the Arduino
@@ -56,6 +65,16 @@ class ConnectForm(FlaskForm):
     '''
     id = HiddenField('A hidden field');
     serial_port = StringField('Connect on port:', validators=[DataRequired()], description = 'Serial port')
+    name = StringField('Name of the Arduino:', description = 'Name', default = 'Arduino')
+    submit = SubmitField('Connect')
+
+class WebConnectForm(FlaskForm):
+    '''
+    The form for connecting to the Arduino
+    '''
+    id = HiddenField('A hidden field');
+    ip_adress = StringField('Connect to IP:', validators=[DataRequired()], description = 'IP Adress')
+    port = IntegerField('Port:', description = 'Port')
     name = StringField('Name of the Arduino:', description = 'Name', default = 'Arduino')
     submit = SubmitField('Connect')
 
