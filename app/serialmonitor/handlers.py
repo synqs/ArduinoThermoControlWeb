@@ -1,4 +1,4 @@
-from app import app, socketio, db
+from app import socketio, db
 
 from app.serialmonitor import bp
 from app.serialmonitor.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm

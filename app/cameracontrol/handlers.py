@@ -1,4 +1,4 @@
-from app import app, socketio, db
+from app import socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
 from app.cameracontrol.models import workers, Camera

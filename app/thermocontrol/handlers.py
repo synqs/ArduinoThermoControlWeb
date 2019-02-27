@@ -5,7 +5,7 @@ from app.thermocontrol.models import TempControl, WebTempControl
 from app.thermocontrol.utils import start_helper, get_wtc_forms, get_wtc_forms_wo_id
 from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
-from app import app, socketio, db
+from app import socketio, db
 
 import h5py
 
