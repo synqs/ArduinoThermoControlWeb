@@ -62,58 +62,59 @@ def do_work(id, app):
         else:
             print('Closing down the worker in a controlled way.')
 
-def do_web_work(id):
+def do_web_work(id, app):
     """
     do work and emit message
     """
-    tc = WebTempControl.query.get(int(id));
-    if not tc.sleeptime:
-        sleeptime = 3;
-    else:
-        sleeptime = tc.sleeptime;
+    with app.app_context():
+        tc = WebTempControl.query.get(int(id));
+        if not tc.sleeptime:
+            sleeptime = 3;
+        else:
+            sleeptime = tc.sleeptime;
 
-    unit_of_work = 0;
-    while tc.switch:
-        unit_of_work += 1
-        # must call emit from the socketio
-        # must specify the namespace
+        unit_of_work = 0;
+        while tc.switch:
+            unit_of_work += 1
+            # must call emit from the socketio
+            # must specify the namespace
 
-        if tc.is_open():
-            try:
-                timestamp, ard_str = tc.pull_data()
-                if timestamp:
-                    vals = ard_str.split(',');
-                else:
-                    vals =[];
-                if len(vals)>=2:
-                    socketio.emit('wtemp_value',
-                        {'data': vals[1], 'id': id})
+            if tc.is_open():
+                try:
+                    timestamp, ard_str = tc.pull_data()
+                    if timestamp:
+                        vals = ard_str.split(',');
+                    else:
+                        vals =[];
+                    if len(vals)>=2:
+                        socketio.emit('wtemp_value',
+                            {'data': vals[1], 'id': id})
 
-                socketio.emit('wlog_response',
-                {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                    'id': id})
-            except Exception as e:
-                print('{}'.format(e))
-                socketio.emit('my_response',
-                {'data': '{}'.format(e), 'count': unit_of_work})
+                    socketio.emit('wlog_response',
+                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
+                        'id': id})
+                except Exception as e:
+                    print('{}'.format(e))
+                    socketio.emit('my_response',
+                    {'data': '{}'.format(e), 'count': unit_of_work})
+                    tc.switch = False
+                    db.session.commit()
+            else:
+                print('Connection closed')
                 tc.switch = False
                 db.session.commit()
+                # TODO: Make this a link
+                error_str = 'Port closed. please configure one properly under config.'
+                socketio.emit('log_response',
+                {'data': error_str, 'count': unit_of_work})
+
+                # important to use eventlet's sleep method
+
+            eventlet.sleep(sleeptime)
+            tc = WebTempControl.query.get(int(id));
+            sleeptime = tc.sleeptime;
         else:
-            print('Connection closed')
-            tc.switch = False
-            db.session.commit()
-            # TODO: Make this a link
-            error_str = 'Port closed. please configure one properly under config.'
-            socketio.emit('log_response',
-            {'data': error_str, 'count': unit_of_work})
-
-            # important to use eventlet's sleep method
-
-        eventlet.sleep(sleeptime)
-        tc = WebTempControl.query.get(int(id));
-        sleeptime = tc.sleeptime;
-    else:
-        print('Closing down the worker in a controlled way.')
+            print('Closing down the worker in a controlled way.')
 
 class DeviceClass(db.Model):
     __abstract__ = True
@@ -421,7 +422,7 @@ class WebTempControl(DeviceClass):
         if not self.is_alive():
             self.switch = True
             db.session.commit();
-            thread = socketio.start_background_task(target=do_web_work, id = self.id);
+            thread = socketio.start_background_task(target=do_web_work, id = self.id, app = current_app._get_current_object());
             self.thread_id = thread.ident;
             db.session.commit()
             workers.append(thread);
