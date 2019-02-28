@@ -96,3 +96,5 @@ It creates a new python file in the migrations folder. You then update the sqlit
  [] Error logger to communicate with slack or via email.
 
  [] make this readme the about page.
+
+This is a testline.
