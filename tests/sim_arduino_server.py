@@ -2,7 +2,7 @@
 An extremely simple server that might be used for testing the arduino webserver interface.
 '''
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import numpy as np
 app = Flask(__name__)
 
@@ -27,6 +27,12 @@ def home():
     ard_str = ard_str + ',' + str(gain) + ',' + str(tauI) +',' + str(tauD);
 
     return first_line + ard_str;
+
+@app.route('/data/temp/')
+def get_temp():
+    meas = np.random.randint(700, 800);
+    rdict = {'value': str(meas), 'key': 'temp', 'response': 'get'}
+    return jsonify(rdict);
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
