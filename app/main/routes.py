@@ -4,28 +4,11 @@ from app.thermocontrol.models import TempControl, WebTempControl
 from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
-import git
-
 from flask import render_template, flash, redirect, url_for, session
 from flask_socketio import emit, disconnect
 
 # for subplots
 import threading
-
-@bp.context_processor
-def git_url():
-    '''
-    The main function for rendering the principal site.
-    '''
-    repo = git.Repo(search_parent_directories=True)
-    add =repo.remote().url
-    add_c = add.split('.git')[0];
-    comm = repo.head.object.hexsha;
-
-    commit_url = add_c + '/tree/' + comm;
-    issues_url = add_c + '/issues';
-
-    return dict(git_url = commit_url, issues_url = issues_url);
 
 @bp.route('/')
 @bp.route('/index', methods=['GET', 'POST'])
