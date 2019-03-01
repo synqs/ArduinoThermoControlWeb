@@ -336,7 +336,7 @@ class WebTempControl(DeviceClass):
         return 'http://' + self.ip_adress + ':' + self.port;
 
     def temp_http_str(self):
-        return self.http_str() + '/data/temp/';
+        return self.http_str() + '/arduino/read/all/';
 
     def temp_field_str(self):
         return 'read_wtc' + str(self.id);
@@ -385,7 +385,8 @@ class WebTempControl(DeviceClass):
             'http': None,
             'https': None,
             }
-            r = requests.get(self.http_str(), timeout =self.timeout, proxies=proxies);
+            r = requests.get(self.temp_http_str(), timeout =self.timeout, proxies=proxies);
+            print(r);
         except ConnectionError:
             print('No connection');
             return 0, 0
