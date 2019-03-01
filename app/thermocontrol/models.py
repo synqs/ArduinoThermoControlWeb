@@ -386,7 +386,6 @@ class WebTempControl(DeviceClass):
             'https': None,
             }
             r = requests.get(self.temp_http_str(), timeout =self.timeout, proxies=proxies);
-            print(r);
         except ConnectionError:
             print('No connection');
             return 0, 0
@@ -447,49 +446,53 @@ class WebTempControl(DeviceClass):
 
     def set_setpoint(self):
         try:
-
-            param = {'s': self.setpoint};
+            set_str = '/arduino/write/setpoint/' + str(self.setpoint) + '/';
+            addr = self.http_str() + set_str;
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
-            return True
+            r = requests.get(addr, timeout =self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_gain(self):
         try:
-            param = {'g': self.gain};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
-            return True
+
+            set_str = '/arduino/write/gain/' + str(self.gain) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_integral(self):
         try:
-            param = {'i': self.integral};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
-            return True
+            set_str = '/arduino/write/integral/' + str(self.integral) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_differential(self):
         try:
-            param = {'d': self.diff};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
-            return True
+            set_str = '/arduino/write/differential/' + str(self.diff) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
