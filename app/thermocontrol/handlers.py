@@ -94,6 +94,15 @@ def remove(ard_nr):
     flash('Removed the temperature control # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
 
+@bp.route('/remove_wtc/<int:ard_nr>')
+def remove_wtc(ard_nr):
+    tc = WebTempControl.query.get(ard_nr);
+    db.session.delete(tc)
+    db.session.commit()
+
+    flash('Removed the web temperature control # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'))
+
 @bp.route('/start_tc/<int:ard_nr>')
 def start_tc(ard_nr):
     '''
