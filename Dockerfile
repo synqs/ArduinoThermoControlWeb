@@ -5,11 +5,10 @@ RUN adduser -D devicecontrolserver
 WORKDIR /home/devicecontrolserver
 
 COPY requirements.txt requirements.txt
-RUN apk update
-RUN apk add gcc
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev
 RUN python -m venv venv
 RUN venv/bin/pip install -r requirements.txt
-RUN venv/bin/pip install gunicorn
+RUN apk del .build-deps gcc musl-dev
 
 COPY app app
 COPY migrations migrations
