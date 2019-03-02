@@ -53,6 +53,16 @@ Further, we will most likely not install saving of the data on the server as thi
 - open it in a brower on 'localhost:5000'
 
 # Usage
+
+## Docker
+
+This is the new simplest way, __ but the data will be lost at each update__. You simply run locally after downloading it:
+
+> docker run -p 8000:5000 devicecontrolserver:latest
+
+- open it in a brower on 'localhost:8000'
+
+The
 ## The server itself
  - activate the virtualenv through 'source activate YOURNAME'
  - start it through 'start.sh'
@@ -78,6 +88,12 @@ If you are changing the properties of the models.py files, it is likely, that yo
 It creates a new python file in the migrations folder. You then update the sqlite database through a:
 
 > flask db upgrade
+
+# Dev updates to the dockerfile
+
+If you would like to create the dockerfile locally, you might run
+
+>  docker build -t devicecontrolserver:latest .
 
 # TODO
 

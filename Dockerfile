@@ -5,10 +5,10 @@ RUN adduser -D devicecontrolserver
 WORKDIR /home/devicecontrolserver
 
 COPY requirements.txt requirements.txt
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev python3-dev
 RUN python -m venv venv
 RUN venv/bin/pip install -r requirements.txt
-RUN apk del .build-deps gcc musl-dev
+RUN apk del .build-deps gcc musl-dev postgresql-dev python3-dev
 
 COPY app app
 COPY migrations migrations
