@@ -119,7 +119,7 @@ def do_web_work(id, app):
 class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
-    thread_id = db.Column(db.Integer, unique=True);
+    thread_id = db.Column(db.BigInteger, unique=True);
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
