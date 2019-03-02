@@ -2,6 +2,13 @@
 language: python
 python:
   - 3.6
-install: pip install -r requirements.txt
+services:
+  - docker
+install:
+  - pip install -r requirements.txt
+  - docker build -t dcs .
+  - docker run -p 8000:5000 --name dcs dcs
 
-script: python tests.py
+script:
+  - python tests.py
+  - docker ps | grep -q dcs
