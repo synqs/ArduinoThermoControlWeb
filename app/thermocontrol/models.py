@@ -120,6 +120,7 @@ class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
     thread_id = db.Column(db.BigInteger, unique=True);
+    thread_str = db.Column(db.String(120));
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
@@ -194,7 +195,7 @@ class TempControl(DeviceClass):
         return the running status
         """
         for thread in workers:
-            if thread.ident == self.thread_id:
+            if str(thread.ident) == self.thread_str:
                 self.switch = thread.is_alive();
                 db.session.commit();
                 return self.switch;
@@ -239,7 +240,7 @@ class TempControl(DeviceClass):
             self.switch = True
             db.session.commit();
             thread = socketio.start_background_task(target=do_work, id = self.id, app = current_app._get_current_object());
-            self.thread_id = thread.ident;
+            self.thread_str = str(thread.ident);
             db.session.commit()
             workers.append(thread);
         else:
@@ -296,7 +297,7 @@ class TempControl(DeviceClass):
         self.switch = False;
         db.session.commit();
         for ii, t in enumerate(workers):
-            if t.ident == self.thread_id:
+            if str(t.ident) == self.thread_str:
                 del workers[ii];
         return s.is_open
 
@@ -367,7 +368,7 @@ class WebTempControl(DeviceClass):
         return the running status
         """
         for thread in workers:
-            if thread.ident == self.thread_id:
+            if str(thread.ident) == self.thread_str:
                 self.switch = thread.is_alive();
                 db.session.commit();
                 return self.switch;
@@ -426,7 +427,7 @@ class WebTempControl(DeviceClass):
             self.switch = True
             db.session.commit();
             thread = socketio.start_background_task(target=do_web_work, id = self.id, app = current_app._get_current_object());
-            self.thread_id = thread.ident;
+            self.thread_str = str(thread.ident)
             db.session.commit()
             workers.append(thread);
         else:
@@ -439,9 +440,9 @@ class WebTempControl(DeviceClass):
         self.switch = False;
         db.session.commit();
         for ii, t in enumerate(workers):
-            if t.ident == self.thread_id:
+            if str(t.ident) == self.thread_str:
                 del workers[ii];
-        self.thread_id = 0;
+        self.thread_str = '';
         db.session.commit();
 
     def set_setpoint(self):

@@ -53,7 +53,6 @@ def add_tempcontrol():
         flash('We added a new arduino {}'.format(name))
         return redirect(url_for('main.index'))
 
-    port = app.config['SERIAL_PORT']
     tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols)
     return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
