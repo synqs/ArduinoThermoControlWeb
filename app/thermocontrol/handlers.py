@@ -7,8 +7,6 @@ from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
 from app import socketio, db
 
-import h5py
-
 from flask import render_template, flash, redirect, url_for, session
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])

@@ -1,7 +1,5 @@
 import os
 import eventlet
-import numpy as np;
-import imageio
 from datetime import datetime
 from app import db, socketio
 
