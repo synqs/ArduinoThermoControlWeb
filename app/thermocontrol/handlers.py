@@ -55,7 +55,7 @@ def add_tempcontrol():
 
     tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols)
-    return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
+    return render_template('add_arduino.html', cform = cform, n_ards=n_ards,
     device_type = 'temp control');
 
 @bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
