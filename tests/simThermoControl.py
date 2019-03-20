@@ -1,6 +1,6 @@
 import os, pty
 import time
-import numpy as np
+import random
 
 def test_serial():
     setpoint  = 750;
@@ -11,9 +11,9 @@ def test_serial():
     s_name = os.ttyname(slave)
     print(s_name)
     while True:
-        meas = np.random.randint(700, 800)
+        meas = random.randint(700, 800)
         err = setpoint - meas;
-        control = np.random.randint(10)
+        control = random.randint(0,10)
         mode = os.read(master, 1);
         if mode:
             print('mode {}'.format(mode))

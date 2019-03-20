@@ -1,4 +1,4 @@
-from app import app, socketio, db
+from app import socketio, db
 
 from app.serialmonitor import bp
 from app.serialmonitor.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm
@@ -7,8 +7,6 @@ from app.serialmonitor.models import ArduinoSerial
 from flask import render_template, flash, redirect, url_for, session
 
 from serial.serialutil import SerialException
-
-import h5py
 
 @bp.route('/details_serialmonitor/<int:ard_nr>', methods=['GET', 'POST'])
 def details_serialmonitor(ard_nr):

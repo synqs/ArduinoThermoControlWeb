@@ -14,7 +14,7 @@
  by Tom Igoe
  modified 02 Sept 2015
  by Arturo Guadalupi
- 
+
  */
 
 #include <SPI.h>
@@ -96,7 +96,7 @@ void setup() {
   pinMode(analogpin,OUTPUT);
 
   setpoint = 130;
-   
+
   ////////PID parameters
   G = 5; //gain that we want to use. We find it by adjusting it to be small enough such that the system is not oscillating
   tauI = 200;// in s and obtained from the time constant as we apply a step function
@@ -104,7 +104,7 @@ void setup() {
   kp = G;
   ki = G / tauI;
   kd = G*tauD;
-  
+
   //initialize integrator
   errSum = 20 / nloopcount; // let the loop start at a nice value
 
@@ -156,7 +156,7 @@ void loop() {
       output = kp * error + ki * errSum+kd*dErr;
 
       //output = -1;
-      
+
       //limit PID output to the bounds of the output
       if (output > 255) output = 255;
       if (output < 0) output = 0;
@@ -166,7 +166,7 @@ void loop() {
       lastTime = now;
     }
     analogWrite(analogpin,output);
-   
+
     //reset number of aquired measurements and measurement accumulator
     sumval = 0;
     measnum = 0;
@@ -174,9 +174,9 @@ void loop() {
    /////////// second part of the wavepacket control
   if (loopcount == nloopcount) {
     loopcount = 0;
-  } 
+  }
 
-       
+
   // listen for incoming clients
   EthernetClient client = server.available();
   if (client) {
@@ -188,7 +188,7 @@ void loop() {
     boolean gainvalue = false;
     boolean tauDvalue = false;
     boolean tauIvalue = false;
-    
+
     while (client.connected()) {
       if (client.available()) {
         mode = client.read();
@@ -208,7 +208,7 @@ void loop() {
           client.println();
           client.println("<!DOCTYPE HTML>");
           client.println("<html>");
-
+          client.println("setpoint, input, error, output, G, tauI, tauD <br />");
           client.print(setpoint);
           client.print(", ");
           client.print(input);
@@ -222,7 +222,7 @@ void loop() {
           client.print(tauI);
           client.print(", ");
           client.println(tauD, DEC);
-          
+
           //client.println("</html>");
           break;
         }
@@ -248,7 +248,7 @@ void loop() {
           //Serial.println("setpoint changed to ");
           //Serial.println(setpoint);
         }
-        
+
         if (mode == 'p') {
           gainvalue = true;
         }
@@ -282,7 +282,7 @@ void loop() {
       }
     }
     // give the web browser time to receive the data
-    
+
     delay(5);
     Serial.print("setpoint ");
     Serial.println(setpoint);
@@ -301,7 +301,7 @@ void loop() {
 
     Serial.print("tauI ");
     Serial.println(tauI);
-    
+
     Serial.println(tauD, DEC);
     // close the connection:
     client.stop();

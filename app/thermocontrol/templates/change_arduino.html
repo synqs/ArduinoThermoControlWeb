@@ -1,71 +1,56 @@
-{% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+{% extends "single_tc.html" %}
 
-{% block app_content %}
-<h1> Change parameters</h1>
-<table class="table" id ="arduino overview">
-  <thead>
-  <tr>
-    <th scope="col">#</th>
-    <th scope="col">Name</th>
-    <th scope="col">Port</th>
-    <th scope="col">Wait time</th>
-    <th scope="col">Status</th>
-    <th scope="col">Setpoint</th>
-    <th scope="col">Gain</th>
-    <th scope="col">tauI</th>
-    <th scope="col">tauD</th>
-    <th scope="col">Other actions </th>
-  </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>{{ ard.id }}</td>
-      <td>{{ ard.name }}</td>
-      <td>{{ ard.serial_port }}</td>
-      <td>{{ ard.sleeptime }}</td>
-      {% if ard.connection_open() %}
-      <td class="bg-success">Open</td>
-      {% else %}
-      <td class="bg-warning">Closed</td>
-      {% endif %}
-      <td scope="col">{{ ard.setpoint }}</td>
-      <td scope="col">{{ ard.gain }}</td>
-      <td scope="col">{{ ard.integral }}</td>
-      <td scope="col">{{ ard.diff }}</td>
-      <td>
-      {% if ard.connection_open() %}
-        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
-        <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
-      {% else %}
-      <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
-      {% endif %}
-      <a class='btn btn-default' href="{{url_for('thermocontrol.remove', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
-      <td>
-    </tr>
- </tbody>
-</table>
-
+{% block controls %}
 <h2>Update connection settings</h2>
 <div class="row">
-  <div class="col"> {{ wtf.quick_form(form, action="/update_tc") }}</div>
+  {% if device_type == 'serial_tc' %}
+    <div class="col"> {{ wtf.quick_form(form, action="/update_tc") }}</div>
+  {% endif %}
+  {% if device_type == 'web_tc' %}
+    <div class="col"> {{ wtf.quick_form(form, action="/update_wtc") }}</div>
+  {% endif %}
 </div>
 
 <h2>Update control parameters </h2>
 <div class="row">
-    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint") }}</div>
+  {% if device_type == 'serial_tc' %}
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_tc") }}</div>
+  {% endif %}
+  {% if device_type == 'web_tc' %}
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_wtc") }}</div>
+  {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(gform, action="/gain") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(iform, action="/integral") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integal_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integral_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_wtc") }}</div>
+    {% endif %}
   </div>
   <div class="row">
-      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait") }}</div>
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/wait_wtc") }}</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
