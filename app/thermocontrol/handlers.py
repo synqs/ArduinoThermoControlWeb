@@ -7,8 +7,6 @@ from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
 from app import socketio, db
 
-import h5py
-
 from flask import render_template, flash, redirect, url_for, session
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
@@ -55,10 +53,9 @@ def add_tempcontrol():
         flash('We added a new arduino {}'.format(name))
         return redirect(url_for('main.index'))
 
-    port = app.config['SERIAL_PORT']
     tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols)
-    return render_template('add_arduino.html', port = port, cform = cform, n_ards=n_ards,
+    return render_template('add_arduino.html', cform = cform, n_ards=n_ards,
     device_type = 'temp control');
 
 @bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
@@ -94,6 +91,15 @@ def remove(ard_nr):
     db.session.commit()
 
     flash('Removed the temperature control # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'))
+
+@bp.route('/remove_wtc/<int:ard_nr>')
+def remove_wtc(ard_nr):
+    tc = WebTempControl.query.get(ard_nr);
+    db.session.delete(tc)
+    db.session.commit()
+
+    flash('Removed the web temperature control # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
 
 @bp.route('/start_tc/<int:ard_nr>')

@@ -119,7 +119,8 @@ def do_web_work(id, app):
 class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
-    thread_id = db.Column(db.Integer, unique=True);
+    thread_id = db.Column(db.BigInteger, unique=True);
+    thread_str = db.Column(db.String(120));
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
@@ -194,7 +195,7 @@ class TempControl(DeviceClass):
         return the running status
         """
         for thread in workers:
-            if thread.ident == self.thread_id:
+            if str(thread.ident) == self.thread_str:
                 self.switch = thread.is_alive();
                 db.session.commit();
                 return self.switch;
@@ -239,7 +240,7 @@ class TempControl(DeviceClass):
             self.switch = True
             db.session.commit();
             thread = socketio.start_background_task(target=do_work, id = self.id, app = current_app._get_current_object());
-            self.thread_id = thread.ident;
+            self.thread_str = str(thread.ident);
             db.session.commit()
             workers.append(thread);
         else:
@@ -296,7 +297,7 @@ class TempControl(DeviceClass):
         self.switch = False;
         db.session.commit();
         for ii, t in enumerate(workers):
-            if t.ident == self.thread_id:
+            if str(t.ident) == self.thread_str:
                 del workers[ii];
         return s.is_open
 
@@ -335,6 +336,9 @@ class WebTempControl(DeviceClass):
     def http_str(self):
         return 'http://' + self.ip_adress + ':' + self.port;
 
+    def temp_http_str(self):
+        return self.http_str() + '/arduino/read/all/';
+
     def temp_field_str(self):
         return 'read_wtc' + str(self.id);
 
@@ -364,7 +368,7 @@ class WebTempControl(DeviceClass):
         return the running status
         """
         for thread in workers:
-            if thread.ident == self.thread_id:
+            if str(thread.ident) == self.thread_str:
                 self.switch = thread.is_alive();
                 db.session.commit();
                 return self.switch;
@@ -382,7 +386,7 @@ class WebTempControl(DeviceClass):
             'http': None,
             'https': None,
             }
-            r = requests.get(self.http_str(), timeout =self.timeout, proxies=proxies);
+            r = requests.get(self.temp_http_str(), timeout =self.timeout, proxies=proxies);
         except ConnectionError:
             print('No connection');
             return 0, 0
@@ -423,7 +427,7 @@ class WebTempControl(DeviceClass):
             self.switch = True
             db.session.commit();
             thread = socketio.start_background_task(target=do_web_work, id = self.id, app = current_app._get_current_object());
-            self.thread_id = thread.ident;
+            self.thread_str = str(thread.ident)
             db.session.commit()
             workers.append(thread);
         else:
@@ -436,56 +440,60 @@ class WebTempControl(DeviceClass):
         self.switch = False;
         db.session.commit();
         for ii, t in enumerate(workers):
-            if t.ident == self.thread_id:
+            if str(t.ident) == self.thread_str:
                 del workers[ii];
-        self.thread_id = 0;
+        self.thread_str = '';
         db.session.commit();
 
     def set_setpoint(self):
         try:
-
-            param = {'s': self.setpoint};
+            set_str = '/arduino/write/setpoint/' + str(self.setpoint) + '/';
+            addr = self.http_str() + set_str;
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
-            return True
+            r = requests.get(addr, timeout =self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_gain(self):
         try:
-            param = {'g': self.gain};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
-            return True
+
+            set_str = '/arduino/write/gain/' + str(self.gain) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_integral(self):
         try:
-            param = {'i': self.integral};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout = self.timeout, params=param,proxies=proxies);
-            return True
+            set_str = '/arduino/write/integral/' + str(self.integral) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False
 
     def set_differential(self):
         try:
-            param = {'d': self.diff};
             proxies = {
                 'http': None,
                 'https': None,
                 }
-            r = requests.get(self.http_str(), timeout =self.timeout, params=param,proxies=proxies);
-            return True
+            set_str = '/arduino/write/differential/' + str(self.diff) + '/';
+            addr = self.http_str() + set_str;
+            r = requests.get(addr, timeout = self.timeout,proxies=proxies);
+            return r.ok;
         except ConnectionError:
             return False

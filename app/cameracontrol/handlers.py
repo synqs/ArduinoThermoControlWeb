@@ -2,7 +2,6 @@ from app import socketio, db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
 from app.cameracontrol.models import workers, Camera
-import h5py
 import os
 
 from flask import render_template, flash, redirect, url_for, session
