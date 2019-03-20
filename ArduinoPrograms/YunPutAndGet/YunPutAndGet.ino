@@ -21,9 +21,14 @@ double kp, ki, kd, G, tauI, tauD;
 
 char mode;
 
+#include <Process.h>
 #include <Bridge.h>
 
 void setup() {
+  SERIAL_PORT_USBVIRTUAL.begin(9600);  // initialize serial communication
+  while (!SERIAL_PORT_USBVIRTUAL);     // do nothing until the serial monitor is opened
+  
+  SERIAL_PORT_USBVIRTUAL.println(F("Hi! Nice to see you!"));
   Bridge.begin();	// Initialize the Bridge
 
   pinMode(Temp_in,INPUT);
@@ -109,6 +114,7 @@ void loop() {
   /////////// second part of the wavepacket control
   if (loopcount == nloopcount) {
     Bridge.put("temp", String(input));
+    SERIAL_PORT_USBVIRTUAL.println(input);
     loopcount = 0;
   }
 }
