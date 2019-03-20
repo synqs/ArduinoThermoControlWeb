@@ -1,4 +1,4 @@
-int Temp_in = A1;
+int Temp_in = A0;
 float V_out;
 float Temperature;
 int analogpin = 9;
@@ -21,17 +21,13 @@ double kp, ki, kd, G, tauI, tauD;
 
 char mode;
 
-#include <Process.h>
 #include <Bridge.h>
 #include <BridgeServer.h>
 #include <BridgeClient.h>
 
-void setup() {
-  SERIAL_PORT_USBVIRTUAL.begin(9600);  // initialize serial communication
-  while (!SERIAL_PORT_USBVIRTUAL);     // do nothing until the serial monitor is opened
-
-  SERIAL_PORT_USBVIRTUAL.println(F("Hi! Nice to see you!"));
-  Bridge.begin();	// Initialize the Bridge
+// Listen to the default port 5555, the Yún webserver
+// will forward there all the HTTP requests you send
+BridgeServer server;
 
 void setup() {
   // Bridge startup
@@ -40,7 +36,7 @@ void setup() {
   pinMode(analogpin,OUTPUT);
 
   setpoint = 40;
-
+   
   ////////PID parameters
   G = 5; //gain that we want to use. We find it by adjusting it to be small enough such that the system is not oscillating
   tauI = 200;// in s and obtained from the time constant as we apply a step function
@@ -48,7 +44,7 @@ void setup() {
   kp = G;
   ki = G / tauI;
   kd = G*tauD;
-
+  
   //initialize integrator
   errSum = 20 / lcmax; // let the loop start at a nice value
 
@@ -77,14 +73,14 @@ void loop() {
 
   delay(50); // Poll every 50ms
 
-
+  
   lc++;
-
+  
     ////// measure every 10th loop cycle
   if ((lc % 1) == 0) {
     measnum++;
     V_out = analogRead(Temp_in)*(5/1024.0);
-    Temperature = (V_out-1.25)/0.005; //conversion from voltage to temp
+    Temperature = (V_out-1.25)/0.005; //conversion from voltage to temp 
     sumval = sumval + Temperature;
   }
  ///// if enough measurements calculate PID
@@ -115,7 +111,7 @@ void loop() {
       output = kp * error + ki * errSum+kd*dErr;
 
       //output = -1;
-
+      
       //limit PID output to the bounds of the output
       if (output > 255) output = 255;
       if (output < 0) output = 0;
@@ -124,13 +120,13 @@ void loop() {
       lastErr = error;
       lastTime = now;
     }
-
+    
     analogWrite(analogpin,output);
     //reset number of aquired measurements and measurement accumulator
     sumval = 0;
     measnum = 0;
   }
-
+  
   /////////// second part of the wavepacket control
   if (lc == lcmax) {
     lc = 0;
@@ -145,7 +141,7 @@ void process(BridgeClient client) {
   if (command == "read") {
     readCommand(client);
   }
-
+  
   // is "analog" command?
   if (command == "write") {
     analogCommand(client);
@@ -156,7 +152,7 @@ void readCommand(BridgeClient client) {
   int value = 5;
   int pin = 5;
   String component = client.readStringUntil('/');
-  if (component == "all") {
+  if (component == "all") { 
   }
   // Send feedback to client
   //client.println(F("setpoint, input, error, output, G, tauI, tauD"));
@@ -189,15 +185,15 @@ void readCommand(BridgeClient client) {
 }
 
 void analogCommand(BridgeClient client) {
-
+  
   String component = client.readStringUntil('/');
   if (component == "setpoint") {
    float value = 0;
     value = client.parseFloat();
     if (value){
-      setpoint = value;
+      setpoint = value;      
     }
-    client.println("Change the setpoint");
+    client.println("Change the setpoint"); 
     client.println(setpoint);
     String key = "setpoint";
     Bridge.put(key, String(setpoint));
@@ -211,12 +207,12 @@ void analogCommand(BridgeClient client) {
       ki = G / tauI;
       kd = G * tauD;
     }
-    client.print("Change the gain");
+    client.print("Change the gain"); 
     client.println(G);
     String key = "gain";
     Bridge.put(key, String(G));
   }
-
+  
   if (component == "integral") {
    float value = 0;
     value = client.parseFloat();
@@ -224,7 +220,7 @@ void analogCommand(BridgeClient client) {
       tauI = value;
       ki = G / tauI;
     }
-    client.print("Change the integral");
+    client.print("Change the integral"); 
     client.println(tauI);
     String key = "integral";
     Bridge.put(key, String(tauI));
@@ -236,7 +232,7 @@ void analogCommand(BridgeClient client) {
       tauD = value;
       kd = G*tauD;
     }
-    client.println("Change the differential");
+    client.println("Change the differential"); 
     client.println(tauD);
     String key = "differential";
     Bridge.put(key, String(tauD));
