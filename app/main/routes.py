@@ -1,5 +1,9 @@
 from app import socketio, db
 from app.main import bp
+
+from app.main.forms import LoginForm
+from app.main.models import User
+
 from app.thermocontrol.models import TempControl, WebTempControl
 from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
@@ -40,9 +44,9 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
-            return redirect(url_for('login'))
+            return redirect(url_for('main.login'))
         login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
     return render_template('login.html', title='Sign In', form=form)
 
 # communication with the websocket
