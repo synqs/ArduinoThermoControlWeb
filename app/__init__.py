@@ -4,6 +4,7 @@ from flask_socketio import SocketIO
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 import eventlet
 
 import logging
@@ -16,6 +17,7 @@ bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
+login = LoginManager();
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -24,6 +26,7 @@ def create_app(config_class=Config):
 
     # set up the database
     db.init_app(app);
+    login.init_app(app);
     migrate.init_app(app, db);
     socketio.init_app(app, async_mode='eventlet');
 
