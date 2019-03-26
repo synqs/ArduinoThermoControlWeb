@@ -12,6 +12,13 @@ Device control server
     </div>
       <ul class="nav navbar-nav">
           <li><a href="{{ url_for('main.index') }}">Home</a></li>
+              <li>
+                {% if current_user.is_anonymous %}
+                  <a href="{{ url_for('main.login') }}">Login</a>
+                {% else %}
+                  <a href="{{ url_for('main.logout') }}">Logout</a>
+                {% endif %}
+              </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
           <li><a target="_blank" href="https://github.com/synqs/DeviceControlServer/issues/">Report Issue</a></li>
