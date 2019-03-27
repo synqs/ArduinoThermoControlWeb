@@ -19,7 +19,8 @@ def index():
     '''
     The main function for rendering the principal site.
     '''
-
+    if current_user.is_authenticated:
+        print(current_user.id)
     tcontrols = TempControl.query.all();
     n_tcs = len(tcontrols);
 

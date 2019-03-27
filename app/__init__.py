@@ -27,11 +27,12 @@ def create_app(config_class=Config):
     # set up the database
     db.init_app(app);
     login.init_app(app);
+    login.login_view = 'main.login';
+
     migrate.init_app(app, db);
     socketio.init_app(app, async_mode='eventlet');
 
     # import all the components of the app
-
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 

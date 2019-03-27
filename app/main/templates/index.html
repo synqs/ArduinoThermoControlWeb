@@ -77,7 +77,7 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.owner }}</td>
+      <td>{{ ard.owner.username }}</td>
       <td>{{ ard.ip_adress }}</td>
       <td>{{ ard.port }}</td>
       {% if ard.connection_open() %}

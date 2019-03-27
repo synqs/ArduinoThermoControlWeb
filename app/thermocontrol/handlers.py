@@ -8,6 +8,7 @@ from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 from app import socketio, db
 
 from flask import render_template, flash, redirect, url_for, session
+from flask_login import login_required, current_user
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
@@ -59,19 +60,20 @@ def add_tempcontrol():
     device_type = 'temp control');
 
 @bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
+@login_required
 def add_webtempcontrol():
     '''
     Add an arduino with ethernet interface to the set up
     '''
     cform = WebConnectForm();
-
     if cform.validate_on_submit():
         ip_adress = cform.ip_adress.data;
         port = cform.port.data;
         name = cform.name.data;
         if not port:
             port = 80;
-        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port, sleeptime=3);
+        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port,
+        user_id = current_user.id, sleeptime=3);
 
         db.session.add(tc);
         db.session.commit();
