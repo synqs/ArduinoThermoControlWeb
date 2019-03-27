@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
-<a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
-<a class="btn btn-default" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
-<a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
-{% if not props %}
-<a class="btn btn-default" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
+
+{% if current_user.is_anonymous %}
+  <a href="{{ url_for('main.login') }}">Login to add new devices</a>
+{% else %}
+  <a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
+  <a class="btn btn-default" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
+  <a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
+  {% if not props %}
+    <a class="btn btn-default" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
+  {% endif %}
+
 {% endif %}
+
 {% if n_tcs %}
 <h1> Temp controls </h1>
 <table class="table table-hover" id ="tempcontrols">
@@ -56,6 +63,7 @@
   <tr>
     <th scope="col">#</th>
     <th scope="col">Name</th>
+    <th scope="col">Owner</th>
     <th scope="col">IP Adress</th>
     <th scope="col">Port</th>
     <th scope="col">Status</th>
@@ -69,6 +77,7 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
+      <td>{{ ard.owner }}</td>
       <td>{{ ard.ip_adress }}</td>
       <td>{{ ard.port }}</td>
       {% if ard.connection_open() %}
