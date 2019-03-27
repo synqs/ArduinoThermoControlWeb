@@ -1,12 +1,15 @@
 import serial
 import eventlet
 from datetime import datetime
+#from app.main.models import User
+
 from app import db, socketio
 import time
 import requests
 from requests.exceptions import ConnectionError
 from flask import current_app
 import os
+
 
 workers = [];
 serials = [];
@@ -119,8 +122,8 @@ def do_web_work(id, app):
 class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
-    thread_id = db.Column(db.BigInteger, unique=True);
     thread_str = db.Column(db.String(120));
+    thread_id = db.Column(db.BigInteger, unique=True);
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
@@ -323,6 +326,7 @@ class TempControl(DeviceClass):
 class WebTempControl(DeviceClass):
     ip_adress = db.Column(db.String(64));
     port = db.Column(db.String(64));
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
 
     setpoint = db.Column(db.Float);
     gain = db.Column(db.Float);
