@@ -96,6 +96,7 @@ def remove(ard_nr):
     return redirect(url_for('main.index'))
 
 @bp.route('/remove_wtc/<int:ard_nr>')
+@login_required
 def remove_wtc(ard_nr):
     tc = WebTempControl.query.get(ard_nr);
     db.session.delete(tc)
@@ -113,6 +114,7 @@ def start_tc(ard_nr):
     return start_helper(tc);
 
 @bp.route('/start_wtc/<int:ard_nr>')
+@login_required
 def start_wtc(ard_nr):
     '''
     The main function for rendering the principal site.
@@ -131,6 +133,7 @@ def stop(ard_nr):
     return redirect(url_for('main.index'))
 
 @bp.route('/stop_wtc>/<int:ard_nr>')
+@login_required
 def stop_wtc(ard_nr):
     '''
     The main function for rendering the principal site.
@@ -159,6 +162,7 @@ def change_arduino(ard_nr):
         diff_form = diff_form, wform = wform, ard=arduino, device_type=device_type);
 
 @bp.route('/change_wtc/<int:ard_nr>')
+@login_required
 def change_wtc(ard_nr):
     '''
     Change the parameters of a specific arduino
@@ -205,6 +209,7 @@ def update_tc():
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/update_wtc', methods=['POST'])
+@login_required
 def update_wtc():
     '''
     Update the ip adress.
@@ -260,6 +265,7 @@ def serialwait():
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/wait_wtc', methods=['POST'])
+@login_required
 def wait_wtc():
     '''
     Update the serial waiting time.
@@ -310,6 +316,7 @@ def arduino():
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/setpoint_wtc', methods=['POST'])
+@login_required
 def setpoint_wtc():
     '''
     Configure now settings for the arduino.
@@ -366,6 +373,7 @@ def gain():
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/gain_wtc', methods=['POST'])
+@login_required
 def gain_wtc():
     '''
     Configure the new gain for the arduino.
@@ -422,6 +430,7 @@ def integral():
             diff_form = diff_form, wform = wform, ard = arduino);
 
 @bp.route('/integral_wtc', methods=['POST'])
+@login_required
 def integral_wtc():
     '''
     Configure the new gain for the arduino.
@@ -478,6 +487,7 @@ def diff():
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/diff_wtc', methods=['POST'])
+@login_required
 def diff_wtc():
     '''
     Configure the new gain for the arduino.
