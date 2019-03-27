@@ -21,11 +21,15 @@ def index():
     '''
     if current_user.is_authenticated:
         print(current_user.id)
+        wtcontrols = WebTempControl.query.filter_by(user_id = current_user.id).all();
+        n_wtcs = WebTempControl.query.filter_by(user_id = current_user.id).count();
+    else:
+        wtcontrols = WebTempControl.query.all();
+        n_wtcs = WebTempControl.query.count();
+
     tcontrols = TempControl.query.all();
     n_tcs = len(tcontrols);
 
-    wtcontrols = WebTempControl.query.all();
-    n_wtcs = len(wtcontrols);
 
     smonitors = ArduinoSerial.query.all();
     n_sm = len(smonitors);

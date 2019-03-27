@@ -16,6 +16,12 @@
 
 {% if n_tcs %}
 <h1> Temp controls </h1>
+{% if current_user.is_anonymous %}
+ There are {{ n_tcs }} temperature controls installed. For more information you need to <a href="{{ url_for('main.login') }}">login</a>
+{% else %}
+
+
+
 <table class="table table-hover" id ="tempcontrols">
   <thead>
   <tr>
@@ -60,15 +66,18 @@
  </tbody>
 </table>
 {% endif %}
+{% endif %}
 
 {% if n_wtcs %}
 <h1> WebTemp controls </h1>
+{% if current_user.is_anonymous %}
+ There are {{ n_wtcs }} web temperature controls installed. For more information you need to <a href="{{ url_for('main.login') }}">login</a>
+{% else %}
 <table class="table table-hover" id ="wtempcontrols">
   <thead>
   <tr>
     <th scope="col">#</th>
     <th scope="col">Name</th>
-    <th scope="col">Owner</th>
     <th scope="col">Status</th>
     <th scope="col">Setpoint</th>
     <th scope="col">Current Value</th>
@@ -80,7 +89,6 @@
     <tr>
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
-      <td>{{ ard.owner.username }}</td>
       {% if ard.connection_open() %}
       <td class="bg-success">Open</td>
       {% else %}
@@ -105,6 +113,7 @@
     {% endfor %}
  </tbody>
 </table>
+{% endif %}
 {% endif %}
 
 

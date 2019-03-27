@@ -25,16 +25,23 @@ def details(ard_nr):
     return render_template('details.html', ard=arduino, device_type=device_type);
 
 @bp.route('/details_wtc/<int:ard_nr>', methods=['GET', 'POST'])
+@login_required
 def details_wtc(ard_nr):
     '''
     The main function for rendering the principal site.
     '''
     arduino = WebTempControl.query.get(ard_nr);
+
     device_type = 'web_tc';
 
     if not arduino:
         flash('No tempcontrols installed', 'error')
         return redirect(url_for('thermocontrol.add_webtempcontrol'));
+
+
+    if not current_user.id == arduino.user_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.index'));
 
     return render_template('details.html', ard=arduino, device_type=device_type);
 
@@ -173,6 +180,11 @@ def change_wtc(ard_nr):
     if not arduino:
         flash('No tempcontrols installed', 'error')
         return redirect(url_for('thermocontrol.add_webtempcontrol'));
+
+    if not current_user.id == arduino.user_id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.index'));
+
     uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms(ard_nr);
 
     return render_template('change_arduino.html',
