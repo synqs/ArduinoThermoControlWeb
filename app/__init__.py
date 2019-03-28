@@ -4,6 +4,7 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_talisman import Talisman
 import eventlet
 
 import logging
@@ -17,10 +18,26 @@ migrate = Migrate();
 socketio = SocketIO();
 login = LoginManager();
 
+csp = {
+    'default-src': [
+        '\'self\'',
+        '*.bootstrapcdn.com',
+        '*.jquery.com',
+        '*.cloudflare.com',
+        '*.plot.ly'
+    ],
+    'script-src': [
+        '\'self\'',
+        '*.cloudflare.com',
+        '*.plot.ly',
+    ]
+}
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config);
-
+    Talisman(app, content_security_policy=csp,
+        content_security_policy_nonce_in=['script-src'])
     # set up the database
     db.init_app(app);
     login.init_app(app);
