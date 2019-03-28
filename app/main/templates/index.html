@@ -38,9 +38,9 @@
       <td>{{ ard.name }}</td>
       <td>{{ ard.serial_port }}</td>
       {% if ard.connection_open() %}
-      <td class="bg-success">Open</td>
+      <td class="bg-success" id ='{{ ard.conn_str() }}'>Open</td>
       {% else %}
-      <td class="bg-warning">Closed</td>
+      <td class="bg-warning" id ='{{ ard.conn_str() }}'>Closed</td>
       {% endif %}
       <td>{{ ard.setpoint }}</td>
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
@@ -87,9 +87,9 @@
       <td>{{ ard.id }}</td>
       <td>{{ ard.name }}</td>
       {% if ard.connection_open() %}
-      <td class="bg-success">Open</td>
+      <td class="bg-success" id ='{{ ard.conn_str() }}'>Open</td>
       {% else %}
-      <td class="bg-warning">Closed</td>
+      <td class="bg-warning" id ='{{ ard.conn_str() }}'>Closed</td>
       {% endif %}
       <td>{{ ard.setpoint }}</td>
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
@@ -219,6 +219,13 @@ $(document).ready(function() {
   // Event handler for server sent data.
   socket.on('my_response', function(msg) {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+  });
+
+  socket.on('close_conn', function(msg) {
+    var el_name = '#' + msg.data;
+    console.log(el_name)
+    $(el_name).html('Closed');
+    $(el_name).attr("class","bg-warning")
   });
 
   socket.on('wtemp_value', function(msg) {
