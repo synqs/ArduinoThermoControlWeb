@@ -57,6 +57,7 @@ def do_work(id, app):
                 socketio.emit('log_response',
                 {'data': error_str, 'count': unit_of_work})
 
+                socketio.emit('close_conn',{'data': tc.conn_str()});
                 # important to use eventlet's sleep method
 
             eventlet.sleep(sleeptime)
@@ -210,6 +211,9 @@ class TempControl(DeviceClass):
     def temp_field_str(self):
         return 'read_tc' + str(self.id);
 
+    def conn_str(self):
+        return 'conn_tc' + str(self.id);
+
     def get_current_temp_value(self):
         vals = self.ard_str.split(',');
         if len(vals)>=2:
@@ -345,6 +349,9 @@ class WebTempControl(DeviceClass):
 
     def temp_field_str(self):
         return 'read_wtc' + str(self.id);
+
+    def conn_str(self):
+        return 'conn_wtc' + str(self.id);
 
     def connection_open(self):
         '''

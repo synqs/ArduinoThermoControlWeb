@@ -137,6 +137,7 @@ def stop(ard_nr):
     tc = TempControl.query.get(ard_nr);
     tc.stop()
     flash('Stopped the thermocontrol')
+    socketio.emit('close_conn',{'data': tc.conn_str()})
     return redirect(url_for('main.index'))
 
 @bp.route('/stop_wtc>/<int:ard_nr>')
@@ -148,6 +149,7 @@ def stop_wtc(ard_nr):
     tc = WebTempControl.query.get(ard_nr);
     tc.stop()
     flash('Stopped the thermocontrol')
+    socketio.emit('close_conn',{'data': tc.conn_str()})
     return redirect(url_for('main.index'))
 
 @bp.route('/change_arduino/<int:ard_nr>')
