@@ -11,7 +11,7 @@ import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 
-eventlet.monkey_patch();
+eventlet.monkey_patch(socket=False);
 
 bootstrap = Bootstrap();
 db = SQLAlchemy();
