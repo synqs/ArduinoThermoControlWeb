@@ -228,6 +228,13 @@ $(document).ready(function() {
     $(el_name).attr("class","bg-warning")
   });
 
+  socket.on('open_conn', function(msg) {
+    var el_name = '#' + msg.data;
+    console.log(el_name)
+    $(el_name).html('Open');
+    $(el_name).attr("class","bg-success")
+  });
+
   socket.on('wtemp_value', function(msg) {
     var temp = msg.data;
     var id = msg.id;

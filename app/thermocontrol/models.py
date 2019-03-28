@@ -57,6 +57,7 @@ def do_work(id, app):
                 socketio.emit('log_response',
                 {'data': error_str, 'count': unit_of_work})
 
+                socketio.emit('close_conn',{'data': tc.conn_str()});
                 # important to use eventlet's sleep method
 
             eventlet.sleep(sleeptime)
