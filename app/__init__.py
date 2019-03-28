@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +12,6 @@ import os
 
 eventlet.monkey_patch(socket=False);
 
-bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
@@ -22,7 +20,6 @@ login = LoginManager();
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config);
-    bootstrap.init_app(app);
 
     # set up the database
     db.init_app(app);

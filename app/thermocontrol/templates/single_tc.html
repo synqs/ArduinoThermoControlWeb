@@ -35,12 +35,12 @@
         <td scope="col">{{ ard.diff }}</td>
         <td>
         {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
+          <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-light' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
         {% else %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
+        <a class='btn btn-light' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
         {% endif %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.remove', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
+        <a class='btn btn-light' href="{{url_for('thermocontrol.remove', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
         <td>
       </tr>
    </tbody>
@@ -83,12 +83,12 @@
         <td scope="col">{{ ard.diff }}</td>
         <td>
         {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-default' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
+          <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-light' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
         {% else %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
+        <a class='btn btn-light' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
         {% endif %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.remove_wtc', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
+        <a class='btn btn-light' href="{{url_for('thermocontrol.remove_wtc', ard_nr = ard.id)}}"><span class ="glyphicon glyphicon-remove"></span>
         <td>
       </tr>
    </tbody>
