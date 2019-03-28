@@ -150,6 +150,13 @@ $(document).ready(function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
 
+  socket.on('close_conn', function(msg) {
+    var el_name = '#' + msg.data;
+    console.log(el_name)
+    $(el_name).html('Closed');
+    $(el_name).attr("class","bg-warning")
+  });
+
   $( "#add_arduino" ).click(function() {
     var html = $("#ard_log").outerHTML;
     export_table_to_csv(html, "table.csv");

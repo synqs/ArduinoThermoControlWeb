@@ -10,7 +10,7 @@
       <th scope="col">Name</th>
       <th scope="col">Port</th>
       <th scope="col">Wait time</th>
-      <th scope="col">Status</th>
+      <th scope="col" >Status</th>
       <th scope="col">Setpoint</th>
       <th scope="col">Gain</th>
       <th scope="col">tauI</th>
@@ -25,9 +25,9 @@
         <td>{{ ard.serial_port }}</td>
         <td>{{ ard.sleeptime }}</td>
         {% if ard.connection_open() %}
-        <td class="bg-success">Open</td>
+        <td class="bg-success" id ="{{ ard.conn_str() }}">Open</td>
         {% else %}
-        <td class="bg-warning">Closed</td>
+        <td class="bg-warning" id ="{{ ard.conn_str() }}">Closed</td>
         {% endif %}
         <td scope="col">{{ ard.setpoint }}</td>
         <td scope="col">{{ ard.gain }}</td>
@@ -57,7 +57,7 @@
       <th scope="col">IP Adress</th>
       <th scope="col">Port</th>
       <th scope="col">Wait time</th>
-      <th scope="col">Status</th>
+      <th scope="col" >Status</th>
       <th scope="col">Setpoint</th>
       <th scope="col">Gain</th>
       <th scope="col">tauI</th>
@@ -73,9 +73,9 @@
         <td>{{ ard.port }}</td>
         <td>{{ ard.sleeptime }}</td>
         {% if ard.connection_open() %}
-        <td class="bg-success">Open</td>
+        <td class="bg-success" id ="{{ ard.conn_str() }}">Open</td>
         {% else %}
-        <td class="bg-warning">Closed</td>
+        <td class="bg-warning" id ="{{ ard.conn_str() }}">Closed</td>
         {% endif %}
         <td scope="col">{{ ard.setpoint }}</td>
         <td scope="col">{{ ard.gain }}</td>
