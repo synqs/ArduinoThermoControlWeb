@@ -150,6 +150,13 @@ $(document).ready(function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
 
+  socket.on('open_conn', function(msg) {
+    var el_name = '#' + msg.data;
+    console.log(el_name)
+    $(el_name).html('Open');
+    $(el_name).attr("class","bg-success")
+  });
+
   socket.on('close_conn', function(msg) {
     var el_name = '#' + msg.data;
     console.log(el_name)

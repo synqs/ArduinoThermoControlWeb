@@ -46,6 +46,13 @@ $(document).ready(function() {
     $(el_name).attr("class","bg-warning")
   });
 
+  socket.on('open_conn', function(msg) {
+    var el_name = '#' + msg.data;
+    console.log(el_name)
+    $(el_name).html('Open');
+    $(el_name).attr("class","bg-success")
+  });
+
   // Event handler for server sent data.
   socket.on('my_response', function(msg) {
     $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
