@@ -214,6 +214,9 @@ class TempControl(DeviceClass):
     def conn_str(self):
         return 'conn_tc' + str(self.id);
 
+    def startstop_str(self):
+        return 'startstop_tc' + str(self.id);
+
     def get_current_temp_value(self):
         vals = self.ard_str.split(',');
         if len(vals)>=2:
@@ -352,6 +355,9 @@ class WebTempControl(DeviceClass):
 
     def conn_str(self):
         return 'conn_wtc' + str(self.id);
+
+    def startstop_str(self):
+        return 'startstop_wtc' + str(self.id);
 
     def connection_open(self):
         '''

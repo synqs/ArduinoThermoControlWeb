@@ -47,12 +47,13 @@
       <td>
         {% if current_user.is_authenticated %}
             <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
-        {% if ard.connection_open() %}
-          <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-light' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
-        {% else %}
-        <a class='btn btn-light' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
-        {% endif %}
+            {% if ard.connection_open() %}
+              <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+              <a class='btn btn-light' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}"  id ='{{ ard.startstop_str() }}'>Stop</a>
+            {% else %}
+              <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+              <a class='btn btn-light' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}"  id ='{{ ard.startstop_str() }}'>Start</a>
+            {% endif %}
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}
@@ -95,13 +96,14 @@
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         {% if current_user.is_authenticated %}
-        <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
-        {% if ard.connection_open() %}
-          <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-light' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
-        {% else %}
-          <a class='btn btn-light' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
-        {% endif %}
+          <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
+          {% if ard.connection_open() %}
+            <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+            <a class='btn btn-light' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}" id ='{{ ard.startstop_str() }}'>Stop</a>
+          {% else %}
+            <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+            <a class='btn btn-light' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}" id ='{{ ard.startstop_str() }}'>Start</a>
+          {% endif %}
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}
@@ -223,14 +225,13 @@ $(document).ready(function() {
 
   socket.on('close_conn', function(msg) {
     var el_name = '#' + msg.data;
-    console.log(el_name)
     $(el_name).html('Closed');
     $(el_name).attr("class","bg-warning")
   });
 
   socket.on('open_conn', function(msg) {
     var el_name = '#' + msg.data;
-    console.log(el_name)
+    var button_name = '#' + msg.data;
     $(el_name).html('Open');
     $(el_name).attr("class","bg-success")
   });
