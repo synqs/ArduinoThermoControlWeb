@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
 
 {% if current_user.is_anonymous %}
   <a href="{{ url_for('main.login') }}">Login to add new devices</a>
 {% else %}
-  <a class="btn btn-light" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}" role="button"> Add another Temp control.</a>
-  <a class="btn btn-light" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
-  <a class="btn btn-light" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
+  <a class="btn btn-default" id="add_tempcontrol" href="{{url_for('thermocontrol.add_tempcontrol')}}"> Add another Temp control.</a>
+  <a class="btn btn-default" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
+  <a class="btn btn-default" id="add_serialmonitor" href="{{url_for('serialmonitor.add_serialmonitor')}}"> Add another serial monitor.</a>
   {% if not props %}
-    <a class="btn btn-light" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
+    <a class="btn btn-default" id="add_camera" href="{{url_for('cameracontrol.add_camera')}}"> Add a Camera.</a>
   {% endif %}
 
 {% endif %}
@@ -18,6 +19,8 @@
 {% if current_user.is_anonymous %}
  There are {{ n_tcs }} temperature controls installed. For more information you need to <a href="{{ url_for('main.login') }}">login</a>
 {% else %}
+
+
 
 <table class="table table-hover" id ="tempcontrols">
   <thead>
@@ -46,6 +49,7 @@
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         {% if current_user.is_authenticated %}
+<<<<<<< HEAD
             <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
             {% if ard.connection_open() %}
               <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
@@ -54,6 +58,15 @@
               <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
               <a class='btn btn-light' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}"  id ='{{ ard.startstop_str() }}'>Start</a>
             {% endif %}
+=======
+            <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.connection_open() %}
+          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
+        {% else %}
+        <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
+>>>>>>> parent of 3c46180... Bootstrap4 (#15)
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}
@@ -96,6 +109,7 @@
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         {% if current_user.is_authenticated %}
+<<<<<<< HEAD
           <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
           {% if ard.connection_open() %}
             <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
@@ -104,6 +118,15 @@
             <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
             <a class='btn btn-light' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}" id ='{{ ard.startstop_str() }}'>Start</a>
           {% endif %}
+=======
+        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
+        {% if ard.connection_open() %}
+          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
+        {% else %}
+          <a class='btn btn-default' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
+        {% endif %}
+>>>>>>> parent of 3c46180... Bootstrap4 (#15)
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}
@@ -142,12 +165,12 @@
       {% endif %}
       <td id ='{{ ard.temp_field_str() }}'>No value yet.</td>
       <td>
-        <a class='btn btn-light' target="_blank" href="{{url_for('serialmonitor.change_serialmonitor', ard_nr = ard.id)}}">Settings</a>
+        <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.change_serialmonitor', ard_nr = ard.id)}}">Settings</a>
         {% if ard.connection_open() %}
-          <a class='btn btn-light' target="_blank" href="{{url_for('serialmonitor.details_serialmonitor', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-light' href="{{url_for('serialmonitor.stop_serialmonitor', ard_nr = ard.id)}}">Stop</a>
+          <a class='btn btn-default' target="_blank" href="{{url_for('serialmonitor.details_serialmonitor', ard_nr = ard.id)}}">Log</a>
+          <a class='btn btn-default' href="{{url_for('serialmonitor.stop_serialmonitor', ard_nr = ard.id)}}">Stop</a>
         {% else %}
-        <a class='btn btn-light' href="{{url_for('serialmonitor.start_serialmonitor', ard_nr = ard.id)}}">Start</a>
+        <a class='btn btn-default' href="{{url_for('serialmonitor.start_serialmonitor', ard_nr = ard.id)}}">Start</a>
         {% endif %}
       <td>
     </tr>
@@ -183,11 +206,11 @@
       {% endif %}
       <td id ='{{ ard.label() }}'>No value yet.</td>
       <td>
-        <a class='btn btn-light' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
+        <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
         {% if ard.is_open() %}
-        <a class='btn btn-light' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>
+        <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>
         {% else %}
-        <a class='btn btn-light' href="{{url_for('cameracontrol.start_camera', ard_nr = ard.id)}}">Start</a>
+        <a class='btn btn-default' href="{{url_for('cameracontrol.start_camera', ard_nr = ard.id)}}">Start</a>
         {% endif %}
       <td>
     </tr>

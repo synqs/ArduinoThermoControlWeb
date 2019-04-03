@@ -4,135 +4,57 @@
 <h2>Update connection settings</h2>
 <div class="row">
   {% if device_type == 'serial_tc' %}
-  <form action="/update_tc" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        {{ form.id }}
-        <p>
-            {{ form.serial_port.label }}<br>
-            {{ form.serial_port(size=32) }}<br>
-            {% for error in form.serial_port.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
+    <div class="col"> {{ wtf.quick_form(form, action="/update_tc") }}</div>
   {% endif %}
   {% if device_type == 'web_tc' %}
-    <form action="/update_wtc" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        {{ form.id }}
-        <p>
-            {{ form.ip_adress.label }}<br>
-            {{ form.ip_adress(size=32) }}<br>
-            {% for error in form.ip_adress.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.port.label }}<br>
-            {{ form.port(size=32) }}<br>
-            {% for error in form.port.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
+    <div class="col"> {{ wtf.quick_form(form, action="/update_wtc") }}</div>
   {% endif %}
 </div>
 
 <h2>Update control parameters </h2>
 <div class="row">
   {% if device_type == 'serial_tc' %}
-    <form action="/setpoint_tc" method="post" novalidate>
-  {% elif device_type == 'web_tc' %}
-    <form action="/setpoint_wtc" method="post" novalidate>
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_tc") }}</div>
   {% endif %}
-  {{ sform.hidden_tag() }}
-  {{ sform.id }}
-  <p>
-  {{ sform.setpoint.label }}<br>
-  {{ sform.setpoint(size=32) }}<br>
-  {% for error in sform.setpoint.errors %}
-    <span style="color: red;">[{{ error }}]</span>
-  {% endfor %}
-  </p>
-  <p>{{ sform.submit() }}</p>
-  </form>
-</div>
-<div class="row">
-  {% if device_type == 'serial_tc' %}
-    <form action="/gain_tc" method="post" novalidate>
-  {% elif device_type == 'web_tc' %}
-    <form action="/gain_wtc" method="post" novalidate>
+  {% if device_type == 'web_tc' %}
+    <div class="col"> {{ wtf.quick_form(sform, action="/setpoint_wtc") }}</div>
   {% endif %}
-  {{ gform.hidden_tag() }}
-  {{ gform.id }}
-  <p>
-  {{ gform.gain.label }}<br>
-  {{ gform.gain(size=32) }}<br>
-  {% for error in gform.gain.errors %}
-    <span style="color: red;">[{{ error }}]</span>
-  {% endfor %}
-  </p>
-  <p>{{ gform.submit() }}</p>
-  </form>
-</div>
-<div class="row">
+  </div>
+  <div class="row">
     {% if device_type == 'serial_tc' %}
-      <form action="/integral_tc" method="post" novalidate>
-    {% elif device_type == 'web_tc' %}
-      <form action="/integral_wtc" method="post" novalidate>
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_tc") }}</div>
     {% endif %}
-    {{ iform.hidden_tag() }}
-    {{ iform.id }}
-    <p>
-    {{ iform.tau.label }}<br>
-    {{ iform.tau(size=32) }}<br>
-    {% for error in iform.tau.errors %}
-      <span style="color: red;">[{{ error }}]</span>
-    {% endfor %}
-    </p>
-    <p>{{ iform.submit() }}</p>
-    </form>
-</div>
-<div class="row">
-  {% if device_type == 'serial_tc' %}
-    <form action="/diff_tc" method="post" novalidate>
-  {% elif device_type == 'web_tc' %}
-    <form action="/diff_wtc" method="post" novalidate>
-  {% endif %}
-  {{ diff_form.hidden_tag() }}
-  {{ diff_form.id }}
-  <p>
-  {{ diff_form.tau.label }}<br>
-  {{ diff_form.tau(size=32) }}<br>
-  {% for error in diff_form.tau.errors %}
-    <span style="color: red;">[{{ error }}]</span>
-  {% endfor %}
-  </p>
-  <p>{{ diff_form.submit() }}</p>
-  </form>
-</div>
-<div class="row">
-  {% if device_type == 'serial_tc' %}
-      <form action="/serialwait_tc" method="post" novalidate>
-    {% elif device_type == 'web_tc' %}
-      <form action="/wait_wtc" method="post" novalidate>
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(gform, action="/gain_wtc") }}</div>
     {% endif %}
-    {{ wform.hidden_tag() }}
-    {{ wform.id }}
-    <p>
-    {{ wform.serial_time.label }}<br>
-    {{ wform.serial_time(size=32) }}<br>
-    {% for error in wform.serial_time.errors %}
-      <span style="color: red;">[{{ error }}]</span>
-    {% endfor %}
-    </p>
-    <p>{{ wform.submit() }}</p>
-    </form>
+  </div>
+  <div class="row">
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integal_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(iform, action="/integral_wtc") }}</div>
+    {% endif %}
+  </div>
+  <div class="row">
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(diff_form, action="/diff_wtc") }}</div>
+    {% endif %}
+  </div>
+  <div class="row">
+    {% if device_type == 'serial_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/serialwait_tc") }}</div>
+    {% endif %}
+    {% if device_type == 'web_tc' %}
+      <div class="col"> {{ wtf.quick_form(wform, action="/wait_wtc") }}</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
+
 
 {% block scripts %}
 {{super()}}
