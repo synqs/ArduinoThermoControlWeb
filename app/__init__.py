@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
@@ -13,6 +14,7 @@ import os
 
 eventlet.monkey_patch();
 
+bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
