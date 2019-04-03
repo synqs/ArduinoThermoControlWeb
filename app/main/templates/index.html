@@ -49,7 +49,6 @@
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         {% if current_user.is_authenticated %}
-<<<<<<< HEAD
             <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
             {% if ard.connection_open() %}
               <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
@@ -58,15 +57,7 @@
               <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
               <a class='btn btn-light' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}"  id ='{{ ard.startstop_str() }}'>Start</a>
             {% endif %}
-=======
-            <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_arduino', ard_nr = ard.id)}}">Settings</a>
-        {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
-        {% else %}
-        <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
-        {% endif %}
->>>>>>> parent of 3c46180... Bootstrap4 (#15)
+
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}
@@ -109,7 +100,6 @@
       <td id ='{{ ard.temp_field_str() }}'>Not implemented.</td>
       <td>
         {% if current_user.is_authenticated %}
-<<<<<<< HEAD
           <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
           {% if ard.connection_open() %}
             <a class='btn btn-light' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
@@ -118,15 +108,6 @@
             <a class="btn btn-light disabled" role="button" target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
             <a class='btn btn-light' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}" id ='{{ ard.startstop_str() }}'>Start</a>
           {% endif %}
-=======
-        <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
-        {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
-          <a class='btn btn-default' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
-        {% else %}
-          <a class='btn btn-default' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>
-        {% endif %}
->>>>>>> parent of 3c46180... Bootstrap4 (#15)
         {% else %}
           <a href="{{ url_for('main.login') }}">Login required</a>
         {% endif %}

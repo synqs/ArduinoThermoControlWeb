@@ -24,7 +24,6 @@ bootstrap = Bootstrap();
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config);
-    bootstrap.init_app(app);
 
     # set up the database
     db.init_app(app);
