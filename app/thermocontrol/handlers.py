@@ -52,6 +52,7 @@ def add_tempcontrol():
     '''
     cform = ConnectForm();
 
+    device_type = 'serial_tc';
     if cform.validate_on_submit():
         n_port =  cform.serial_port.data;
         name = cform.name.data;
@@ -64,7 +65,7 @@ def add_tempcontrol():
     tempcontrols = TempControl.query.all();
     n_ards = len(tempcontrols)
     return render_template('add_arduino.html', cform = cform, n_ards=n_ards,
-    device_type = 'temp control');
+    device_type = device_type);
 
 @bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
 @login_required
@@ -73,6 +74,7 @@ def add_webtempcontrol():
     Add an arduino with ethernet interface to the set up
     '''
     cform = WebConnectForm();
+    device_type = 'web_tc';
     if cform.validate_on_submit():
         ip_adress = cform.ip_adress.data;
         port = cform.port.data;
@@ -90,7 +92,7 @@ def add_webtempcontrol():
     tempcontrols = WebTempControl.query.all();
     n_ards = len(tempcontrols)
     return render_template('add_webarduino.html', cform = cform, n_ards=n_ards,
-    device_type = 'web temp control');
+    device_type = device_type);
 
 
 @bp.route('/remove/<int:ard_nr>')
