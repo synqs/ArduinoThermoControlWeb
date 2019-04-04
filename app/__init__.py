@@ -18,11 +18,15 @@ bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
+login = LoginManager();
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
     bootstrap.init_app(app);
+
+    login.init_app(app);
+    login.login_view = 'main.login';
 
     # set up the database
     db.init_app(app);

@@ -95,32 +95,6 @@ def add_webtempcontrol():
     device_type = device_type);
 
 
-@bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
-def add_webtempcontrol():
-    '''
-    Add an arduino with ethernet interface to the set up
-    '''
-    cform = WebConnectForm();
-
-    if cform.validate_on_submit():
-        ip_adress = cform.ip_adress.data;
-        port = cform.port.data;
-        name = cform.name.data;
-        if not port:
-            port = 80;
-        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port, sleeptime=3);
-
-        db.session.add(tc);
-        db.session.commit();
-        flash('We added a new arduino {}'.format(name))
-        return redirect(url_for('main.index'))
-
-    tempcontrols = WebTempControl.query.all();
-    n_ards = len(tempcontrols)
-    return render_template('add_webarduino.html', cform = cform, n_ards=n_ards,
-    device_type = 'web temp control');
-
-
 @bp.route('/remove/<int:ard_nr>')
 def remove(ard_nr):
     tc = TempControl.query.get(ard_nr);
@@ -178,16 +152,6 @@ def stop_wtc(ard_nr):
     tc.stop()
     flash('Stopped the thermocontrol')
     socketio.emit('close_conn',{'data': tc.conn_str()})
-    return redirect(url_for('main.index'))
-
-@bp.route('/stop_wtc>/<int:ard_nr>')
-def stop_wtc(ard_nr):
-    '''
-    The main function for rendering the principal site.
-    '''
-    tc = WebTempControl.query.get(ard_nr);
-    tc.stop()
-    flash('Stopped the thermocontrol')
     return redirect(url_for('main.index'))
 
 @bp.route('/change_arduino/<int:ard_nr>')
