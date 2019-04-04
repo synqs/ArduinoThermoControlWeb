@@ -18,24 +18,19 @@ bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
-login = LoginManager();
-bootstrap = Bootstrap();
 
 def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config);
+    app.config.from_object(Config)
+    bootstrap.init_app(app);
 
     # set up the database
     db.init_app(app);
-    login.init_app(app);
-
-    bootstrap.init_app(app);
-    login.login_view = 'main.login';
-
     migrate.init_app(app, db);
     socketio.init_app(app, async_mode='eventlet');
 
     # import all the components of the app
+
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
