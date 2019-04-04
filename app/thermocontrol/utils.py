@@ -4,6 +4,7 @@ from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, Dis
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
 
 from flask import flash, redirect, url_for
+from app import socketio
 
 def start_helper(tc):
     try:
@@ -11,6 +12,7 @@ def start_helper(tc):
         flash('Trying to start the tempcontrol')
     except SerialException as e:
         flash('SerialException: Could not open serial connection', 'error')
+    socketio.emit('open_conn',{'data': tc.conn_str()})
     return redirect(url_for('main.index'))
 
 def get_tc_forms(ard_nr):

@@ -4,6 +4,8 @@ from flask_socketio import SocketIO
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_bootstrap import Bootstrap
 import eventlet
 
 import logging
@@ -16,11 +18,15 @@ bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
+login = LoginManager();
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
     bootstrap.init_app(app);
+
+    login.init_app(app);
+    login.login_view = 'main.login';
 
     # set up the database
     db.init_app(app);

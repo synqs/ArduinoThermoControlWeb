@@ -5,8 +5,10 @@ python:
 services:
   - docker
 install:
+  - pip install -r requirements.txt
   - docker build -t dcs .
   - docker run -d -p 8000:5000 --name dcs dcs
 
 script:
+  - python tests.py
   - docker ps | grep -q dcs

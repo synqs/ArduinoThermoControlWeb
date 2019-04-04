@@ -1,12 +1,15 @@
 import serial
 import eventlet
 from datetime import datetime
+#from app.main.models import User
+
 from app import db, socketio
 import time
 import requests
 from requests.exceptions import ConnectionError
 from flask import current_app
 import os
+
 
 workers = [];
 serials = [];
@@ -54,6 +57,7 @@ def do_work(id, app):
                 socketio.emit('log_response',
                 {'data': error_str, 'count': unit_of_work})
 
+                socketio.emit('close_conn',{'data': tc.conn_str()});
                 # important to use eventlet's sleep method
 
             eventlet.sleep(sleeptime)
@@ -119,8 +123,8 @@ def do_web_work(id, app):
 class DeviceClass(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True);
-    thread_id = db.Column(db.BigInteger, unique=True);
     thread_str = db.Column(db.String(120));
+    thread_id = db.Column(db.BigInteger, unique=True);
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
@@ -206,6 +210,12 @@ class TempControl(DeviceClass):
 
     def temp_field_str(self):
         return 'read_tc' + str(self.id);
+
+    def conn_str(self):
+        return 'conn_tc' + str(self.id);
+
+    def startstop_str(self):
+        return 'startstop_tc' + str(self.id);
 
     def get_current_temp_value(self):
         vals = self.ard_str.split(',');
@@ -323,6 +333,7 @@ class TempControl(DeviceClass):
 class WebTempControl(DeviceClass):
     ip_adress = db.Column(db.String(64));
     port = db.Column(db.String(64));
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
 
     setpoint = db.Column(db.Float);
     gain = db.Column(db.Float);
@@ -341,6 +352,12 @@ class WebTempControl(DeviceClass):
 
     def temp_field_str(self):
         return 'read_wtc' + str(self.id);
+
+    def conn_str(self):
+        return 'conn_wtc' + str(self.id);
+
+    def startstop_str(self):
+        return 'startstop_wtc' + str(self.id);
 
     def connection_open(self):
         '''
