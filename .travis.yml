@@ -9,4 +9,5 @@ install:
   - docker run -d -p 8000:5000 --name dcs dcs
 
 script:
+  - python tests.py
   - docker ps | grep -q dcs
