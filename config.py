@@ -31,5 +31,6 @@ class TestConfig(Config):
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'data-test.db')
+        'sqlite:///' + os.path.join(basedir, 'data-test.db');
+    WTF_CSRF_ENABLED = False;
     #LOGIN_DISABLED = True

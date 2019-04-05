@@ -2,15 +2,16 @@ import unittest
 from app import db, create_app
 from config import TestConfig
 from app.main.models import User
+import re
 
 class ClientTestCase(unittest.TestCase):
     def setUp(self):
         self.socketio, self.app = create_app(TestConfig)
-        self.client = self.app.test_client()
 
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
+        self.client = self.app.test_client(use_cookies=True)
 
     def tearDown(self):
         db.session.remove()
@@ -28,8 +29,28 @@ class ClientTestCase(unittest.TestCase):
         user.set_password('cat')
         self.assertFalse(user.check_password('dog'))
         self.assertTrue(user.check_password('cat'))
-        db.session.add(user)
-        db.session.commit()
 
-if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    def test_register_and_login(self):
+        # register a new account
+        response = self.client.post('/register', data={
+            'email': 'john@example.com',
+            'username': 'john',
+            'password': 'cat',
+            'password2': 'cat'
+        })
+        self.assertEqual(response.status_code, 302)
+
+        # login with the new account
+        response = self.client.post('/login', data={
+            'username': 'john',
+            'password': 'cat'
+        }, follow_redirects=True)
+        self.assertEqual(response.status_code, 200);
+        print(response.get_data(as_text=True))
+        self.assertTrue(re.search('Logout',
+                                  response.get_data(as_text=True)))
+
+        # log out
+        response = self.client.get('/logout', follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('Login' in response.get_data(as_text=True))
