@@ -1,8 +1,8 @@
 {% extends "single_base.html" %}
 
 {% block overview %}
+  <h1> Parameters</h1>
   {% if device_type == 'serial_tc' %}
-  <h1> Change parameters</h1>
   <table class="table" id ="arduino overview">
     <thead>
     <tr>
@@ -35,7 +35,11 @@
         <td scope="col">{{ ard.diff }}</td>
         <td>
         {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          {% if is_log %}
+          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
+          {% else %}
+            <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details', ard_nr = ard.id)}}">Log</a>
+          {% endif %}
           <a class='btn btn-default' href="{{url_for('thermocontrol.stop', ard_nr = ard.id)}}">Stop</a>
         {% else %}
         <a class='btn btn-default' href="{{url_for('thermocontrol.start_tc', ard_nr = ard.id)}}">Start</a>
@@ -48,7 +52,6 @@
   {% endif %}
 
   {% if device_type == 'web_tc' %}
-  <h1> Change parameters</h1>
   <table class="table" id ="arduino overview">
     <thead>
     <tr>
@@ -83,7 +86,11 @@
         <td scope="col">{{ ard.diff }}</td>
         <td>
         {% if ard.connection_open() %}
-          <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+          {% if is_log %}
+            <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.change_wtc', ard_nr = ard.id)}}">Settings</a>
+          {% else %}
+            <a class='btn btn-default' target="_blank" href="{{url_for('thermocontrol.details_wtc', ard_nr = ard.id)}}">Log</a>
+          {% endif %}
           <a class='btn btn-default' href="{{url_for('thermocontrol.stop_wtc', ard_nr = ard.id)}}">Stop</a>
         {% else %}
         <a class='btn btn-default' href="{{url_for('thermocontrol.start_wtc', ard_nr = ard.id)}}">Start</a>

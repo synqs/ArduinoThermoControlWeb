@@ -419,14 +419,12 @@ class WebTempControl(DeviceClass):
         start to listen to the serial port of the Arduino
         """
         # test if everything is open
-        print('Start')
         if not self.is_open():
             print('No connection');
             return
 
         # configure the arduino
 
-        print('setpoint')
         if self.setpoint:
             self.set_setpoint();
         time.sleep(0.2);

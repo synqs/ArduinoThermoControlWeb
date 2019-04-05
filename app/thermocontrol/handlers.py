@@ -22,7 +22,8 @@ def details(ard_nr):
         flash('No tempcontrols installed', 'error')
         return redirect(url_for('thermocontrol.add_tempcontrol'));
 
-    return render_template('details.html', ard=arduino, device_type=device_type);
+    return render_template('details.html', ard=arduino,
+        device_type=device_type, is_log = True);
 
 @bp.route('/details_wtc/<int:ard_nr>', methods=['GET', 'POST'])
 @login_required
@@ -43,7 +44,8 @@ def details_wtc(ard_nr):
         flash('Access denied', 'error')
         return redirect(url_for('main.index'));
 
-    return render_template('details.html', ard=arduino, device_type=device_type);
+    return render_template('details.html', ard=arduino,
+        device_type=device_type, is_log = True);
 
 @bp.route('/add_tempcontrol', methods=['GET', 'POST'])
 def add_tempcontrol():
@@ -238,12 +240,8 @@ def update_wtc():
     if uform.validate_on_submit():
         ip_adress =  uform.ip_adress.data;
         port =  uform.port.data;
-        print(arduino.is_alive())
-        print(arduino.is_open())
         if arduino.connection_open():
-            print('stop it.')
             arduino.stop();
-        print('Update it.')
         arduino.ip_adress = ip_adress;
         arduino.port = port;
         db.session.commit();

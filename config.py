@@ -10,9 +10,6 @@ class Config(object):
     SERIAL_PORT = '/dev/cu.usbmodem1421'
     SERIAL_TIME = 3;
 
-    # config of the hdf5 file exchange
-    REMOTE_FILE = 'Test'
-
     # config of the camera stuff
     CAMERA_FOLDER = basedir
 
@@ -24,7 +21,16 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['sopa.uhd@gmail.com']
 
+class ProductionConfig(Config):
     # the database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+class TestConfig(Config):
+    TESTING = True
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'data-test.db');
+    WTF_CSRF_ENABLED = False;
+    #LOGIN_DISABLED = True
