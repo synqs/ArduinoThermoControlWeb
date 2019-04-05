@@ -240,12 +240,8 @@ def update_wtc():
     if uform.validate_on_submit():
         ip_adress =  uform.ip_adress.data;
         port =  uform.port.data;
-        print(arduino.is_alive())
-        print(arduino.is_open())
         if arduino.connection_open():
-            print('stop it.')
             arduino.stop();
-        print('Update it.')
         arduino.ip_adress = ip_adress;
         arduino.port = port;
         db.session.commit();

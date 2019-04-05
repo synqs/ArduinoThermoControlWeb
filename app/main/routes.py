@@ -20,7 +20,6 @@ def index():
     The main function for rendering the principal site.
     '''
     if current_user.is_authenticated:
-        print(current_user.id)
         wtcontrols = WebTempControl.query.filter_by(user_id = current_user.id).all();
         n_wtcs = WebTempControl.query.filter_by(user_id = current_user.id).count();
     else:
