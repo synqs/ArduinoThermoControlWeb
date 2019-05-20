@@ -46,7 +46,6 @@ class ClientTestCase(unittest.TestCase):
             'password': 'cat'
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200);
-
         self.assertTrue(re.search('Logout',
                                   response.get_data(as_text=True)))
 
@@ -63,3 +62,4 @@ class ClientTestCase(unittest.TestCase):
             'password2': 'cat'
         })
         self.assertEqual(response.status_code, 200)
+
