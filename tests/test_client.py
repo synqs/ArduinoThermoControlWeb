@@ -46,7 +46,6 @@ class ClientTestCase(unittest.TestCase):
             'password': 'cat'
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200);
-        print(response.get_data(as_text=True))
         self.assertTrue(re.search('Logout',
                                   response.get_data(as_text=True)))
 
@@ -54,3 +53,13 @@ class ClientTestCase(unittest.TestCase):
         response = self.client.get('/logout', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue('Login' in response.get_data(as_text=True))
+
+        # test double registering
+        response = self.client.post('/register', data={
+            'email': 'john@example.com',
+            'username': 'john',
+            'password': 'cat',
+            'password2': 'cat'
+        })
+        self.assertEqual(response.status_code, 200)
+
