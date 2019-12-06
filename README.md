@@ -11,13 +11,11 @@ A flask server that should simplify the logging of our experimental components. 
 - The data can be exported to csv.
 - PID values can be set from the interface.
 
-If you would like to give it a simple test drive, you can access the current build on heroku through:
-
-https://devicecontrolserver.herokuapp.com/
+If you would like to give it a simple test drive, you can access the current build  [on heroku](https://devicecontrolserver.herokuapp.com/).
 
 On the technical side we use the following ingredients:
 
-- Communication is done through ethernet, so we assume an Arduino Yun or something.
+- Communication is done through ethernet, so we assume an Arduino Yun or something. The code is really mainly tested with the [Yun program here](https://github.com/synqs/YunTemp) or in the ArduinoPrograms folder.
 - Communication is still possible with a serial interface. Most likely this will be phased out at some point.
 - Updates on the client are done through flask_socketio.
 - The layout is made nice through flask_bootstrap.
@@ -25,7 +23,7 @@ On the technical side we use the following ingredients:
 
 The project serves as a boilerplate for our other sensors too.
 
-Further, we will most likely not install saving of the data on the server as this would make the whole thing MUCH more complicated (where and who to store the data. Which data should we show etc.)
+Further, we will most likely _never_ install saving of the data on the server as this would make the whole thing MUCH more complicated (where and who to store the data. Which data should we show etc.). A better approach will be to use the devices directly from within BLACS of the labscriptsuite ...
 
 # Installation
 
