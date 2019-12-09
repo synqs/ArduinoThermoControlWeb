@@ -3,13 +3,12 @@ import eventlet
 from datetime import datetime
 #from app.main.models import User
 
-from app import db, socketio
+from app import db, socketio, ma
 import time
 import requests
 from requests.exceptions import ConnectionError
 from flask import current_app
 import os
-
 
 workers = [];
 serials = [];
@@ -137,6 +136,7 @@ class TempControl(DeviceClass):
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
+    value = db.Column(db.Float);
 
     def __repr__(self):
         ret_str = '<TempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
@@ -339,7 +339,10 @@ class WebTempControl(DeviceClass):
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
+    value = db.Column(db.Float);
+
     timeout = 5;
+
     def __repr__(self):
         ret_str = '<WebTempControl {}'.format(self.name) + ', sleeptime {}>'.format(self.sleeptime)
         return ret_str
@@ -357,7 +360,7 @@ class WebTempControl(DeviceClass):
         return 'conn_wtc' + str(self.id);
 
     def startstop_str(self):
-        return 'startstop_wtc' + str(self.id);
+        return 'start' + str(self.id);
 
     def connection_open(self):
         '''
@@ -410,9 +413,23 @@ class WebTempControl(DeviceClass):
         html_text = r.text;
         lines = html_text.split('<br />');
         self.ard_str = lines[1];
+
+        vals = self.ard_str.split(',');
+        if len(vals)>=2:
+            self.value = vals[1]
+        else:
+            self.value = 0
+
         db.session.commit();
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
+
+    def temp_value(self):
+        vals = self.ard_str.split(',');
+        if len(vals)>=2:
+            return vals[1]
+        else:
+            return 0
 
     def start(self):
         """
@@ -512,3 +529,10 @@ class WebTempControl(DeviceClass):
             return r.ok;
         except ConnectionError:
             return False
+
+class WtcSchema(ma.ModelSchema):
+    class Meta:
+        model = WebTempControl
+
+wtc_schema = WtcSchema()
+wtcs_schema = WtcSchema(many=True)

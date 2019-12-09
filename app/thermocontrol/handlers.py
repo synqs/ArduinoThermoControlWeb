@@ -1,13 +1,13 @@
 from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm, WebConnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import TempControl, WebTempControl
+from app.thermocontrol.models import TempControl, WebTempControl, wtc_schema, wtcs_schema
 from app.thermocontrol.utils import start_helper, get_wtc_forms, get_wtc_forms_wo_id
 from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
 from app import socketio, db
 
-from flask import render_template, flash, redirect, url_for, session
+from flask import render_template, flash, redirect, url_for, session, jsonify
 from flask_login import login_required, current_user
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
@@ -144,7 +144,7 @@ def stop(ard_nr):
     socketio.emit('close_conn',{'data': tc.conn_str()})
     return redirect(url_for('main.index'))
 
-@bp.route('/stop_wtc>/<int:ard_nr>')
+@bp.route('/stop_wtc/<int:ard_nr>')
 @login_required
 def stop_wtc(ard_nr):
     '''
@@ -196,6 +196,28 @@ def change_wtc(ard_nr):
     return render_template('change_arduino.html',
         form=uform, dform = dform, sform = sform, gform = gform, iform = iform,
         diff_form = diff_form, wform = wform, ard=arduino, device_type=device_type);
+
+@bp.route('/read_wtc/<int:ard_nr>')
+def read_wtc(ard_nr):
+    '''
+    Read the properties of the arduino.
+    '''
+    arduino = WebTempControl.query.get(ard_nr);
+    return jsonify({
+        'status': 'success',
+        'wtc':wtc_schema.dump(arduino)
+        })
+
+@bp.route('/read_wtcs/')
+def read_wtcs():
+    '''
+    Read the properties of the arduino.
+    '''
+    wtcs = WebTempControl.query.all();
+    return jsonify({
+        'status': 'success',
+        'wtcs': wtcs_schema.dump(wtcs)
+        })
 
 @bp.route('/update_tc', methods=['POST'])
 def update_tc():
@@ -524,6 +546,10 @@ def diff_wtc():
         return render_template('change_arduino.html', form=uform, dform = dform,
             sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
+
+
+
+
 
 @bp.route('/save_tc/<filestring>')
 def file(filestring):

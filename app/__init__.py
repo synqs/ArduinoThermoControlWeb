@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
+from flask_marshmallow import Marshmallow
+
 import eventlet
 
 import logging
@@ -19,6 +21,7 @@ db = SQLAlchemy();
 migrate = Migrate();
 socketio = SocketIO();
 login = LoginManager();
+ma = Marshmallow();
 
 def create_app(config_class=ProductionConfig):
     app = Flask(__name__)
@@ -32,6 +35,7 @@ def create_app(config_class=ProductionConfig):
     db.init_app(app);
     migrate.init_app(app, db);
     socketio.init_app(app, async_mode='eventlet');
+    ma.init_app(app);
 
     # import all the components of the app
 
