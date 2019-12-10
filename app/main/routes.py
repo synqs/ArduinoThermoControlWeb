@@ -4,7 +4,7 @@ from app.main import bp
 from app.main.forms import LoginForm, RegistrationForm
 from app.main.models import User
 
-from app.thermocontrol.models import TempControl, WebTempControl, wtcs_schema
+from app.thermocontrol.models import  WebTempControl, wtcs_schema
 from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
@@ -26,10 +26,6 @@ def index():
     else:
         wtcontrols = WebTempControl.query.all();
         n_wtcs = WebTempControl.query.count();
-
-    tcontrols = TempControl.query.all();
-    n_tcs = len(tcontrols);
-
 
     smonitors = ArduinoSerial.query.all();
     n_sm = len(smonitors);

@@ -1,7 +1,7 @@
 from app.thermocontrol import bp
 from app.thermocontrol.forms import ConnectForm, UpdateForm, SerialWaitForm, DisconnectForm, WebConnectForm
 from app.thermocontrol.forms import UpdateSetpointForm, UpdateGainForm, UpdateIntegralForm, UpdateDifferentialForm
-from app.thermocontrol.models import TempControl, WebTempControl, wtc_schema, wtcs_schema
+from app.thermocontrol.models import WebTempControl, wtc_schema, wtcs_schema
 from app.thermocontrol.utils import start_helper, get_wtc_forms, get_wtc_forms_wo_id
 from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
@@ -37,8 +37,8 @@ def single_wtc(ard_nr):
         post_data = request.get_json();
         print(post_data)
         arduino = WebTempControl.query.get(ard_nr);
-        arduino.name = post_data['name'];
-
+        for key in post_data.keys():
+            setattr(arduino, key, post_data[key]);
         db.session.commit();
         response_object['message'] = 'Book updated!'
     return jsonify(response_object)

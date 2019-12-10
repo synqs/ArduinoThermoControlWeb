@@ -21,8 +21,7 @@ Vue.component('wtc-widget', {
   <td>{{ wtc.setpoint }}</td>
   <td > {{ wtc.value }}</td>
   <td>
-  <button type="button" class="btn btn-warning" v-on:click="edit_wtc">Settings</button>
-  <a class='btn btn-light' :href="settings_url">Settings</a>
+  <button type="button" class="btn btn-light" v-on:click="edit_wtc">Settings</button>
   <a class='btn btn-light' target="_blank" :href="log_url">Log</a>
   <a class='btn btn-light' :href="stop_url" v-if="wtc.switch">Stop</a>
   <a class='btn btn-light' :href="start_url" v-else>Start</a>
@@ -100,7 +99,14 @@ Vue.component('wtc-widget', {
     onSubmitUpdate: function () {
       this.showEditModal = !this.showEditModal;
       const payload = {
-        name: this.editForm.name
+        name: this.editForm.name,
+        ip_adress: this.editForm.ip_adress,
+        port: this.editForm.port,
+        sleeptime: this.editForm.sleeptime,
+        setpoint: this.editForm.setpoint,
+        gain: this.editForm.gain,
+        integral: this.editForm.integral,
+        diff: this.editForm.diff
       };
       console.log(payload)
       const path = '/wtc/' + this.wtc.id;
