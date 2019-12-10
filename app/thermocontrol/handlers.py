@@ -7,8 +7,41 @@ from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
 from app import socketio, db
 
-from flask import render_template, flash, redirect, url_for, session, jsonify
+from flask import render_template, flash, redirect, url_for, session, jsonify, request
 from flask_login import login_required, current_user
+
+
+@bp.route('/wtc/')
+@login_required
+def all_wtcs():
+    '''
+    Read the properties of the arduino.
+    '''
+    wtcs = WebTempControl.query.all();
+    return jsonify({
+        'status': 'success',
+        'wtcs': wtcs_schema.dump(wtcs)
+        })
+
+@bp.route('/wtc/<int:ard_nr>', methods=['GET', 'PUT'])
+@login_required
+def single_wtc(ard_nr):
+    '''
+    Read the properties of the arduino.
+    '''
+    response_object = {'status': 'success'}
+    if request.method == 'GET':
+        arduino = WebTempControl.query.get(ard_nr);
+        return jsonify({'status': 'success', 'wtc':wtc_schema.dump(arduino)});
+    elif request.method == 'PUT':
+        post_data = request.get_json();
+        print(post_data)
+        arduino = WebTempControl.query.get(ard_nr);
+        arduino.name = post_data['name'];
+
+        db.session.commit();
+        response_object['message'] = 'Book updated!'
+    return jsonify(response_object)
 
 @bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
 def details(ard_nr):
@@ -47,28 +80,6 @@ def details_wtc(ard_nr):
     return render_template('details.html', ard=arduino,
         device_type=device_type, is_log = True);
 
-@bp.route('/add_tempcontrol', methods=['GET', 'POST'])
-def add_tempcontrol():
-    '''
-    Add an arduino to the set up
-    '''
-    cform = ConnectForm();
-
-    device_type = 'serial_tc';
-    if cform.validate_on_submit():
-        n_port =  cform.serial_port.data;
-        name = cform.name.data;
-        tc = TempControl(name=name, serial_port = n_port, sleeptime=3);
-        db.session.add(tc);
-        db.session.commit();
-        flash('We added a new arduino {}'.format(name))
-        return redirect(url_for('main.index'))
-
-    tempcontrols = TempControl.query.all();
-    n_ards = len(tempcontrols)
-    return render_template('add_arduino.html', cform = cform, n_ards=n_ards,
-    device_type = device_type);
-
 @bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
 @login_required
 def add_webtempcontrol():
@@ -95,16 +106,6 @@ def add_webtempcontrol():
     n_ards = len(tempcontrols)
     return render_template('add_webarduino.html', cform = cform, n_ards=n_ards,
     device_type = device_type);
-
-
-@bp.route('/remove/<int:ard_nr>')
-def remove(ard_nr):
-    tc = TempControl.query.get(ard_nr);
-    db.session.delete(tc)
-    db.session.commit()
-
-    flash('Removed the temperature control # {}.'.format(ard_nr));
-    return redirect(url_for('main.index'))
 
 @bp.route('/remove_wtc/<int:ard_nr>')
 @login_required
@@ -196,57 +197,6 @@ def change_wtc(ard_nr):
     return render_template('change_arduino.html',
         form=uform, dform = dform, sform = sform, gform = gform, iform = iform,
         diff_form = diff_form, wform = wform, ard=arduino, device_type=device_type);
-
-@bp.route('/read_wtc/<int:ard_nr>')
-def read_wtc(ard_nr):
-    '''
-    Read the properties of the arduino.
-    '''
-    arduino = WebTempControl.query.get(ard_nr);
-    return jsonify({
-        'status': 'success',
-        'wtc':wtc_schema.dump(arduino)
-        })
-
-@bp.route('/read_wtcs/')
-def read_wtcs():
-    '''
-    Read the properties of the arduino.
-    '''
-    wtcs = WebTempControl.query.all();
-    return jsonify({
-        'status': 'success',
-        'wtcs': wtcs_schema.dump(wtcs)
-        })
-
-@bp.route('/update_tc', methods=['POST'])
-def update_tc():
-    '''
-    Update the serial port.
-    '''
-    uform, sform, gform, iform, diff_form, wform, dform = get_tc_forms_wo_id();
-
-    id = int(uform.id.data);
-    arduino = TempControl.query.get(id);
-
-    if uform.validate_on_submit():
-        n_port =  uform.serial_port.data;
-        try:
-            if arduino.connection_open():
-                arduino.stop();
-            arduino.update_serial(n_port);
-            if arduino.is_open():
-                flash('We updated the serial to {}'.format(n_port))
-            else:
-                flash('Update of the serial port went wrong.', 'error')
-        except Exception as e:
-             flash('{}'.format(e), 'error')
-        return redirect(url_for('thermocontrol.change_arduino', ard_nr = id))
-    else:
-
-        return render_template('change_arduino.html', form=uform, dform = dform,
-            sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/update_wtc', methods=['POST'])
 @login_required
