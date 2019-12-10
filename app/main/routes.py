@@ -82,7 +82,3 @@ def run_connect():
     Arduino already has a serial connection
     '''
     socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('my_ping')
-def ping_pong():
-    emit('my_pong')
