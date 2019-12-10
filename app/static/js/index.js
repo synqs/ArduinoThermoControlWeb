@@ -117,45 +117,6 @@ $(document).ready(function() {
     socket.emit('my_response', {data: 'I\'m connected!'});
   });
 
-  // Event handler for server sent data.
-  socket.on('my_response', function(msg) {
-    $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-  });
-
-  socket.on('close_conn', function(msg) {
-    var el_name = '#' + msg.data;
-    $(el_name).html('Closed');
-    $(el_name).attr("class","bg-warning")
-  });
-
-  socket.on('open_conn', function(msg) {
-    var el_name = '#' + msg.data;
-    var button_name = '#' + msg.data;
-    $(el_name).html('Open');
-    $(el_name).attr("class","bg-success")
-  });
-
-  socket.on('wtemp_value', function(msg) {
-    var temp = msg.data;
-    var id = msg.id;
-    var el_name = '#read_wtc' + msg.id;
-    $(el_name).html(temp);
-  });
-
-  socket.on('temp_value', function(msg) {
-    var temp = msg.data;
-    var id = msg.id;
-    var el_name = '#read_tc' + msg.id;
-    $(el_name).html(temp);
-  });
-
-  socket.on('serial_value', function(msg) {
-    var temp = msg.data;
-    var id = msg.id;
-    var el_name = '#read_sm' + msg.id;
-    $(el_name).html(temp);
-  });
-
   socket.on('camera_response', function(msg) {
     var Natoms = msg.Nat;
     var id = msg.id;
