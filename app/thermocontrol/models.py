@@ -13,58 +13,6 @@ import os
 workers = [];
 serials = [];
 
-def do_work(id, app):
-    """
-    do work and emit message
-    """
-    with app.app_context():
-        tc = TempControl.query.get(int(id));
-        if not tc.sleeptime:
-            sleeptime = 3;
-        else:
-            sleeptime = tc.sleeptime;
-
-        unit_of_work = 0;
-        while tc.switch:
-            unit_of_work += 1
-            # must call emit from the socketio
-            # must specify the namespace
-
-            if tc.is_open():
-                try:
-                    timestamp, ard_str = tc.pull_data()
-                    vals = ard_str.split(',');
-                    if len(vals)>=2:
-                        socketio.emit('temp_value',
-                            {'data': vals[1], 'id': id})
-
-                    socketio.emit('log_response',
-                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                        'id': id})
-                except Exception as e:
-                    print('{}'.format(e))
-                    socketio.emit('my_response',
-                    {'data': '{}'.format(e), 'count': unit_of_work})
-                    tc.switch = False
-                    db.session.commit()
-            else:
-                print('Serial closed')
-                tc.switch = False
-                db.session.commit()
-                # TODO: Make this a link
-                error_str = 'Port closed. please configure one properly under config.'
-                socketio.emit('log_response',
-                {'data': error_str, 'count': unit_of_work})
-
-                socketio.emit('close_conn',{'data': tc.conn_str()});
-                # important to use eventlet's sleep method
-
-            eventlet.sleep(sleeptime)
-            tc = TempControl.query.get(int(id));
-            sleeptime = tc.sleeptime;
-        else:
-            print('Closing down the worker in a controlled way.')
-
 def do_web_work(id, app):
     """
     do work and emit message
@@ -78,6 +26,7 @@ def do_web_work(id, app):
 
         unit_of_work = 0;
         while tc.switch:
+            print('Start our work.')
             unit_of_work += 1
             # must call emit from the socketio
             # must specify the namespace
@@ -93,6 +42,7 @@ def do_web_work(id, app):
                         socketio.emit('wtemp_value',
                             {'data': vals[1], 'id': id})
 
+                    print('Emit the response.')
                     socketio.emit('wlog_response',
                     {'time':timestamp, 'data': vals, 'count': unit_of_work,
                         'id': id})
