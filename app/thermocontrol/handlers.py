@@ -10,7 +10,6 @@ from app import socketio, db
 from flask import render_template, flash, redirect, url_for, session, jsonify, request
 from flask_login import login_required, current_user
 
-
 @bp.route('/wtc/')
 @login_required
 def all_wtcs():
@@ -29,34 +28,18 @@ def single_wtc(ard_nr):
     '''
     Read the properties of the arduino.
     '''
-    response_object = {'status': 'success'}
+    response_object = {'status': 'success'};
     if request.method == 'GET':
         arduino = WebTempControl.query.get(ard_nr);
         return jsonify({'status': 'success', 'wtc':wtc_schema.dump(arduino)});
     elif request.method == 'PUT':
         post_data = request.get_json();
-        print(post_data)
         arduino = WebTempControl.query.get(ard_nr);
         for key in post_data.keys():
             setattr(arduino, key, post_data[key]);
-        db.session.commit();
-        response_object['message'] = 'Book updated!'
-    return jsonify(response_object)
-
-@bp.route('/details/<int:ard_nr>', methods=['GET', 'POST'])
-def details(ard_nr):
-    '''
-    The main function for rendering the principal site.
-    '''
-    arduino = TempControl.query.get(ard_nr);
-    device_type = 'serial_tc';
-
-    if not arduino:
-        flash('No tempcontrols installed', 'error')
-        return redirect(url_for('thermocontrol.add_tempcontrol'));
-
-    return render_template('details.html', ard=arduino,
-        device_type=device_type, is_log = True);
+        arduino.set_setpoint();
+        response_object['message'] = 'Arduino updated!'
+    return jsonify(response_object);
 
 @bp.route('/details_wtc/<int:ard_nr>', methods=['GET', 'POST'])
 @login_required
@@ -116,14 +99,6 @@ def remove_wtc(ard_nr):
 
     flash('Removed the web temperature control # {}.'.format(ard_nr));
     return redirect(url_for('main.index'))
-
-@bp.route('/start_tc/<int:ard_nr>')
-def start_tc(ard_nr):
-    '''
-    The main function for rendering the principal site.
-    '''
-    tc = TempControl.query.get(ard_nr);
-    return start_helper(tc);
 
 @bp.route('/start_wtc/<int:ard_nr>')
 @login_required
