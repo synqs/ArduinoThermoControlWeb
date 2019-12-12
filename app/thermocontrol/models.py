@@ -69,17 +69,14 @@ def do_web_work(id, app):
         else:
             print('Closing down the worker in a controlled way.')
 
-class DeviceClass(db.Model):
-    __abstract__ = True
+class WebTempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True);
-    thread_str = db.Column(db.String(120));
-    thread_id = db.Column(db.BigInteger, unique=True);
+
     switch = db.Column(db.Boolean);
     name = db.Column(db.String(64));
     ard_str = db.Column(db.String(120));
     sleeptime = db.Column(db.Float);
 
-class WebTempControl(DeviceClass):
     ip_adress = db.Column(db.String(64));
     port = db.Column(db.String(64));
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
@@ -173,12 +170,42 @@ class WebTempControl(DeviceClass):
         timestamp = datetime.now().replace(microsecond=0).isoformat();
         return timestamp, self.ard_str
 
+    def pull_arduino(self):
+        '''
+        Pulling the actual data from the arduino.
+        '''
+        try:
+            proxies = {
+            'http': None,
+            'https': None,
+            }
+            r = requests.get(self.temp_http_str(), timeout =self.timeout, proxies=proxies);
+        except ConnectionError:
+            print('No connection');
+            return 0, 0
+        html_text = r.text;
+        lines = html_text.split('<br />');
+        self.ard_str = lines[1];
+
+        vals = self.ard_str.split(',');
+        if len(vals)==7:
+            self.setpoint = vals[0];
+            self.value = vals[1];
+            self.error = vals[2];
+            self.output = vals[3];
+            self.gain = vals[4];
+            self.integral = vals[5];
+            self.diff = vals[6];
+            self.timestamp = datetime.now().replace(microsecond=0).isoformat();
+            db.session.commit();
+
     def temp_value(self):
         vals = self.ard_str.split(',');
         if len(vals)>=2:
             return vals[1]
         else:
             return 0
+
 
     def start(self):
         """
@@ -229,12 +256,14 @@ class WebTempControl(DeviceClass):
     def set_setpoint(self):
         try:
             set_str = '/arduino/write/setpoint/' + str(self.setpoint) + '/';
+            print(set_str);
             addr = self.http_str() + set_str;
             proxies = {
                 'http': None,
                 'https': None,
                 }
             r = requests.get(addr, timeout =self.timeout,proxies=proxies);
+            print(r)
             return r.ok;
         except ConnectionError:
             return False

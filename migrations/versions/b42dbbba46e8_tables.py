@@ -1,8 +1,8 @@
-"""reinvent the database
+"""tables
 
-Revision ID: 033a8956f10e
+Revision ID: b42dbbba46e8
 Revises: 
-Create Date: 2019-12-09 23:54:46.157609
+Create Date: 2019-12-12 15:42:01.720542
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '033a8956f10e'
+revision = 'b42dbbba46e8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -44,23 +44,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('thread_id')
     )
-    op.create_table('temp_control',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('thread_str', sa.String(length=120), nullable=True),
-    sa.Column('thread_id', sa.BigInteger(), nullable=True),
-    sa.Column('switch', sa.Boolean(), nullable=True),
-    sa.Column('name', sa.String(length=64), nullable=True),
-    sa.Column('ard_str', sa.String(length=120), nullable=True),
-    sa.Column('sleeptime', sa.Float(), nullable=True),
-    sa.Column('serial_port', sa.String(length=64), nullable=True),
-    sa.Column('setpoint', sa.Float(), nullable=True),
-    sa.Column('gain', sa.Float(), nullable=True),
-    sa.Column('integral', sa.Float(), nullable=True),
-    sa.Column('diff', sa.Float(), nullable=True),
-    sa.Column('value', sa.Float(), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('thread_id')
-    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=64), nullable=True),
@@ -72,8 +55,6 @@ def upgrade():
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
     op.create_table('web_temp_control',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('thread_str', sa.String(length=120), nullable=True),
-    sa.Column('thread_id', sa.BigInteger(), nullable=True),
     sa.Column('switch', sa.Boolean(), nullable=True),
     sa.Column('name', sa.String(length=64), nullable=True),
     sa.Column('ard_str', sa.String(length=120), nullable=True),
@@ -87,8 +68,7 @@ def upgrade():
     sa.Column('diff', sa.Float(), nullable=True),
     sa.Column('value', sa.Float(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('thread_id')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 
@@ -99,7 +79,6 @@ def downgrade():
     op.drop_index(op.f('ix_user_username'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
-    op.drop_table('temp_control')
     op.drop_table('camera')
     op.drop_table('arduino_serial')
     # ### end Alembic commands ###

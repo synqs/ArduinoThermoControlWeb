@@ -31,13 +31,22 @@ def single_wtc(ard_nr):
     response_object = {'status': 'success'};
     if request.method == 'GET':
         arduino = WebTempControl.query.get(ard_nr);
+        arduino.pull_arduino();
         return jsonify({'status': 'success', 'wtc':wtc_schema.dump(arduino)});
     elif request.method == 'PUT':
         post_data = request.get_json();
         arduino = WebTempControl.query.get(ard_nr);
+        success = True;
         for key in post_data.keys():
-            setattr(arduino, key, post_data[key]);
-        arduino.set_setpoint();
+            if key == 'setpoint':
+                print('set setpoint');
+                setattr(arduino, key, post_data[key]);
+                success = arduino.set_setpoint();
+                print(success);
+            else:
+                setattr(arduino, key, post_data[key]);
+        if success:
+            db.session.commit();
         response_object['message'] = 'Arduino updated!'
     return jsonify(response_object);
 
