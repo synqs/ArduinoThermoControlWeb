@@ -201,14 +201,14 @@ Vue.component('wtc-props', {
   <tbody>
   <tr >
     <td >{{wtc.ard_str}}</td>
-    <td >Date</td>
-    <td >Setpoint</td>
-    <td >Input</td>
-    <td >Error</td>
-    <td >Output</td>
-    <td >Gain</td>
-    <td >tauI</td>
-    <td >tauD</td>
+    <td >{{wtc.timestamp}}</td>
+    <td >{{wtc.setpoint}}</td>
+    <td >{{wtc.value }}</td>
+    <td >{{wtc.error}}</td>
+    <td >{{wtc.output}}</td>
+    <td >{{wtc.gain}}</td>
+    <td >{{wtc.integral}}</td>
+    <td >{{wtc.diff}}</td>
   </tr>
   </tbody>
   </table>
@@ -250,23 +250,6 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
   // Event handler for new connections.
-  socket.on('connect', function() {
-    socket.emit('my_response', {data: 'I\'m connected!'});
-  });
-
-  socket.on('close_conn', function(msg) {
-    var el_name = '#' + msg.data;
-    console.log(el_name)
-    $(el_name).html('Closed');
-    $(el_name).attr("class","bg-warning")
-  });
-
-  socket.on('open_conn', function(msg) {
-    var el_name = '#' + msg.data;
-    console.log(el_name)
-    $(el_name).html('Open');
-    $(el_name).attr("class","bg-success")
-  });
 
   // Event handler for server sent data.
   socket.on('my_response', function(msg) {

@@ -39,10 +39,8 @@ def single_wtc(ard_nr):
         success = True;
         for key in post_data.keys():
             if key == 'setpoint':
-                print('set setpoint');
-                setattr(arduino, key, post_data[key]);
+                setattr(arduino, key, float(post_data[key]));
                 success = arduino.set_setpoint();
-                print(success);
             else:
                 setattr(arduino, key, post_data[key]);
         if success:
@@ -68,7 +66,7 @@ def details_wtc(ard_nr):
     if not current_user.id == arduino.user_id:
         flash('Access denied', 'error')
         return redirect(url_for('main.index'));
-
+    print(arduino.id)
     return render_template('details.html', ard=arduino,
         device_type=device_type, is_log = True);
 
@@ -174,32 +172,6 @@ def wait_wtc():
     else:
         return render_template('change_arduino.html', form=uform, dform = dform,
             cform = cform,  sform = sform, gform = gform, iform = iform,
-            diff_form = diff_form, wform = wform, ard=arduino);
-
-
-@bp.route('/setpoint_wtc', methods=['POST'])
-@login_required
-def setpoint_wtc():
-    '''
-    Configure now settings for the arduino.
-    '''
-    uform, sform, gform, iform, diff_form, wform, dform = get_wtc_forms_wo_id();
-
-    id = int(sform.id.data);
-    arduino = WebTempControl.query.get(id);
-
-    if sform.validate_on_submit():
-        arduino.setpoint = sform.setpoint.data;
-        db.session.commit();
-        success = arduino.set_setpoint();
-        if success:
-            flash('We set the setpoint to {}'.format(sform.setpoint.data))
-        else:
-            flash('Setpoint not updated.', 'error')
-        return redirect(url_for('thermocontrol.change_wtc', ard_nr = id))
-    else:
-        return render_template('change_arduino.html', form=uform, dform = dform,
-            sform = sform, gform = gform, iform = iform,
             diff_form = diff_form, wform = wform, ard=arduino);
 
 @bp.route('/gain_wtc', methods=['POST'])

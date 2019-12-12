@@ -10,65 +10,6 @@ from requests.exceptions import ConnectionError
 from flask import current_app
 import os
 
-workers = [];
-serials = [];
-
-def do_web_work(id, app):
-    """
-    do work and emit message
-    """
-    with app.app_context():
-        tc = WebTempControl.query.get(int(id));
-        if not tc.sleeptime:
-            sleeptime = 3;
-        else:
-            sleeptime = tc.sleeptime;
-
-        unit_of_work = 0;
-        while tc.switch:
-            print('Start our work.')
-            unit_of_work += 1
-            # must call emit from the socketio
-            # must specify the namespace
-
-            if tc.is_open():
-                try:
-                    timestamp, ard_str = tc.pull_data()
-                    if timestamp:
-                        vals = ard_str.split(',');
-                    else:
-                        vals =[];
-                    if len(vals)>=2:
-                        socketio.emit('wtemp_value',
-                            {'data': vals[1], 'id': id})
-
-                    print('Emit the response.')
-                    socketio.emit('wlog_response',
-                    {'time':timestamp, 'data': vals, 'count': unit_of_work,
-                        'id': id})
-                except Exception as e:
-                    print('{}'.format(e))
-                    socketio.emit('my_response',
-                    {'data': '{}'.format(e), 'count': unit_of_work})
-                    tc.switch = False
-                    db.session.commit()
-            else:
-                print('Connection closed')
-                tc.switch = False
-                db.session.commit()
-                # TODO: Make this a link
-                error_str = 'Port closed. please configure one properly under config.'
-                socketio.emit('log_response',
-                {'data': error_str, 'count': unit_of_work})
-
-                # important to use eventlet's sleep method
-
-            eventlet.sleep(sleeptime)
-            tc = WebTempControl.query.get(int(id));
-            sleeptime = tc.sleeptime;
-        else:
-            print('Closing down the worker in a controlled way.')
-
 class WebTempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True);
 
@@ -82,10 +23,16 @@ class WebTempControl(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
 
     setpoint = db.Column(db.Float);
+    value = db.Column(db.Float);
+    output = db.Column(db.Float);
+    error = db.Column(db.Float);
+
     gain = db.Column(db.Float);
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
-    value = db.Column(db.Float);
+
+    timestamp = db.Column(db.DateTime,
+        default=datetime.utcnow);
 
     timeout = 5;
 
@@ -129,47 +76,6 @@ class WebTempControl(db.Model):
         except ConnectionError:
             return False
 
-    def is_alive(self):
-        """
-        return the running status
-        """
-        for thread in workers:
-            if str(thread.ident) == self.thread_str:
-                self.switch = thread.is_alive();
-                db.session.commit();
-                return self.switch;
-
-        self.switch = False;
-        db.session.commit();
-        return self.switch;
-
-    def pull_data(self):
-        '''
-        Pulling the actual data from the arduino.
-        '''
-        try:
-            proxies = {
-            'http': None,
-            'https': None,
-            }
-            r = requests.get(self.temp_http_str(), timeout =self.timeout, proxies=proxies);
-        except ConnectionError:
-            print('No connection');
-            return 0, 0
-        html_text = r.text;
-        lines = html_text.split('<br />');
-        self.ard_str = lines[1];
-
-        vals = self.ard_str.split(',');
-        if len(vals)>=2:
-            self.value = vals[1]
-        else:
-            self.value = 0
-
-        db.session.commit();
-        timestamp = datetime.now().replace(microsecond=0).isoformat();
-        return timestamp, self.ard_str
-
     def pull_arduino(self):
         '''
         Pulling the actual data from the arduino.
@@ -196,7 +102,7 @@ class WebTempControl(db.Model):
             self.gain = vals[4];
             self.integral = vals[5];
             self.diff = vals[6];
-            self.timestamp = datetime.now().replace(microsecond=0).isoformat();
+            self.timestamp = datetime.now().replace(microsecond=0);
             db.session.commit();
 
     def temp_value(self):
@@ -216,6 +122,7 @@ class WebTempControl(db.Model):
             print('No connection');
             return
 
+        self.switch = True
         # configure the arduino
 
         if self.setpoint:
@@ -229,17 +136,7 @@ class WebTempControl(db.Model):
         time.sleep(0.2);
         if self.diff:
             self.set_differential();
-
-        # starting the listener
-        if not self.is_alive():
-            self.switch = True
-            db.session.commit();
-            thread = socketio.start_background_task(target=do_web_work, id = self.id, app = current_app._get_current_object());
-            self.thread_str = str(thread.ident)
-            db.session.commit()
-            workers.append(thread);
-        else:
-            print('Already running')
+        db.session.commit();
 
     def stop(self):
         """
@@ -247,23 +144,16 @@ class WebTempControl(db.Model):
         """
         self.switch = False;
         db.session.commit();
-        for ii, t in enumerate(workers):
-            if str(t.ident) == self.thread_str:
-                del workers[ii];
-        self.thread_str = '';
-        db.session.commit();
 
     def set_setpoint(self):
         try:
             set_str = '/arduino/write/setpoint/' + str(self.setpoint) + '/';
-            print(set_str);
             addr = self.http_str() + set_str;
             proxies = {
                 'http': None,
                 'https': None,
                 }
             r = requests.get(addr, timeout =self.timeout,proxies=proxies);
-            print(r)
             return r.ok;
         except ConnectionError:
             return False
