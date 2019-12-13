@@ -3,7 +3,7 @@ import eventlet
 from datetime import datetime
 #from app.main.models import User
 
-from app import db, socketio, ma
+from app import db, ma
 import time
 import requests
 from requests.exceptions import ConnectionError

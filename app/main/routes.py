@@ -1,15 +1,13 @@
-from app import socketio, db
-from app.main import bp
+from app import db
 
+from app.main import bp
 from app.main.forms import LoginForm, RegistrationForm
 from app.main.models import User
 
 from app.thermocontrol.models import  WebTempControl, wtcs_schema
-from app.serialmonitor.models import ArduinoSerial
 from app.cameracontrol.models import Camera
 
 from flask import render_template, flash, redirect, url_for, session
-from flask_socketio import emit, disconnect
 
 from flask_login import current_user, login_user, logout_user
 import json
@@ -27,8 +25,6 @@ def index():
         wtcontrols = WebTempControl.query.all();
         n_wtcs = WebTempControl.query.count();
 
-    smonitors = ArduinoSerial.query.all();
-    n_sm = len(smonitors);
 
     cams = Camera.query.all();
     n_cameras = len(cams);
@@ -69,12 +65,3 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
-
-# communication with the websocket
-@socketio.on('connect')
-def run_connect():
-    '''
-    we are connecting the client to the server. This will only work if the
-    Arduino already has a serial connection
-    '''
-    socketio.emit('my_response', {'data': 'Connected', 'count': 0})

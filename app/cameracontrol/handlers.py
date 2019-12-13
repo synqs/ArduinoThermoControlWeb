@@ -1,11 +1,10 @@
-from app import socketio, db
+from app import  db
 from app.cameracontrol.forms import UpdateForm, ConnectForm, RoiForm
 from app.cameracontrol import bp
 from app.cameracontrol.models import workers, Camera
 import os
 
 from flask import render_template, flash, redirect, url_for, session
-from flask_socketio import emit, disconnect
 
 @bp.route('/add_camera', methods=['GET', 'POST'])
 def add_camera():
@@ -184,45 +183,3 @@ def file(filestring):
         flash('Did not have any values to save', 'error')
 
     return render_template('file.html', file = filename, vals = vals)
-
-# communication with the websocket
-@socketio.on('connect')
-def run_connect():
-    '''
-    we are connecting the client to the server. This will only work if the
-    Arduino already has a serial connection
-    '''
-    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('stop')
-def run_disconnect():
-    print('Should disconnect')
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-
-    global cameras;
-    # we should even kill the arduino properly.
-    if cameras:
-        ssProto = cameras[0];
-        ser = ssProto.serial;
-        ser.close();
-        ssProto.stop();
-        emit('my_response',
-            {'data': 'Disconnected!', 'count': session['receive_count']})
-    else:
-        emit('my_response',
-            {'data': 'Nothing to disconnect', 'count': session['receive_count']})
-
-@socketio.on('my_ping')
-def ping_pong():
-    emit('my_pong')
-
-@socketio.on('trig_img')
-def trig_mag(message):
-    cam_id = int(message['cam_id']);
-    camera = Camera.query.get(cam_id);
-    camera.trig_measurement();
-    ard_str = 'Triggered an image';
-    session['receive_count'] = session.get('receive_count', 0) + 1;
-    emit('my_response',
-        {'data': ard_str, 'count': session['receive_count']})

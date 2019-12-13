@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_bootstrap import Bootstrap
-from flask_socketio import SocketIO
 from config import ProductionConfig
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -8,18 +7,13 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_marshmallow import Marshmallow
 
-import eventlet
-
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 
-eventlet.monkey_patch();
-
 bootstrap = Bootstrap();
 db = SQLAlchemy();
 migrate = Migrate();
-socketio = SocketIO();
 login = LoginManager();
 ma = Marshmallow();
 
@@ -34,7 +28,6 @@ def create_app(config_class=ProductionConfig):
     # set up the database
     db.init_app(app);
     migrate.init_app(app, db);
-    socketio.init_app(app, async_mode='eventlet');
     ma.init_app(app);
 
     # import all the components of the app
@@ -50,10 +43,7 @@ def create_app(config_class=ProductionConfig):
 
     from app.thermocontrol import bp as thermocontrol_bp
     app.register_blueprint(thermocontrol_bp)
-
-    from app.serialmonitor import bp as serialmonitor_bp
-    app.register_blueprint(serialmonitor_bp)
-
+    
     if not app.debug:
         if app.config['MAIL_SERVER']:
             auth = None
@@ -81,4 +71,4 @@ def create_app(config_class=ProductionConfig):
         app.logger.setLevel(logging.INFO)
         app.logger.info('DeviceControl startup')
 
-    return socketio, app
+    return app

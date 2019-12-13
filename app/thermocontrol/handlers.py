@@ -5,7 +5,7 @@ from app.thermocontrol.models import WebTempControl, wtc_schema, wtcs_schema
 from app.thermocontrol.utils import start_helper, get_wtc_forms, get_wtc_forms_wo_id
 from app.thermocontrol.utils import get_tc_forms, get_tc_forms_wo_id
 
-from app import socketio, db
+from app import db
 
 from flask import render_template, flash, redirect, url_for, session, jsonify, request
 from flask_login import login_required, current_user
@@ -125,7 +125,6 @@ def stop_wtc(ard_nr):
     tc = WebTempControl.query.get(ard_nr);
     tc.stop()
     flash('Stopped the thermocontrol')
-    socketio.emit('close_conn',{'data': tc.conn_str()})
     return redirect(url_for('main.index'))
 
 
