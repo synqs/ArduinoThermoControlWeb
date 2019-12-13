@@ -5,7 +5,7 @@ from flask import current_app
 
 class BasicTestCase(unittest.TestCase):
     def setUp(self):
-        self.socketio, self.app = create_app(TestConfig)
+        self.app = create_app(TestConfig)
         self.client = self.app.test_client()
 
         self.app_context = self.app.app_context()

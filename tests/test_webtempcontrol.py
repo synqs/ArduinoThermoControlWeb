@@ -6,7 +6,7 @@ import re
 
 class ClientTestCase(unittest.TestCase):
     def setUp(self):
-        self.socketio, self.app = create_app(TestConfig)
+        self.app = create_app(TestConfig)
 
         self.app_context = self.app.app_context()
         self.app_context.push()
