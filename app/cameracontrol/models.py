@@ -1,5 +1,4 @@
 import os
-import eventlet
 from datetime import datetime
 from app import db
 
