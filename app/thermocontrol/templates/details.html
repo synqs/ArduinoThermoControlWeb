@@ -8,34 +8,15 @@
 
 <h1> Details for # {{ ard.id }} - {{ ard.name }}</h1>
 <div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
+
 <button class="btn btn-default" id="exp_button"> Export to csv</button>
 <div class="container" id="wtcMeasures">
 <wtc-props id='{{ ard.id }}'></wtc-props>
 </div>
-<table class="table table-hover" id ="ard_log">
-  <thead>
-  <tr>
-    <th scope="col">#</th>
-    <th scope="col">Date</th>
-    <th scope="col">Setpoint</th>
-    <th scope="col">Input</th>
-    <th scope="col">Error</th>
-    <th scope="col">Output</th>
-    <th scope="col">Gain</th>
-    <th scope="col">tauI (s)</th>
-    <th scope="col">tauD (s)</th>
-  </tr>
-</thead>
-<tbody>
- </tbody>
-</table>
 
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-<script type="text/javascript" charset="utf-8"></script>
-
-<script type="text/javascript" src="{{ url_for('static', filename='js/base.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/details.js') }}"></script>
 {% endblock %}
 
 {% block scripts %}

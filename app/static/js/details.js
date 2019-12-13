@@ -112,14 +112,14 @@ Vue.component('wtc-widget', {
       console.log(payload)
       const path = '/wtc/' + this.wtc.id;
       axios.put(path, payload)
-        .then(() => {
+      .then(() => {
         this.get_wtc();
       })
       .catch((error) => {
-      // eslint-disable-next-line
-      console.error(error);
-      this.get_wtc();
-    });
+        // eslint-disable-next-line
+        console.error(error);
+        this.get_wtc();
+      });
     },
     onResetUpdate: function () {
       this.editForm = this.wtc;
@@ -128,12 +128,12 @@ Vue.component('wtc-widget', {
   },
 
   created: function () {
-      this.timer = setInterval(this.get_wtc, 10000)
-    },
-    beforeDestroy () {
-      clearInterval(this.timer)
-    }
-  });
+    this.timer = setInterval(this.get_wtc, 10000)
+  },
+  beforeDestroy () {
+    clearInterval(this.timer)
+  }
+});
 
 Vue.component('wtc-summary-table', {
   props: ['id'],
@@ -187,7 +187,6 @@ Vue.component('wtc-props', {
   <table class="table table-hover">
   <thead>
   <tr>
-  <th scope="col">#</th>
   <th scope="col">Date</th>
   <th scope="col">Setpoint</th>
   <th scope="col">Input</th>
@@ -199,23 +198,23 @@ Vue.component('wtc-props', {
   </tr>
   </thead>
   <tbody>
-  <tr >
-    <td >{{wtc.ard_str}}</td>
-    <td >{{wtc.timestamp}}</td>
-    <td >{{wtc.setpoint}}</td>
-    <td >{{wtc.value }}</td>
-    <td >{{wtc.error}}</td>
-    <td >{{wtc.output}}</td>
-    <td >{{wtc.gain}}</td>
-    <td >{{wtc.integral}}</td>
-    <td >{{wtc.diff}}</td>
+  <tr v-for="wtc in wtcs">
+  <td >{{wtc.timestamp}}</td>
+  <td >{{wtc.setpoint}}</td>
+  <td >{{wtc.value }}</td>
+  <td >{{wtc.error}}</td>
+  <td >{{wtc.output}}</td>
+  <td >{{wtc.gain}}</td>
+  <td >{{wtc.integral}}</td>
+  <td >{{wtc.diff}}</td>
   </tr>
   </tbody>
   </table>
   `,
   data: function () {
     return {
-      wtc: []
+      wtc: [],
+      wtcs:[]
     }
   },
   methods: {
@@ -223,7 +222,13 @@ Vue.component('wtc-props', {
       const path = '/wtc/' + this.id;
       axios.get(path)
       .then((res) => {
-        this.wtc = res.data.wtc;
+        this.wtcs.unshift(res.data.wtc);
+        var time = res.data.wtc.timestamp;
+        Plotly.extendTraces('plot', {
+          x:[[time], [time], [time]],
+          y:[[res.data.wtc.setpoint], [res.data.wtc.value], [res.data.wtc.output]]
+        }, [0,1,2]);
+
       })
       .catch((error) => {
         // eslint-disable-next-line
@@ -232,11 +237,11 @@ Vue.component('wtc-props', {
     },
   },
   created: function () {
-      this.timer = setInterval(this.get_wtc, 5000)
-    },
-    beforeDestroy () {
-      clearInterval(this.timer)
-    }
+    this.timer = setInterval(this.get_wtc, 5000)
+  },
+  beforeDestroy () {
+    clearInterval(this.timer)
+  }
 });
 
 var IndexVue = new Vue({
@@ -244,50 +249,6 @@ var IndexVue = new Vue({
 });
 
 $(document).ready(function() {
-  namespace = '';
-  // Connect to the Socket.IO server.
-  // The connection URL has the following format:
-  //     http[s]://<domain>:<port>[/<namespace>]
-  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-  // Event handler for new connections.
-
-  // Event handler for server sent data.
-  socket.on('my_response', function(msg) {
-    $('#log').prepend('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-  });
-
-  socket.on('wlog_response', function(msg) {
-    console.log('new stuff');
-    var count = msg.count;
-    var data = msg.data;
-    var time = msg.time;
-    var id = msg.id;
-    var this_id =  '{{ ard.id }}';
-    console.log(id);
-    console.log(this_id);
-    if (id == this_id){
-      if (data.length == 4 && data[3] == 0) {
-        var ard_log_str = '<tr class="warning">';
-      }
-      else {
-        var ard_log_str = '<tr>';
-      }
-      ard_log_str = ard_log_str + '<th scope="row">' + msg.count +'</th>';
-      ard_log_str = ard_log_str + '<td>' + msg.time +'</td>';
-      for (var i=0; i<data.length; i++){
-
-        ard_log_str = ard_log_str + '<td>' + data[i] +'</td>';
-      }
-      ard_log_str = ard_log_str + '</tr>'
-
-      $('#ard_log > tbody').prepend(ard_log_str).html()
-
-      Plotly.extendTraces('plot', {
-        x:[[time], [time], [time]],
-        y:[[data[0]], [data[1]], [data[3]]]
-      }, [0,1,2])
-    }
-  });
 
   function download_csv(csv, filename) {
     var csvFile;
