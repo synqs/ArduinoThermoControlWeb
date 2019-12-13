@@ -1,5 +1,3 @@
-import serial
-import eventlet
 from datetime import datetime
 #from app.main.models import User
 
