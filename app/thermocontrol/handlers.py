@@ -34,7 +34,7 @@ def all_wtcs():
         return redirect(url_for('main.index'))
 
 
-@bp.route('/wtc/<int:ard_nr>', methods=['GET', 'PUT'])
+@bp.route('/wtc/<int:ard_nr>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
 def single_wtc(ard_nr):
     '''
@@ -58,7 +58,43 @@ def single_wtc(ard_nr):
         if success:
             db.session.commit();
         response_object['message'] = 'Arduino updated!'
-    return jsonify(response_object);
+        return jsonify(response_object);
+    elif request.method == 'DELETE':
+        tc = WebTempControl.query.get(ard_nr);
+        db.session.delete(tc);
+        db.session.commit();
+        response_object['message'] = 'Arduino removed!'
+        return jsonify(response_object);
+
+@bp.route('/start/wtc/<int:ard_nr>')
+@login_required
+def start_wtc(ard_nr):
+    '''
+    The start function for the arduino
+    '''
+    tc = WebTempControl.query.get(ard_nr);
+    sopen = tc.start();
+    return jsonify({'status': 'success', 'wtc': wtc_schema.dump(tc)});
+
+@bp.route('/stop/wtc/<int:ard_nr>')
+@login_required
+def stop_wtc(ard_nr):
+    '''
+    The stop function for the arduino
+    '''
+    tc = WebTempControl.query.get(ard_nr);
+    tc.stop()
+    return jsonify({'status': 'success', 'wtc':wtc_schema.dump(tc)});
+
+@bp.route('/remove_wtc/<int:ard_nr>')
+@login_required
+def remove_wtc(ard_nr):
+    tc = WebTempControl.query.get(ard_nr);
+    db.session.delete(tc)
+    db.session.commit()
+
+    flash('Removed the web temperature control # {}.'.format(ard_nr));
+    return redirect(url_for('main.index'));
 
 @bp.route('/details_wtc/<int:ard_nr>', methods=['GET', 'POST'])
 @login_required
@@ -81,60 +117,3 @@ def details_wtc(ard_nr):
     print(arduino.id)
     return render_template('details.html', ard=arduino,
         device_type=device_type, is_log = True);
-
-@bp.route('/start/wtc/<int:ard_nr>')
-@login_required
-def start_wtc(ard_nr):
-    '''
-    The start function for the arduino
-    '''
-    tc = WebTempControl.query.get(ard_nr);
-    sopen = tc.start();
-    return jsonify({'status': 'success', 'wtc': wtc_schema.dump(tc)});
-
-@bp.route('/stop/wtc/<int:ard_nr>')
-@login_required
-def stop_wtc(ard_nr):
-    '''
-    The stop function for the arduino
-    '''
-    tc = WebTempControl.query.get(ard_nr);
-    tc.stop()
-    return jsonify({'status': 'success', 'wtc':wtc_schema.dump(tc)});
-
-@bp.route('/add_webtempcontrol', methods=['GET', 'POST'])
-@login_required
-def add_webtempcontrol():
-    '''
-    Add an arduino with ethernet interface to the set up
-    '''
-    cform = WebConnectForm();
-    device_type = 'web_tc';
-    if cform.validate_on_submit():
-        ip_adress = cform.ip_adress.data;
-        port = cform.port.data;
-        name = cform.name.data;
-        if not port:
-            port = 80;
-        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port,
-        user_id = current_user.id, sleeptime=3);
-
-        db.session.add(tc);
-        db.session.commit();
-        flash('We added a new arduino {}'.format(name))
-        return redirect(url_for('main.index'))
-
-    tempcontrols = WebTempControl.query.all();
-    n_ards = len(tempcontrols)
-    return render_template('add_webarduino.html', cform = cform, n_ards=n_ards,
-    device_type = device_type);
-
-@bp.route('/remove_wtc/<int:ard_nr>')
-@login_required
-def remove_wtc(ard_nr):
-    tc = WebTempControl.query.get(ard_nr);
-    db.session.delete(tc)
-    db.session.commit()
-
-    flash('Removed the web temperature control # {}.'.format(ard_nr));
-    return redirect(url_for('main.index'));

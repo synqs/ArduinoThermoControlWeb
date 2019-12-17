@@ -1,5 +1,5 @@
 Vue.component('wtc-widget', {
-  props: ['wtc'],
+  props: ['wtc', 'refresh'],
   data: function () {
     return {
       settings_url: '',
@@ -25,6 +25,7 @@ Vue.component('wtc-widget', {
   <a class='btn btn-light' target="_blank" :href="log_url">Log</a>
   <a class='btn btn-light' v-on:click="stop_wtc" v-if="wtc.switch">Stop</a>
   <a class='btn btn-light' v-on:click="start_wtc" v-else>Start</a>
+  <a class='btn btn-danger' v-on:click="onRemove" >Remove</a>
   <td>
 
   <b-modal title="Update" hide-footer v-model="showEditModal">
@@ -72,10 +73,7 @@ Vue.component('wtc-widget', {
   </tr>
   `,
   mounted: function () {
-    this.settings_url = '/change_wtc/' + this.wtc.id;
     this.log_url = '/details_wtc/' + this.wtc.id;
-    this.start_url = '/start_wtc/' + this.wtc.id;
-    this.stop_url = '/stop_wtc/' + this.wtc.id;
   },
 
   methods: {
@@ -153,6 +151,18 @@ Vue.component('wtc-widget', {
       this.editForm = this.wtc;
       this.showEditModal = !this.showEditModal;
     },
+    onRemove: function() {
+      const path = '/wtc/' + this.wtc.id;
+      axios.delete(path)
+      .then(() => {
+      this.$emit('refresh');
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+        this.$emit('refresh');
+      });
+    },
   },
 
   created: function () {
@@ -181,7 +191,7 @@ Vue.component('wtc-table', {
   </tr>
   </thead>
   <tbody>
-  <wtc-widget v-for="wtc in wtcs" v-bind:wtc="wtc" :key="wtc.index"/>
+  <wtc-widget v-for="wtc in wtcs" v-bind:wtc="wtc" :key="wtc.index" @refresh="get_wtcs"/>
   </tbody>
   </table>
 
@@ -240,7 +250,6 @@ Vue.component('wtc-table', {
         ip_adress: this.addForm.ip_adress,
         port: this.addForm.port
       };
-      console.log(payload)
       const path = '/wtc/';
       axios.post(path, payload)
       .then(() => {
@@ -260,8 +269,7 @@ Vue.component('wtc-table', {
   },
   mounted: function () {
     this.get_wtcs();
-
-  }
+  },
 });
 
 var IndexVue = new Vue({
