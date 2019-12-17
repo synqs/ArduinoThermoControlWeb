@@ -22,7 +22,8 @@ class ClientTestCase(unittest.TestCase):
         """Start with a blank database."""
 
         rv = self.client.get('/')
-        assert b'Login to add new devices' in rv.data
+        print(rv.data)
+        assert b'Login' in rv.data
 
     def test_password_hashing(self):
         user = User(username='susan')
