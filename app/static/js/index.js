@@ -76,7 +76,6 @@ Vue.component('wtc-widget', {
     this.log_url = '/details_wtc/' + this.wtc.id;
     this.start_url = '/start_wtc/' + this.wtc.id;
     this.stop_url = '/stop_wtc/' + this.wtc.id;
-
   },
 
   methods: {
@@ -167,8 +166,9 @@ Vue.component('wtc-widget', {
 });
 
 Vue.component('wtc-table', {
-  props: ['wtcs_str'],
   template: `
+  <span>
+  <a class='btn btn-light' v-on:click="add_wtc">Add WebTempControl</a>
   <table class="table table-hover">
   <thead>
   <tr>
@@ -184,10 +184,38 @@ Vue.component('wtc-table', {
   <wtc-widget v-for="wtc in wtcs" v-bind:wtc="wtc" :key="wtc.index"/>
   </tbody>
   </table>
+
+
+  <b-modal title="Add" hide-footer v-model="showAddModal">
+  <b-form class="form-horizontal">
+  <b-form-group id="form-name-edit-group" label="Name:" label-for="form-name-edit-input">
+  <b-form-input id="form-name-edit-input" type="text"
+  v-model="addForm.name" required placeholder="Enter name">
+  </b-form-input>
+  <b-form-group id="form-ip-edit-group" label="IP Adress:" label-for="form-ip-edit-input">
+  <b-form-input id="form-ip-edit-input" type="text"
+  v-model="addForm.ip_adress" required placeholder="Enter adress">
+  </b-form-input>
+  <b-form-group id="form-port-edit-group" label="Port:" label-for="form-port-edit-input">
+  <b-form-input id="form-port-edit-input" type="text"
+  v-model="addForm.port" required placeholder="Enter port">
+  </b-form-input>
+
+  </b-form-group>
+  <b-button-group>
+  <button type="button" variant="btn btn-light" v-on:click="onSubmitAdd">Update</button>
+  <b-button type="reset" variant="danger" v-on:click="onResetAdd">Cancel</b-button>
+  </b-button-group>
+  </b-form>
+  </b-modal>
+  </tr>
+  </span>
   `,
   data: function () {
     return {
-      wtcs: []
+      wtcs: [],
+      showAddModal: false,
+      addForm: []
     }
   },
   methods: {
@@ -201,7 +229,34 @@ Vue.component('wtc-table', {
         // eslint-disable-next-line
         console.error(error);
       });
-    }
+    },
+    add_wtc: function () {
+      this.showAddModal = true;
+    },
+    onSubmitAdd: function () {
+      this.showAddModal = !this.showAddModal;
+      const payload = {
+        name: this.addForm.name,
+        ip_adress: this.addForm.ip_adress,
+        port: this.addForm.port
+      };
+      console.log(payload)
+      const path = '/wtc/';
+      axios.post(path, payload)
+      .then(() => {
+        this.get_wtcs();
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+        this.get_wtcs();
+      });
+    },
+    onResetAdd: function () {
+      this.addForm = [];
+      this.showAddModal = !this.showAddModal;
+    },
+
   },
   mounted: function () {
     this.get_wtcs();

@@ -8,17 +8,31 @@ from app import db
 from flask import render_template, flash, redirect, url_for, session, jsonify, request
 from flask_login import login_required, current_user
 
-@bp.route('/wtc/')
+@bp.route('/wtc/', methods=['GET', 'POST'])
 @login_required
 def all_wtcs():
     '''
     Read the properties of the arduino.
     '''
-    wtcs = WebTempControl.query.all();
-    return jsonify({
-        'status': 'success',
-        'wtcs': wtcs_schema.dump(wtcs)
-        });
+    response_object = {'status': 'success'};
+    if request.method == 'GET':
+        wtcs = WebTempControl.query.all();
+        response_object['wtcs'] = wtcs_schema.dump(wtcs);
+        return jsonify(response_object);
+    elif request.method == 'POST':
+        post_data = request.get_json();
+        ip_adress = post_data.get('ip_adress');
+        port = post_data.get('port');
+        name = post_data.get('name');
+        if not port:
+            port = 80;
+        tc = WebTempControl(name=name, ip_adress= ip_adress, port = port,
+        user_id = current_user.id, sleeptime=3);
+
+        db.session.add(tc);
+        db.session.commit();
+        return redirect(url_for('main.index'))
+
 
 @bp.route('/wtc/<int:ard_nr>', methods=['GET', 'PUT'])
 @login_required

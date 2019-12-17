@@ -1,19 +1,13 @@
 {% extends "base.html" %}
 {% block app_content %}
 
-{% if current_user.is_anonymous %}
-  <a href="{{ url_for('main.login') }}">Login to add new devices</a>
-{% else %}
-  <a class="btn btn-default" id="add_webtempcontrol" href="{{url_for('thermocontrol.add_webtempcontrol')}}"> Add another WebTemp control.</a>
-{% endif %}
-
 {% if n_wtcs %}
 <h1> WebTemp controls </h1>
 {% if current_user.is_anonymous %}
  There are {{ n_wtcs }} web temperature controls installed. For more information you need to <a href="{{ url_for('main.login') }}">login</a>
 {% else %}
 <div class="container" id="wtcTable">
-<wtc-table wtcs_str='{{ wtc_json }}'></wtc-table>
+<wtc-table></wtc-table>
 </div>
 {% endif %}
 {% endif %}
