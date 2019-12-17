@@ -1,31 +1,10 @@
-Vue.component('wtc-widget', {
-  props: ['wtc'],
-  data: function () {
-    return {
-      settings_url: '',
-      log_url: '',
-      start_url: '',
-      stop_url: '',
-      value:'Empty',
-      timer: '',
-      showEditModal: false,
-      editForm: []
-    }
-  },
+Vue.component('wtc-summary-table', {
+  props: ['id'],
   template: `
-  <tr>
-  <td> {{ wtc.id }} </td>
-  <td>{{ wtc.name }}</td>
-  <td class="bg-success" v-if="wtc.switch">Open</td>
-  <td class="bg-warning" v-else>Closed</td>
-  <td>{{ wtc.setpoint }}</td>
-  <td > {{ wtc.value }}</td>
-  <td>
+  <span>
   <button type="button" class="btn btn-light" v-on:click="edit_wtc">Settings</button>
-  <a class='btn btn-light' target="_blank" :href="log_url">Log</a>
-  <a class='btn btn-light' :href="stop_url" v-if="wtc.switch">Stop</a>
-  <a class='btn btn-light' :href="start_url" v-else>Start</a>
-  <td>
+  <button type="button" class="btn btn-light" v-on:click="stop_wtc" v-if="wtc.switch">Stop</button>
+  <button type="button" class="btn btn-light" v-on:click="start_wtc" v-else>Start</button>
 
   <b-modal title="Update" hide-footer v-model="showEditModal">
   <b-form class="form-horizontal">
@@ -69,121 +48,7 @@ Vue.component('wtc-widget', {
   </b-button-group>
   </b-form>
   </b-modal>
-  </tr>
-  `,
-  mounted: function () {
-    this.settings_url = '/change_wtc/' + this.wtc.id;
-    this.log_url = '/details_wtc/' + this.wtc.id;
-    this.start_url = '/start_wtc/' + this.wtc.id;
-    this.stop_url = '/stop_wtc/' + this.wtc.id;
 
-  },
-
-  methods: {
-    get_wtc: function () {
-      const path = '/wtc/' + this.wtc.id;
-      console.log(path);
-      axios.get(path)
-      .then((res) => {
-        this.wtc = res.data.wtc;
-      })
-      .catch((error) => {
-        // eslint-disable-next-line
-        console.error(error);
-      });
-    },
-
-    edit_wtc: function () {
-      this.editForm = this.wtc;
-      this.showEditModal = !this.showEditModal;
-    },
-    onSubmitUpdate: function () {
-      this.showEditModal = !this.showEditModal;
-      const payload = {
-        name: this.editForm.name,
-        ip_adress: this.editForm.ip_adress,
-        port: this.editForm.port,
-        sleeptime: this.editForm.sleeptime,
-        setpoint: this.editForm.setpoint,
-        gain: this.editForm.gain,
-        integral: this.editForm.integral,
-        diff: this.editForm.diff
-      };
-      console.log(payload)
-      const path = '/wtc/' + this.wtc.id;
-      axios.put(path, payload)
-      .then(() => {
-        this.get_wtc();
-      })
-      .catch((error) => {
-        // eslint-disable-next-line
-        console.error(error);
-        this.get_wtc();
-      });
-    },
-    onResetUpdate: function () {
-      this.editForm = this.wtc;
-      this.showEditModal = !this.showEditModal;
-    },
-  },
-
-  created: function () {
-    this.timer = setInterval(this.get_wtc, 10000)
-  },
-  beforeDestroy () {
-    clearInterval(this.timer)
-  }
-});
-
-Vue.component('wtc-summary-table', {
-  props: ['id'],
-  template: `
-  <table class="table table-hover">
-  <thead>
-  <tr>
-  <th scope="col">#</th>
-  <th scope="col">Name</th>
-  <th scope="col">Status</th>
-  <th scope="col">Setpoint</th>
-  <th scope="col">Current Value</th>
-  <th scope="col">Other actions </th>
-  </tr>
-  </thead>
-  <tbody>
-  <wtc-widget v-bind:wtc="wtc"/>
-  </tbody>
-  </table>
-  `,
-  data: function () {
-    return {
-      wtc: []
-    }
-  },
-  methods: {
-    get_wtc: function () {
-      const path = '/wtc/' + this.id;
-      axios.get(path)
-      .then((res) => {
-        this.wtc = res.data.wtc;
-      })
-      .catch((error) => {
-        // eslint-disable-next-line
-        console.error(error);
-      });
-    }
-  },
-  mounted: function () {
-    this.get_wtc();
-  }
-});
-
-var IndexVue = new Vue({
-  el: '#wtcTable'
-});
-
-Vue.component('wtc-props', {
-  props: ['id'],
-  template: `
   <table class="table table-hover">
   <thead>
   <tr>
@@ -210,18 +75,35 @@ Vue.component('wtc-props', {
   </tr>
   </tbody>
   </table>
+
+  </span>
   `,
   data: function () {
     return {
       wtc: [],
-      wtcs:[]
+      showEditModal: false,
+      editForm: [],
+      wtcs: []
     }
   },
   methods: {
-    get_wtc: function () {
+    init_wtc: function () {
       const path = '/wtc/' + this.id;
       axios.get(path)
       .then((res) => {
+        this.wtc = res.data.wtc;
+        this.get_wtc();
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+      });
+    },
+    get_wtc: function () {
+      const path = '/wtc/' + this.wtc.id;
+      axios.get(path)
+      .then((res) => {
+        this.wtc = res.data.wtc;
         this.wtcs.unshift(res.data.wtc);
         var time = res.data.wtc.timestamp;
         Plotly.extendTraces('plot', {
@@ -229,18 +111,76 @@ Vue.component('wtc-props', {
           y:[[res.data.wtc.setpoint], [res.data.wtc.value], [res.data.wtc.output]]
         }, [0,1,2]);
 
+        if (!this.wtc.switch){
+          clearInterval(this.timer);
+        }
+        if (this.wtc.switch && !this.timer) {
+          this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000);
+        }
       })
       .catch((error) => {
         // eslint-disable-next-line
         console.error(error);
       });
     },
+    start_wtc: function () {
+      this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000);
+      const path = '/start/wtc/' + this.wtc.id;
+      axios.get(path)
+      .then((res) => {
+        this.wtc = res.data.wtc;
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+      });
+    },
+    stop_wtc: function () {
+      clearInterval(this.timer);
+      const path = '/stop/wtc/' + this.wtc.id;
+      axios.get(path)
+      .then((res) => {
+        this.wtc = res.data.wtc;
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+      });
+    },
+    edit_wtc: function () {
+      this.editForm = this.wtc;
+      this.showEditModal = !this.showEditModal;
+    },
+    onSubmitUpdate: function () {
+      this.showEditModal = !this.showEditModal;
+      const payload = {
+        name: this.editForm.name,
+        ip_adress: this.editForm.ip_adress,
+        port: this.editForm.port,
+        sleeptime: this.editForm.sleeptime,
+        setpoint: this.editForm.setpoint,
+        gain: this.editForm.gain,
+        integral: this.editForm.integral,
+        diff: this.editForm.diff
+      };
+      const path = '/wtc/' + this.wtc.id;
+      axios.put(path, payload)
+      .then(() => {
+        this.get_wtc();
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+        this.get_wtc();
+      });
+    },
+    onResetUpdate: function () {
+      this.editForm = this.wtc;
+      this.showEditModal = !this.showEditModal;
+    }
   },
-  created: function () {
-    this.timer = setInterval(this.get_wtc, 5000)
-  },
-  beforeDestroy () {
-    clearInterval(this.timer)
+  mounted: function () {
+    this.init_wtc();
   }
 });
 

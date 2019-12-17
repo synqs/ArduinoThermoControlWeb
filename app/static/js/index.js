@@ -23,8 +23,8 @@ Vue.component('wtc-widget', {
   <td>
   <button type="button" class="btn btn-light" v-on:click="edit_wtc">Settings</button>
   <a class='btn btn-light' target="_blank" :href="log_url">Log</a>
-  <a class='btn btn-light' :href="stop_url" v-if="wtc.switch">Stop</a>
-  <a class='btn btn-light' :href="start_url" v-else>Start</a>
+  <a class='btn btn-light' v-on:click="stop_wtc" v-if="wtc.switch">Stop</a>
+  <a class='btn btn-light' v-on:click="start_wtc" v-else>Start</a>
   <td>
 
   <b-modal title="Update" hide-footer v-model="showEditModal">
@@ -90,11 +90,41 @@ Vue.component('wtc-widget', {
         // eslint-disable-next-line
         console.error(error);
       });
+      if (!this.wtc.switch){
+        clearInterval(this.timer);
+        console.log('Closed it');
+      }
+      if (this.wtc.switch && !this.timer) {
+        this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000);
+      }
     },
-
     edit_wtc: function () {
       this.editForm = this.wtc;
       this.showEditModal = !this.showEditModal;
+    },
+    start_wtc: function () {
+      this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000);
+      const path = '/start/wtc/' + this.wtc.id;
+      axios.get(path)
+      .then((res) => {
+        this.wtc = res.data.wtc;
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+      });
+    },
+    stop_wtc: function () {
+      clearInterval(this.timer);
+      const path = '/stop/wtc/' + this.wtc.id;
+      axios.get(path)
+      .then((res) => {
+        this.wtc = res.data.wtc;
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+      });
     },
     onSubmitUpdate: function () {
       this.showEditModal = !this.showEditModal;
@@ -111,14 +141,14 @@ Vue.component('wtc-widget', {
       console.log(payload)
       const path = '/wtc/' + this.wtc.id;
       axios.put(path, payload)
-        .then(() => {
+      .then(() => {
         this.get_wtc();
       })
       .catch((error) => {
-      // eslint-disable-next-line
-      console.error(error);
-      this.get_wtc();
-    });
+        // eslint-disable-next-line
+        console.error(error);
+        this.get_wtc();
+      });
     },
     onResetUpdate: function () {
       this.editForm = this.wtc;
@@ -127,12 +157,14 @@ Vue.component('wtc-widget', {
   },
 
   created: function () {
-      this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000)
-    },
-    beforeDestroy () {
-      clearInterval(this.timer)
+    if  (this.wtc.switch) {
+      this.timer = setInterval(this.get_wtc, this.wtc.sleeptime*1000);
     }
-  });
+  },
+  beforeDestroy () {
+    clearInterval(this.timer)
+  }
+});
 
 Vue.component('wtc-table', {
   props: ['wtcs_str'],

@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block app_content %}
-<h1> Parameters</h1>
-
-<div class="container" id="wtcTable">
-<wtc-summary-table id='{{ ard.id }}'></wtc-summary-table>
-</div>
 
 <h1> Details for # {{ ard.id }} - {{ ard.name }}</h1>
+
+
+
+
 <div id="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
 
 <button class="btn btn-default" id="exp_button"> Export to csv</button>
+
 <div class="container" id="wtcMeasures">
-<wtc-props id='{{ ard.id }}'></wtc-props>
+<wtc-summary-table id='{{ ard.id }}'></wtc-summary-table>
 </div>
 
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
