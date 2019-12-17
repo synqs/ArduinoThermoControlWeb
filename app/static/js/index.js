@@ -1,5 +1,5 @@
 Vue.component('wtc-widget', {
-  props: ['wtc', 'refresh'],
+  props: ['wtc'],
   data: function () {
     return {
       settings_url: '',
@@ -25,7 +25,7 @@ Vue.component('wtc-widget', {
   <a class='btn btn-light' target="_blank" :href="log_url">Log</a>
   <a class='btn btn-light' v-on:click="stop_wtc" v-if="wtc.switch">Stop</a>
   <a class='btn btn-light' v-on:click="start_wtc" v-else>Start</a>
-  <a class='btn btn-danger' v-on:click="onRemove" >Remove</a>
+
   <td>
 
   <b-modal title="Update" hide-footer v-model="showEditModal">
@@ -65,9 +65,11 @@ Vue.component('wtc-widget', {
 
   </b-form-group>
   <b-button-group>
-  <button type="button" variant="btn btn-light" v-on:click="onSubmitUpdate">Update</button>
-  <b-button type="reset" variant="danger" v-on:click="onResetUpdate">Cancel</b-button>
+  <button class="btn btn-light" v-on:click="onSubmitUpdate">Update</button>
+  <button class="btn btn-light" v-on:click="onResetUpdate">Cancel</b-button>
   </b-button-group>
+
+  <b-button  class="btn btn-danger float-right" v-on:click="onRemove">Remove</b-button>
   </b-form>
   </b-modal>
   </tr>
