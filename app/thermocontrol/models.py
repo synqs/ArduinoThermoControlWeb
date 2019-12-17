@@ -99,7 +99,8 @@ class WebTempControl(db.Model):
             self.output = vals[3];
             self.gain = vals[4];
             self.integral = vals[5];
-            self.diff = vals[6];
+            sp_vals = vals[6].split('\r');
+            self.diff = sp_vals[0];
             self.timestamp = datetime.now().replace(microsecond=0);
             db.session.commit();
 

@@ -25,7 +25,6 @@ class ClientTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-
     def test_add_webtempcontrol(self):
         # register a new account
         response = self.client.post('/wtc/', data={
