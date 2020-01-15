@@ -1,7 +1,6 @@
 import os
-import eventlet
 from datetime import datetime
-from app import db, socketio
+from app import db
 
 workers = [];
 

@@ -1,17 +1,16 @@
-from app import socketio, db
-from app.main import bp
+from app import db
 
+from app.main import bp
 from app.main.forms import LoginForm, RegistrationForm
 from app.main.models import User
 
-from app.thermocontrol.models import TempControl, WebTempControl
-from app.serialmonitor.models import ArduinoSerial
+from app.thermocontrol.models import  WebTempControl, wtcs_schema
 from app.cameracontrol.models import Camera
 
 from flask import render_template, flash, redirect, url_for, session
-from flask_socketio import emit, disconnect
 
 from flask_login import current_user, login_user, logout_user
+import json
 
 @bp.route('/')
 @bp.route('/index', methods=['GET', 'POST'])
@@ -26,18 +25,13 @@ def index():
         wtcontrols = WebTempControl.query.all();
         n_wtcs = WebTempControl.query.count();
 
-    tcontrols = TempControl.query.all();
-    n_tcs = len(tcontrols);
-
-
-    smonitors = ArduinoSerial.query.all();
-    n_sm = len(smonitors);
 
     cams = Camera.query.all();
     n_cameras = len(cams);
 
-    return render_template('index.html',n_tcs = n_tcs, tempcontrols = tcontrols,
-    n_wtcs = n_wtcs, wtempcontrols = wtcontrols, n_sm = n_sm, serialmonitors = smonitors, n_cameras = n_cameras, cameras = cams);
+    wtc_json = json.dumps(wtcs_schema.dump(wtcontrols));
+    return render_template('index.html', n_wtcs = n_wtcs, wtempcontrols = wtcontrols,
+        wtc_json = wtc_json, n_cameras = n_cameras, cameras = cams);
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,16 +65,3 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
-
-# communication with the websocket
-@socketio.on('connect')
-def run_connect():
-    '''
-    we are connecting the client to the server. This will only work if the
-    Arduino already has a serial connection
-    '''
-    socketio.emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('my_ping')
-def ping_pong():
-    emit('my_pong')

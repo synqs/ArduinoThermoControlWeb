@@ -6,7 +6,7 @@ import re
 
 class ClientTestCase(unittest.TestCase):
     def setUp(self):
-        self.socketio, self.app = create_app(TestConfig)
+        self.app = create_app(TestConfig)
 
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -22,7 +22,8 @@ class ClientTestCase(unittest.TestCase):
         """Start with a blank database."""
 
         rv = self.client.get('/')
-        assert b'Login to add new devices' in rv.data
+        print(rv.data)
+        assert b'Login' in rv.data
 
     def test_password_hashing(self):
         user = User(username='susan')
@@ -62,4 +63,3 @@ class ClientTestCase(unittest.TestCase):
             'password2': 'cat'
         })
         self.assertEqual(response.status_code, 200)
-

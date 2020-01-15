@@ -6,7 +6,7 @@ import re
 
 class ClientTestCase(unittest.TestCase):
     def setUp(self):
-        self.socketio, self.app = create_app(TestConfig)
+        self.app = create_app(TestConfig)
 
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -25,10 +25,9 @@ class ClientTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-
     def test_add_webtempcontrol(self):
         # register a new account
-        response = self.client.post('/add_webtempcontrol', data={
+        response = self.client.post('/wtc/', data={
              'ip_adress': '127.0.0.1',
         #     'username': 'john',
         #     'password': 'cat',
