@@ -1,17 +1,12 @@
 import os
+from dotenv import load_dotenv
+
 basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 class Config(object):
     # ...
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'amTestKey'
-
-
-    # config of the serial ports
-    SERIAL_PORT = '/dev/cu.usbmodem1421'
-    SERIAL_TIME = 3;
-
-    # config of the camera stuff
-    CAMERA_FOLDER = basedir
 
     # emailing errors
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
@@ -23,6 +18,7 @@ class Config(object):
 
 class ProductionConfig(Config):
     # the database
+    print(os.environ.get('DATABASE_URL'));
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -106,6 +106,10 @@ If you would like to create the dockerfile locally, you might run
 
 >  docker build -t devicecontrolserver:latest .
 
+# MySQL docker
+
+while sqlite is nice for some tests it can be rather annoying to update etc. So we might continue with mySQL databases.
+
 # TODO
 
  [x] Allow for changing the parameters of the feedback loop through some serial communication.
