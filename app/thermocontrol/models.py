@@ -9,14 +9,14 @@ from flask import current_app
 import os
 
 class WebTempControl(db.Model):
-    id = db.Column(db.Integer, primary_key=True);
+    id = db.Column(db.Integer, primary_key=True); # Not neccessary since id is given automatically ... ?
 
-    switch = db.Column(db.Boolean);
+    switch = db.Column(db.Boolean); # What is this ? = WIT
     name = db.Column(db.String(64));
-    ard_str = db.Column(db.String(120));
-    sleeptime = db.Column(db.Float);
+    ard_str = db.Column(db.String(120)); # WIT
+    sleeptime = db.Column(db.Float); # What would be a useful default ?
 
-    ip_adress = db.Column(db.String(64));
+    ip_adress = db.Column(db.String(64)); # Is there a specific reason to use 64 ?
     port = db.Column(db.String(64));
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
 
