@@ -11,9 +11,9 @@ import os
 class WebTempControl(db.Model):
     id = db.Column(db.Integer, primary_key=True); # Not neccessary since id is given automatically ... ?
 
-    switch = db.Column(db.Boolean); # What is this ? = WIT
+    switch = db.Column(db.Boolean); # What is this for ? = WITF
     name = db.Column(db.String(64));
-    ard_str = db.Column(db.String(120)); # WIT
+    ard_str = db.Column(db.String(120)); # WITF
     sleeptime = db.Column(db.Float); # What would be a useful default ?
 
     ip_adress = db.Column(db.String(64)); # Is there a specific reason to use 64 ?
@@ -29,7 +29,7 @@ class WebTempControl(db.Model):
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
 
-    timestamp = db.Column(db.DateTime,
+    timestamp = db.Column(db.DateTime, # WITF ?
         default=datetime.utcnow);
 
     timeout = 5;
@@ -44,16 +44,16 @@ class WebTempControl(db.Model):
     def temp_http_str(self):
         return self.http_str() + '/arduino/read/all/';
 
-    def temp_field_str(self):
+    def temp_field_str(self):                               # WITF
         return 'read_wtc' + str(self.id);
 
-    def conn_str(self):
+    def conn_str(self):                                     # WITF
         return 'conn_wtc' + str(self.id);
 
-    def startstop_str(self):
+    def startstop_str(self):                                # WITF
         return 'start' + str(self.id);
 
-    def connection_open(self):
+    def connection_open(self):                              # Do we need this ?
         '''
         Is the protocol running ?
         '''
@@ -197,7 +197,7 @@ class WebTempControl(db.Model):
         except ConnectionError:
             return False
 
-class WtcSchema(ma.ModelSchema):
+class WtcSchema(ma.ModelSchema): # WITF ?
     class Meta:
         model = WebTempControl
 
