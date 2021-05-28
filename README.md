@@ -68,7 +68,7 @@ The next step is to run the file through:
 - open it in a brower on 'localhost:5000'
 
 # Daily Usage
-
+''' This we do not need...
 ## Docker
 
 This is the new simplest way, __ but the data will be lost at each update__. You simply run locally after downloading it:
@@ -76,7 +76,7 @@ This is the new simplest way, __ but the data will be lost at each update__. You
 > docker run -p 8000:5000 devicecontrolserver:latest
 
 - open it in a brower on 'localhost:8000'
-
+'''
 ## The server itself
 
 If you insist on the python approach
