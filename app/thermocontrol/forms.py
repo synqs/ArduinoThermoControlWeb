@@ -6,7 +6,7 @@ class UpdateForm(FlaskForm):
     '''
     The form for connecting to the Arduino
     '''
-    id = HiddenField('A hidden field');
+    id = HiddenField('A hidden field'); # Why creating a field, that is hidden anyways ?
     serial_port = StringField('Update to port:', validators=[DataRequired()])
     submit = SubmitField('Update port')
 
