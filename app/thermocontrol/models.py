@@ -59,7 +59,8 @@ class WebTempControl(db.Model):
         '''
         return self.is_alive() and self.is_open()
 
-    def is_open(self):
+    # DOES ALL OF THIS BE DECLARED WITHIN THE TEMPCONTROL-CLASS ?
+    def is_open(self):                      
         '''
         test if the serial connection is open
         '''
