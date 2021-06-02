@@ -9,14 +9,14 @@ from flask import current_app
 import os
 
 class WebTempControl(db.Model):
-    id = db.Column(db.Integer, primary_key=True); # Not neccessary since id is given automatically ... ?
+    id = db.Column(db.Integer, primary_key=True); # Not neccessary since id is given automatically ... ? -- Not necessary, but might not hurt
 
-    switch = db.Column(db.Boolean); # What is this for ? = WITF
+    switch = db.Column(db.Boolean); # What is this for ? = WITF -- control is on or not ?
     name = db.Column(db.String(64));
-    ard_str = db.Column(db.String(120)); # WITF
-    sleeptime = db.Column(db.Float); # What would be a useful default ?
+    ard_str = db.Column(db.String(120)); # WITF --- the information you get back from the arduino. Of no interest to the user, but great for debugging
+    sleeptime = db.Column(db.Float); # What would be a useful default ?  --- how often do we ask the Arduino for its current status.
 
-    ip_adress = db.Column(db.String(64)); # Is there a specific reason to use 64 ?
+    ip_adress = db.Column(db.String(64)); # Is there a specific reason to use 64 ?  ---- I do not remember
     port = db.Column(db.String(64));
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'));
 
@@ -29,7 +29,7 @@ class WebTempControl(db.Model):
     integral = db.Column(db.Float);
     diff = db.Column(db.Float);
 
-    timestamp = db.Column(db.DateTime, # WITF ?
+    timestamp = db.Column(db.DateTime, # WITF ? ---- when did we ask the Arduino the last time for information ? 
         default=datetime.utcnow);
 
     timeout = 5;
@@ -45,6 +45,9 @@ class WebTempControl(db.Model):
         return self.http_str() + '/arduino/read/all/';
 
     def temp_field_str(self):                               # WITF
+        '''
+        To fill up the names of the html elements with the proper ID and interact with the js part. But better doc clearly needed.
+        '''
         return 'read_wtc' + str(self.id);
 
     def conn_str(self):                                     # WITF
@@ -59,7 +62,7 @@ class WebTempControl(db.Model):
         '''
         return self.is_alive() and self.is_open()
 
-    # DOES ALL OF THIS BE DECLARED WITHIN THE TEMPCONTROL-CLASS ?
+    # DOES ALL OF THIS BE DECLARED WITHIN THE TEMPCONTROL-CLASS ? --- Very likely to be outdated
     def is_open(self):                      
         '''
         test if the serial connection is open
