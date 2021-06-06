@@ -12,45 +12,6 @@
 {% endif %}
 {% endif %}
 
-{% if n_cameras %}
-<h1> Cameras</h1>
-<table class="table table-hover" id ="arduino overview">
-  <thead>
-  <tr>
-    <th scope="col">#</th>
-    <th scope="col">Name</th>
-    <th scope="col">Folder</th>
-    <th scope="col">Status</th>
-    <th scope="col">Current Value</th>
-    <th scope="col">Other actions </th>
-  </tr>
-  </thead>
-  <tbody>
-    {% for ard in cameras %}
-    <tr>
-      <td>{{ ard.id }}</td>
-      <td>{{ ard.name }}</td>
-      <td>{{ ard.folder }}</td>
-      {% if ard.is_open() %}
-      <td class="bg-success">Open</td>
-      {% else %}
-      <td class="bg-warning">Closed</td>
-      {% endif %}
-      <td id ='{{ ard.label() }}'>No value yet.</td>
-      <td>
-        <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.change_camera', ard_nr = ard.id)}}">Settings</a>
-        {% if ard.is_open() %}
-        <a class='btn btn-default' target="_blank" href="{{url_for('cameracontrol.camera_details', ard_nr = ard.id)}}">Log</a>
-        {% else %}
-        <a class='btn btn-default' href="{{url_for('cameracontrol.start_camera', ard_nr = ard.id)}}">Start</a>
-        {% endif %}
-      <td>
-    </tr>
-    {% endfor %}
- </tbody>
-</table>
-{% endif %}
-
 <div id="ping-pong-test">
   <ping-pong-widget/>
 </div>
